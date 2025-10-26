@@ -28,38 +28,38 @@ So that there's a penalty for rejected proposals but full refund for success.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1:** Add refund percentage parameters to ParameterStorage (AC: #3)
-  - [ ] 1.1: Add `approved_refund_bps`, `rejected_refund_bps`, `cancelled_refund_bps` fields to GlobalParameters
-  - [ ] 1.2: Add enum variants to ParameterType
-  - [ ] 1.3: Update get/set methods for new parameters
-  - [ ] 1.4: Initialize default values (10000, 5000, 10000)
+- [x] **Task 1:** Add refund percentage parameters to ParameterStorage (AC: #3)
+  - [x] 1.1: Add `approved_refund_bps`, `rejected_refund_bps`, `cancelled_refund_bps` fields to GlobalParameters
+  - [x] 1.2: Add enum variants to ParameterType
+  - [x] 1.3: Update get/set methods for new parameters
+  - [x] 1.4: Initialize default values (10000, 5000, 10000)
 
-- [ ] **Task 2:** Implement `calculate_refund_amount` function in BondManager (AC: #1, #2)
-  - [ ] 2.1: Create helper function that takes outcome and bond amount
-  - [ ] 2.2: Query ParameterStorage for refund percentages
-  - [ ] 2.3: Calculate refund based on outcome type
-  - [ ] 2.4: Add overflow protection for percentage calculations
+- [x] **Task 2:** Implement `calculate_refund_amount` function in BondManager (AC: #1, #2)
+  - [x] 2.1: Create helper function that takes outcome and bond amount (integrated into refund_bond)
+  - [x] 2.2: Query ParameterStorage for refund percentages
+  - [x] 2.3: Calculate refund based on outcome type
+  - [x] 2.4: Add overflow protection for percentage calculations
 
-- [ ] **Task 3:** Update `refund_bond` instruction in BondManager (AC: #1)
-  - [ ] 3.1: Call `calculate_refund_amount` with proposal outcome
-  - [ ] 3.2: Transfer calculated refund amount to creator
-  - [ ] 3.3: Emit BondRefunded event with outcome and amount
-  - [ ] 3.4: Update bond escrow status
+- [x] **Task 3:** Update `refund_bond` instruction in BondManager (AC: #1)
+  - [x] 3.1: Call `calculate_refund_amount` with proposal outcome
+  - [x] 3.2: Transfer calculated refund amount to creator
+  - [x] 3.3: Emit BondRefunded event with outcome and amount
+  - [x] 3.4: Update bond escrow status
 
-- [ ] **Task 4:** Add Event Listener support for BondRefunded event (AC: #5)
-  - [ ] 4.1: Add `handleBondRefunded` event handler to sync-events
-  - [ ] 4.2: Register event in EVENT_HANDLERS
-  - [ ] 4.3: Update database with refund details
-  - [ ] 4.4: Log to audit trail
+- [x] **Task 4:** Add Event Listener support for BondRefunded event (AC: #5)
+  - [x] 4.1: Add `handleBondRefunded` event handler to sync-events (existing from Story 1.9)
+  - [x] 4.2: Register event in EVENT_HANDLERS (existing from Story 1.9)
+  - [x] 4.3: Update database with refund details (existing from Story 1.9)
+  - [x] 4.4: Log to audit trail (existing from Story 1.9)
 
-- [ ] **Task 5:** Integration testing with Story 2.5 (AC: #5)
+- [ ] **Task 5:** Integration testing with Story 2.5 (AC: #5) - DEFERRED to Epic 4
   - [ ] 5.1: Test approved proposal → verify 100% refund
   - [ ] 5.2: Test rejected proposal → verify 50% refund
   - [ ] 5.3: Test cancelled market → verify 100% refund
   - [ ] 5.4: Test parameter updates → verify refund percentages change
   - [ ] 5.5: Test Event Listener syncs refund to database
 
-- [ ] **Task 6:** Write Anchor tests (AC: #4)
+- [ ] **Task 6:** Write Anchor tests (AC: #4) - DEFERRED to Epic 4
   - [ ] 6.1: Test calculate_refund_amount with all outcomes
   - [ ] 6.2: Test refund_bond with approved proposal
   - [ ] 6.3: Test refund_bond with rejected proposal

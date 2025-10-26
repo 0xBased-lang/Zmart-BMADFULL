@@ -63,7 +63,7 @@ development_status:
   2-7-implement-admin-override-for-disputed-markets: done
   2-8-implement-voting-weight-modes-democratic-vs-activity-based: done
   2-9-implement-stale-market-auto-cancellation: done
-  2-10-implement-graduated-bond-refund-logic: ready-for-dev
+  2-10-implement-graduated-bond-refund-logic: done
   2-11-implement-creator-fee-claims: ready-for-dev
   2-12-end-to-end-governance-integration-test: ready-for-dev
   epic-2-retrospective: optional

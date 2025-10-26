@@ -55,6 +55,11 @@ pub mod parameter_storage {
         // Voting weight mode (Story 2.8): 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
         params.voting_weight_mode = 0; // Default: DEMOCRATIC
 
+        // Graduated bond refund percentages (Story 2.10) - in basis points
+        params.approved_refund_bps = 10000;  // 100% refund for approved proposals
+        params.rejected_refund_bps = 5000;   // 50% refund for rejected proposals
+        params.cancelled_refund_bps = 10000; // 100% refund for cancelled markets
+
         // Safety constraints
         params.update_cooldown_seconds = 86_400; // 24 hours
         params.max_change_bps = 2000;            // 20%
@@ -193,6 +198,11 @@ pub struct GlobalParameters {
     // Voting weight mode (Story 2.8): 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
     pub voting_weight_mode: u8,
 
+    // Graduated bond refund percentages (Story 2.10) - in basis points
+    pub approved_refund_bps: u16,  // 100% = 10000
+    pub rejected_refund_bps: u16,  // 50% = 5000 (default)
+    pub cancelled_refund_bps: u16, // 100% = 10000
+
     // Safety constraints
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
@@ -243,6 +253,9 @@ pub enum ParameterType {
     BondTier3,
     StaleMarketThreshold, // Story 2.9
     VotingWeightMode, // Story 2.8: 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
+    ApprovedRefund, // Story 2.10: Refund % for approved proposals (basis points)
+    RejectedRefund, // Story 2.10: Refund % for rejected proposals (basis points)
+    CancelledRefund, // Story 2.10: Refund % for cancelled markets (basis points)
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -275,6 +288,9 @@ impl GlobalParameters {
             ParameterType::BondTier3 => self.bond_tier_3_lamports,
             ParameterType::StaleMarketThreshold => self.stale_market_threshold_days as u64,
             ParameterType::VotingWeightMode => self.voting_weight_mode as u64,
+            ParameterType::ApprovedRefund => self.approved_refund_bps as u64,
+            ParameterType::RejectedRefund => self.rejected_refund_bps as u64,
+            ParameterType::CancelledRefund => self.cancelled_refund_bps as u64,
         }
     }
 
@@ -302,6 +318,18 @@ impl GlobalParameters {
             ParameterType::VotingWeightMode => {
                 require!(value <= 1, ParameterError::InvalidValue);
                 self.voting_weight_mode = value as u8;
+            }
+            ParameterType::ApprovedRefund => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.approved_refund_bps = value as u16;
+            }
+            ParameterType::RejectedRefund => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.rejected_refund_bps = value as u16;
+            }
+            ParameterType::CancelledRefund => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.cancelled_refund_bps = value as u16;
             }
         }
         Ok(())
@@ -366,7 +394,7 @@ pub struct InitializeParameters<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 1 + 8 + 2 + 8*2 + 4 + 1, // ~217 bytes (added 1 for voting_weight_mode u8)
+        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 1 + 2*3 + 8 + 2 + 8*2 + 4 + 1, // ~223 bytes (added 6 for 3x u16 refund percentages)
         seeds = [b"global-parameters"],
         bump
     )]

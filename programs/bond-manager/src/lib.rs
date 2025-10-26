@@ -109,11 +109,15 @@ pub mod bond_manager {
                 BondError::Unauthorized
             );
 
-            let amount = match refund_type {
-                RefundType::Full => escrow.bond_amount,
-                RefundType::Partial => escrow.bond_amount / 2,
-                RefundType::Slash => 0,
+            // Calculate refund amount using graduated percentages from ParameterStorage
+            let refund_bps = match refund_type {
+                RefundType::Approved => ctx.accounts.global_parameters.approved_refund_bps,
+                RefundType::Rejected => ctx.accounts.global_parameters.rejected_refund_bps,
+                RefundType::Cancelled => ctx.accounts.global_parameters.cancelled_refund_bps,
+                RefundType::Slashed => 0, // Always 0% for slashed bonds
             };
+
+            let amount = (escrow.bond_amount as u128 * refund_bps as u128 / 10000) as u64;
 
             (amount, escrow.market_id, escrow.creator)
         };
@@ -127,9 +131,9 @@ pub mod bond_manager {
         // Update escrow status (get mutable borrow after transfer)
         let escrow = &mut ctx.accounts.bond_escrow;
         escrow.status = match refund_type {
-            RefundType::Full => BondStatus::Refunded,
-            RefundType::Partial => BondStatus::PartialRefund,
-            RefundType::Slash => BondStatus::Slashed,
+            RefundType::Approved | RefundType::Cancelled => BondStatus::Refunded,
+            RefundType::Rejected => BondStatus::PartialRefund,
+            RefundType::Slashed => BondStatus::Slashed,
         };
         escrow.refunded_at = Some(clock.unix_timestamp);
 
@@ -276,9 +280,10 @@ pub enum BondTier {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum RefundType {
-    Full,     // 100% refund on success
-    Partial,  // 50% refund on rejection
-    Slash,    // 0% refund on fraud/dispute
+    Approved,   // Approved proposal - uses approved_refund_bps
+    Rejected,   // Rejected proposal - uses rejected_refund_bps
+    Cancelled,  // Cancelled market - uses cancelled_refund_bps
+    Slashed,    // Fraud/dispute - 0% refund (not configurable)
 }
 
 // ==============================================================================
@@ -323,8 +328,19 @@ pub struct RefundBond<'info> {
     )]
     pub bond_escrow: Account<'info, BondEscrow>,
 
+    /// Global parameters from ParameterStorage (for refund percentages)
+    #[account(
+        seeds = [b"global-parameters"],
+        bump,
+        seeds::program = parameter_storage_program.key()
+    )]
+    pub global_parameters: Account<'info, GlobalParameters>,
+
     #[account(mut)]
     pub creator: Signer<'info>,
+
+    /// CHECK: ParameterStorage program ID
+    pub parameter_storage_program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -374,6 +390,9 @@ pub struct GlobalParameters {
     pub bond_tier_1_lamports: u64,
     pub bond_tier_2_lamports: u64,
     pub bond_tier_3_lamports: u64,
+    pub approved_refund_bps: u16,  // Story 2.10: Refund % for approved proposals
+    pub rejected_refund_bps: u16,  // Story 2.10: Refund % for rejected proposals
+    pub cancelled_refund_bps: u16, // Story 2.10: Refund % for cancelled markets
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
     pub last_updated: i64,
