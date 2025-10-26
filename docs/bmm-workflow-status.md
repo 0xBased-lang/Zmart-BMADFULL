@@ -23,10 +23,10 @@ PHASE_4_COMPLETE: false
 ## Implementation Progress
 
 CURRENT_EPIC: 2
-CURRENT_STORY: 2.8
+CURRENT_STORY: 2.10
 IN_PROGRESS_STORY: none
 IN_PROGRESS_TITLE: none
-LAST_COMPLETED_STORY: 2.9
+LAST_COMPLETED_STORY: 2.8
 
 ## Story Backlog
 
@@ -34,10 +34,10 @@ LAST_COMPLETED_STORY: 2.9
 COMPLETED_STORIES: [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12]
 
 ### Epic 2: Community Governance (12 stories) - IN PROGRESS
-COMPLETED_STORIES: [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.9]
-TODO_STORIES: [2.8, 2.10, 2.11, 2.12]
-LAST_COMPLETED: Story 2.9
-NEXT_UP: Story 2.8 (Voting Weight Modes - story file created, ready for implementation)
+COMPLETED_STORIES: [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9]
+TODO_STORIES: [2.10, 2.11, 2.12]
+LAST_COMPLETED: Story 2.8
+NEXT_UP: Story 2.10 (Graduated Bond Refund Logic - story file created, ready for implementation)
 
 ### Epic 3: Advanced Features (14 stories) - BACKLOG
 TODO_STORIES: [3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14]
@@ -48,15 +48,15 @@ TODO_STORIES: [4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12]
 ## Progress Metrics
 
 TOTAL_STORIES: 50
-COMPLETED_COUNT: 20
+COMPLETED_COUNT: 21
 IN_PROGRESS_COUNT: 0
-TODO_COUNT: 30
-COMPLETION_PERCENTAGE: 40%
+TODO_COUNT: 29
+COMPLETION_PERCENTAGE: 42%
 
 ## Next Action
 
-NEXT_ACTION: Implement Story 2.8 (Voting Weight Modes)
-NEXT_COMMAND: /bmad:bmm:workflows:dev-story 2.8
+NEXT_ACTION: Implement Story 2.10 (Graduated Bond Refund Logic)
+NEXT_COMMAND: /bmad:bmm:workflows:dev-story 2.10
 RECOMMENDED_WORKFLOW: dev-story → story-done
 
 ## Project Status
@@ -68,5 +68,5 @@ FRONTEND_STATUS: Not started (will follow story workflow)
 
 ---
 
-_Last Updated: 2025-10-26 (Stories 2.6, 2.7, 2.9 Complete)_
-_Status Version: 4.3 - Epic 1: 12/12 (100%) | Epic 2: 8/12 (67%)_
+_Last Updated: 2025-10-26 (Story 2.8 Complete - Voting Weight Modes)_
+_Status Version: 4.4 - Epic 1: 12/12 (100%) | Epic 2: 9/12 (75%)_

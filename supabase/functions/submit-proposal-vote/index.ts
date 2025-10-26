@@ -314,32 +314,25 @@ async function checkDuplicateVote(
   return !!data;
 }
 
+/**
+ * Calculate vote weight for a voter
+ *
+ * Uses the global voting_weight_mode configuration (Story 2.8):
+ * - DEMOCRATIC: all votes have weight = 1
+ * - ACTIVITY_WEIGHTED: weight = user's activity_points (minimum 1)
+ */
 async function calculateVoteWeight(voterWallet: string): Promise<number> {
-  // For MVP: Use democratic mode (weight = 1)
-  // Story 2.8 will implement voting weight mode toggling
+  // Use database function that checks voting_weight_mode and calculates accordingly
+  const { data, error } = await supabase.rpc('calculate_user_vote_weight', {
+    p_voter_wallet: voterWallet
+  });
 
-  // TODO: Implement activity-weighted mode
-  // const votingMode = await getVotingMode();
-  // if (votingMode === 'DEMOCRATIC') return 1;
-
-  // Fetch user's activity points for weighted voting
-  const { data: user, error } = await supabase
-    .from("users")
-    .select("activity_points")
-    .eq("wallet_address", voterWallet)
-    .single();
-
-  if (error || !user) {
-    console.warn(`User ${voterWallet} not found, defaulting to weight 1`);
-    return 1; // Default for new users
+  if (error) {
+    console.error('Error calculating vote weight:', error);
+    return 1; // Default to 1 on error
   }
 
-  // For MVP: Always use democratic mode (weight = 1)
-  // Future: Use activity_points for weighted mode
-  return 1;
-
-  // Activity-weighted implementation (commented for MVP):
-  // return Math.max(1, user.activity_points || 1);
+  return data || 1;
 }
 
 async function storeVote(voteData: {

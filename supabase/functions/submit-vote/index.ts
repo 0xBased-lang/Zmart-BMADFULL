@@ -71,20 +71,18 @@ const corsHeaders = {
 
 /**
  * Calculate vote weight for a voter
+ *
+ * Uses the global voting_weight_mode configuration:
+ * - DEMOCRATIC: all votes have weight = 1
+ * - ACTIVITY_WEIGHTED: weight = user's activity_points (minimum 1)
  */
 async function calculateVoteWeight(
   supabase: any,
-  voterWallet: string,
-  mode: 'democratic' | 'weighted' = 'democratic'
+  voterWallet: string
 ): Promise<number> {
-  if (mode === 'democratic') {
-    return 1;
-  }
-
-  // Weighted mode: use activity points from database function
-  const { data, error } = await supabase.rpc('calculate_vote_weight', {
-    p_voter_wallet: voterWallet,
-    p_mode: mode
+  // Use database function that checks voting_weight_mode and calculates accordingly
+  const { data, error } = await supabase.rpc('calculate_user_vote_weight', {
+    p_voter_wallet: voterWallet
   });
 
   if (error) {
@@ -240,13 +238,9 @@ serve(async (req) => {
       );
     }
 
-    // STEP 2: Calculate vote weight
+    // STEP 2: Calculate vote weight based on voting_weight_mode
     console.log('Step 2: Calculating vote weight...');
-    const voteWeight = await calculateVoteWeight(
-      supabase,
-      publicKey,
-      'democratic' // TODO: Make configurable per market or system-wide
-    );
+    const voteWeight = await calculateVoteWeight(supabase, publicKey);
 
     // STEP 3: Store vote in database
     console.log('Step 3: Storing vote in database...');

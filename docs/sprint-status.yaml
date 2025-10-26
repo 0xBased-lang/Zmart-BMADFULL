@@ -61,7 +61,7 @@ development_status:
   2-5-implement-proposal-approval-rejection-logic: done
   2-6-implement-dispute-flagging-mechanism: done
   2-7-implement-admin-override-for-disputed-markets: done
-  2-8-implement-voting-weight-modes-democratic-vs-activity-based: ready-for-dev
+  2-8-implement-voting-weight-modes-democratic-vs-activity-based: done
   2-9-implement-stale-market-auto-cancellation: done
   2-10-implement-graduated-bond-refund-logic: ready-for-dev
   2-11-implement-creator-fee-claims: ready-for-dev

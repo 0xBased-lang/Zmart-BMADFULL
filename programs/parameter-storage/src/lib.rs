@@ -52,6 +52,9 @@ pub mod parameter_storage {
         // Stale market auto-cancellation (Story 2.9)
         params.stale_market_threshold_days = 30; // 30 days after end_date
 
+        // Voting weight mode (Story 2.8): 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
+        params.voting_weight_mode = 0; // Default: DEMOCRATIC
+
         // Safety constraints
         params.update_cooldown_seconds = 86_400; // 24 hours
         params.max_change_bps = 2000;            // 20%
@@ -187,6 +190,9 @@ pub struct GlobalParameters {
     // Stale market auto-cancellation (Story 2.9)
     pub stale_market_threshold_days: i64,
 
+    // Voting weight mode (Story 2.8): 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
+    pub voting_weight_mode: u8,
+
     // Safety constraints
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
@@ -236,6 +242,7 @@ pub enum ParameterType {
     BondTier2,
     BondTier3,
     StaleMarketThreshold, // Story 2.9
+    VotingWeightMode, // Story 2.8: 0 = DEMOCRATIC, 1 = ACTIVITY_WEIGHTED
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -267,6 +274,7 @@ impl GlobalParameters {
             ParameterType::BondTier2 => self.bond_tier_2_lamports,
             ParameterType::BondTier3 => self.bond_tier_3_lamports,
             ParameterType::StaleMarketThreshold => self.stale_market_threshold_days as u64,
+            ParameterType::VotingWeightMode => self.voting_weight_mode as u64,
         }
     }
 
@@ -291,6 +299,10 @@ impl GlobalParameters {
             ParameterType::BondTier2 => self.bond_tier_2_lamports = value,
             ParameterType::BondTier3 => self.bond_tier_3_lamports = value,
             ParameterType::StaleMarketThreshold => self.stale_market_threshold_days = value as i64,
+            ParameterType::VotingWeightMode => {
+                require!(value <= 1, ParameterError::InvalidValue);
+                self.voting_weight_mode = value as u8;
+            }
         }
         Ok(())
     }
@@ -354,7 +366,7 @@ pub struct InitializeParameters<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 8 + 2 + 8*2 + 4 + 1, // ~216 bytes
+        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 1 + 8 + 2 + 8*2 + 4 + 1, // ~217 bytes (added 1 for voting_weight_mode u8)
         seeds = [b"global-parameters"],
         bump
     )]
