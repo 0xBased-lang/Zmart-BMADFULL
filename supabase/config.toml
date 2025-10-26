@@ -99,3 +99,6 @@ enable_confirmations = false
 # Docs: https://supabase.com/docs/guides/functions/deploy
 [functions.sync-events]
 verify_jwt = false
+
+[functions.verify-vote-signature]
+verify_jwt = false  # Public endpoint for vote signature verification
