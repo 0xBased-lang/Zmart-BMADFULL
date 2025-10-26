@@ -70,7 +70,7 @@ development_status:
 
   # Epic 3: Frontend & UX (14 stories)
   epic-3: backlog
-  3-1-initialize-next-js-application-with-solana-wallet-adapter: backlog
+  3-1-initialize-next-js-application-with-solana-wallet-adapter: done
   3-2-implement-supabase-client-and-real-time-subscriptions: backlog
   3-3-build-homepage-with-market-discovery: backlog
   3-4-build-market-detail-page-with-betting-interface: backlog
