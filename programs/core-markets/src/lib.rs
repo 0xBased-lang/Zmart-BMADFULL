@@ -123,7 +123,17 @@ pub mod core_markets {
 
         // Calculate fees (in basis points)
         let platform_fee = (amount as u128 * params.platform_fee_bps as u128) / 10000;
-        let creator_fee = (amount as u128 * params.creator_fee_bps as u128) / 10000;
+
+        // Story 2.11: Use tiered creator fee based on bond tier
+        // Deserialize BondEscrow to read bond_tier
+        let bond_escrow_data = ctx.accounts.bond_escrow.try_borrow_data()?;
+        let bond_escrow = BondEscrow::try_deserialize(&mut &bond_escrow_data[8..])?; // Skip 8-byte discriminator
+
+        let creator_fee_bps = get_creator_fee_bps_for_tier(
+            bond_escrow.bond_tier,
+            &params
+        );
+        let creator_fee = (amount as u128 * creator_fee_bps as u128) / 10000;
         let total_fees = platform_fee + creator_fee;
         let amount_to_pool = amount - total_fees as u64;
 
@@ -577,6 +587,28 @@ pub enum BetSide {
     No,
 }
 
+// Story 2.11: Bond tier enum from BondManager (for tiered creator fees)
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
+pub enum BondTier {
+    Tier1,  // Lowest bond, lowest creator fee (0.5%)
+    Tier2,  // Medium bond, medium creator fee (1.0%)
+    Tier3,  // Highest bond, highest creator fee (2.0%)
+}
+
+// Story 2.11: BondEscrow struct (minimal fields needed for reading bond_tier)
+#[account]
+pub struct BondEscrow {
+    pub creator: Pubkey,
+    pub bond_amount: u64,
+    pub market_id: u64,
+    pub status: u8, // Simplified: 0=Active, 1=Refunded, 2=PartialRefund, 3=Slashed
+    pub deposited_at: i64,
+    pub refunded_at: Option<i64>,
+    pub accumulated_fees: u64,
+    pub bond_tier: BondTier,
+    pub bump: u8,
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -588,6 +620,16 @@ fn calculate_odds(yes_pool: u64, no_pool: u64) -> u16 {
         return 5000; // 50% if no bets yet
     }
     ((yes_pool as u128 * 10000) / total as u128) as u16
+}
+
+/// Story 2.11: Get creator fee percentage based on bond tier
+/// Maps bond tier to corresponding fee percentage from ParameterStorage
+fn get_creator_fee_bps_for_tier(bond_tier: BondTier, params: &GlobalParameters) -> u16 {
+    match bond_tier {
+        BondTier::Tier1 => params.low_tier_fee_bps,
+        BondTier::Tier2 => params.medium_tier_fee_bps,
+        BondTier::Tier3 => params.high_tier_fee_bps,
+    }
 }
 
 // ============================================================================
@@ -643,6 +685,15 @@ pub struct PlaceBet<'info> {
     )]
     pub global_parameters: AccountInfo<'info>,
 
+    /// CHECK: Bond escrow from BondManager program - validated via seeds
+    /// Story 2.11: Read bond tier for tiered creator fees
+    #[account(
+        seeds = [b"bond-escrow", market.market_id.to_le_bytes().as_ref()],
+        bump,
+        seeds::program = bond_manager_program.key()
+    )]
+    pub bond_escrow: AccountInfo<'info>,
+
     #[account(mut)]
     pub bettor: Signer<'info>,
 
@@ -650,6 +701,9 @@ pub struct PlaceBet<'info> {
 
     /// CHECK: ParameterStorage program ID
     pub parameter_storage_program: AccountInfo<'info>,
+
+    /// CHECK: BondManager program ID
+    pub bond_manager_program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -780,6 +834,10 @@ pub struct GlobalParameters {
     pub bond_tier_1_lamports: u64,
     pub bond_tier_2_lamports: u64,
     pub bond_tier_3_lamports: u64,
+    // Story 2.11: Tiered creator fee percentages by bond tier
+    pub low_tier_fee_bps: u16,    // 0.5% = 50 (bonds <100 ZMart / Tier1)
+    pub medium_tier_fee_bps: u16, // 1.0% = 100 (bonds 100-499 ZMart / Tier2)
+    pub high_tier_fee_bps: u16,   // 2.0% = 200 (bonds ≥500 ZMart / Tier3)
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
     pub last_updated: i64,

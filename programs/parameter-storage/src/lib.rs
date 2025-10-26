@@ -60,6 +60,11 @@ pub mod parameter_storage {
         params.rejected_refund_bps = 5000;   // 50% refund for rejected proposals
         params.cancelled_refund_bps = 10000; // 100% refund for cancelled markets
 
+        // Creator fee percentages by bond tier (Story 2.11) - in basis points
+        params.low_tier_fee_bps = 50;     // 0.5% for bonds <100 ZMart
+        params.medium_tier_fee_bps = 100; // 1.0% for bonds 100-499 ZMart
+        params.high_tier_fee_bps = 200;   // 2.0% for bonds ≥500 ZMart
+
         // Safety constraints
         params.update_cooldown_seconds = 86_400; // 24 hours
         params.max_change_bps = 2000;            // 20%
@@ -203,6 +208,11 @@ pub struct GlobalParameters {
     pub rejected_refund_bps: u16,  // 50% = 5000 (default)
     pub cancelled_refund_bps: u16, // 100% = 10000
 
+    // Creator fee percentages by bond tier (Story 2.11) - in basis points
+    pub low_tier_fee_bps: u16,    // 0.5% = 50 (bonds <100 ZMart)
+    pub medium_tier_fee_bps: u16, // 1.0% = 100 (bonds 100-499 ZMart)
+    pub high_tier_fee_bps: u16,   // 2.0% = 200 (bonds ≥500 ZMart)
+
     // Safety constraints
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
@@ -256,6 +266,9 @@ pub enum ParameterType {
     ApprovedRefund, // Story 2.10: Refund % for approved proposals (basis points)
     RejectedRefund, // Story 2.10: Refund % for rejected proposals (basis points)
     CancelledRefund, // Story 2.10: Refund % for cancelled markets (basis points)
+    LowTierFee, // Story 2.11: Creator fee % for low bond tier <100 ZMart (basis points)
+    MediumTierFee, // Story 2.11: Creator fee % for medium bond tier 100-499 ZMart (basis points)
+    HighTierFee, // Story 2.11: Creator fee % for high bond tier ≥500 ZMart (basis points)
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -291,6 +304,9 @@ impl GlobalParameters {
             ParameterType::ApprovedRefund => self.approved_refund_bps as u64,
             ParameterType::RejectedRefund => self.rejected_refund_bps as u64,
             ParameterType::CancelledRefund => self.cancelled_refund_bps as u64,
+            ParameterType::LowTierFee => self.low_tier_fee_bps as u64,
+            ParameterType::MediumTierFee => self.medium_tier_fee_bps as u64,
+            ParameterType::HighTierFee => self.high_tier_fee_bps as u64,
         }
     }
 
@@ -330,6 +346,18 @@ impl GlobalParameters {
             ParameterType::CancelledRefund => {
                 require!(value <= 10000, ParameterError::InvalidValue);
                 self.cancelled_refund_bps = value as u16;
+            }
+            ParameterType::LowTierFee => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.low_tier_fee_bps = value as u16;
+            }
+            ParameterType::MediumTierFee => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.medium_tier_fee_bps = value as u16;
+            }
+            ParameterType::HighTierFee => {
+                require!(value <= 10000, ParameterError::InvalidValue);
+                self.high_tier_fee_bps = value as u16;
             }
         }
         Ok(())
@@ -394,7 +422,7 @@ pub struct InitializeParameters<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 1 + 2*3 + 8 + 2 + 8*2 + 4 + 1, // ~223 bytes (added 6 for 3x u16 refund percentages)
+        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 1 + 2*3 + 2*3 + 8 + 2 + 8*2 + 4 + 1, // ~229 bytes (Story 2.10: +6 for refund %, Story 2.11: +6 for tier fee %)
         seeds = [b"global-parameters"],
         bump
     )]
