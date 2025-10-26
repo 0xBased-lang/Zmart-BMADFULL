@@ -1,0 +1,20 @@
+[package]
+name = "proposal-system"
+version = "0.1.0"
+description = "BMAD-Zmart Proposal System - Market creation governance and voting"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "proposal_system"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"

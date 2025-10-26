@@ -1,0 +1,20 @@
+[package]
+name = "core-markets"
+version = "0.1.0"
+description = "BMAD-Zmart Core Markets - Market creation, betting, and payout functionality"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "core_markets"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"

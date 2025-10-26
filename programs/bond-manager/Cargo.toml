@@ -1,0 +1,20 @@
+[package]
+name = "bond-manager"
+version = "0.1.0"
+description = "BMAD-Zmart Bond Manager - Escrow and graduated bond economics"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "bond_manager"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"

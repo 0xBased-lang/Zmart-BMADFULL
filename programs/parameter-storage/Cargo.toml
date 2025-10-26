@@ -1,0 +1,20 @@
+[package]
+name = "parameter-storage"
+version = "0.1.0"
+description = "BMAD-Zmart Parameter Storage - Global configuration and feature toggles"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "parameter_storage"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"

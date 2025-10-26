@@ -1,0 +1,20 @@
+[package]
+name = "market-resolution"
+version = "0.1.0"
+description = "BMAD-Zmart Market Resolution - Community voting and dispute handling"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "market_resolution"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"
