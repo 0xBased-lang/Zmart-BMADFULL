@@ -59,8 +59,8 @@ development_status:
   2-3-implement-vote-aggregation-and-on-chain-result-posting: done
   2-4-implement-proposal-voting-via-snapshot: done
   2-5-implement-proposal-approval-rejection-logic: done
-  2-6-implement-dispute-flagging-mechanism: ready-for-dev
-  2-7-implement-admin-override-for-disputed-markets: ready-for-dev
+  2-6-implement-dispute-flagging-mechanism: done
+  2-7-implement-admin-override-for-disputed-markets: done
   2-8-implement-voting-weight-modes-democratic-vs-activity-based: ready-for-dev
   2-9-implement-stale-market-auto-cancellation: done
   2-10-implement-graduated-bond-refund-logic: ready-for-dev
