@@ -285,6 +285,47 @@ async function handleProposalFinalized(data: any, ctx: EventContext) {
   await logEvent(ctx, "proposal_finalized", true);
 }
 
+// Story 2.5: Proposal Approval Event Handler
+async function handleProposalApproved(data: any, ctx: EventContext) {
+  console.log(`[ProposalApproved] signature=${ctx.signature}`);
+
+  const { error } = await supabase
+    .from("proposals")
+    .update({
+      status: "APPROVED",
+      market_id: data.marketId?.toString() || null, // Market ID when CPI implemented
+      finalized_at: new Date(ctx.timestamp).toISOString(),
+      yes_votes: data.yesVotes || 0,
+      no_votes: data.noVotes || 0,
+      yes_percentage: data.yesPercentage || 0,
+    })
+    .eq("on_chain_proposal_id", data.proposalId.toString());
+
+  if (error) throw error;
+
+  await logEvent(ctx, "proposal_approved", true);
+}
+
+// Story 2.5: Proposal Rejection Event Handler
+async function handleProposalRejected(data: any, ctx: EventContext) {
+  console.log(`[ProposalRejected] signature=${ctx.signature}`);
+
+  const { error } = await supabase
+    .from("proposals")
+    .update({
+      status: "REJECTED",
+      finalized_at: new Date(ctx.timestamp).toISOString(),
+      refund_amount: data.refundAmount?.toString() || null, // 50% bond refund
+      yes_votes: data.yesVotes || 0,
+      no_votes: data.noVotes || 0,
+    })
+    .eq("on_chain_proposal_id", data.proposalId.toString());
+
+  if (error) throw error;
+
+  await logEvent(ctx, "proposal_rejected", true);
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -344,6 +385,8 @@ const EVENT_HANDLERS: Record<string, (data: any, ctx: EventContext) => Promise<v
   "ProposalCreated": handleProposalCreated,
   "ProposalVote": handleProposalVote,
   "ProposalFinalized": handleProposalFinalized,
+  "ProposalApprovedEvent": handleProposalApproved, // Story 2.5
+  "ProposalRejectedEvent": handleProposalRejected, // Story 2.5
 };
 
 async function processEvent(

@@ -1,0 +1,103 @@
+# generated: 2025-10-26 11:50
+# project: BMAD-Zmart
+# project_key: BMAD-Zmart
+# tracking_system: file-system
+# story_location: {project-root}/docs/stories
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via review-story workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+
+generated: 2025-10-26 11:50
+project: BMAD-Zmart
+project_key: BMAD-Zmart
+tracking_system: file-system
+story_location: "{project-root}/docs/stories"
+
+development_status:
+  # Epic 1: Foundation & Infrastructure (12 stories)
+  epic-1: backlog
+  1-1-initialize-anchor-workspace-and-development-environment: done
+  1-2-implement-programregistry-with-version-tracking: done
+  1-3-implement-parameterstorage-with-global-configuration: done
+  1-4-implement-coremarkets-program-market-creation-and-betting: done
+  1-5-implement-bondmanager-program-for-escrow: done
+  1-6-implement-marketresolution-program-community-voting-foundation: done
+  1-7-implement-proposalsystem-program-market-creation-governance: done
+  1-8-set-up-postgresql-database-with-supabase: backlog
+  1-9-implement-event-listener-for-solana-database-sync: backlog
+  1-10-implement-payout-claims-functionality: backlog
+  1-11-implement-activity-point-tracking-system: backlog
+  1-12-end-to-end-integration-test-and-devnet-deployment: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Governance & Voting (12 stories)
+  epic-2: backlog
+  2-1-implement-snapshot-style-vote-signature-verification: done
+  2-2-implement-vote-collection-and-storage: done
+  2-3-implement-vote-aggregation-and-on-chain-result-posting: done
+  2-4-implement-proposal-voting-via-snapshot: done
+  2-5-implement-proposal-approval-rejection-logic: done
+  2-6-implement-dispute-flagging-mechanism: backlog
+  2-7-implement-admin-override-for-disputed-markets: backlog
+  2-8-implement-voting-weight-modes-democratic-vs-activity-based: backlog
+  2-9-implement-stale-market-auto-cancellation: backlog
+  2-10-implement-graduated-bond-refund-logic: backlog
+  2-11-implement-creator-fee-claims: backlog
+  2-12-end-to-end-governance-integration-test: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Frontend & UX (14 stories)
+  epic-3: backlog
+  3-1-initialize-next-js-application-with-solana-wallet-adapter: backlog
+  3-2-implement-supabase-client-and-real-time-subscriptions: backlog
+  3-3-build-homepage-with-market-discovery: backlog
+  3-4-build-market-detail-page-with-betting-interface: backlog
+  3-5-build-user-dashboard-my-bets: backlog
+  3-6-build-proposal-creation-flow: backlog
+  3-7-build-voting-interface-for-market-resolutions: backlog
+  3-8-build-voting-interface-for-proposals: backlog
+  3-9-build-leaderboards-and-user-profiles: backlog
+  3-10-build-admin-dashboard: backlog
+  3-11-implement-comments-and-discussion-system: backlog
+  3-12-implement-responsive-mobile-design-pwa: backlog
+  3-13-implement-accessibility-wcag-2-1-aa: backlog
+  3-14-end-to-end-frontend-integration-test-and-performance-optimization: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Testing, Hardening & Launch (12 stories)
+  epic-4: backlog
+  4-1-implement-comprehensive-unit-tests-for-solana-programs: backlog
+  4-2-implement-integration-tests-for-multi-program-workflows: backlog
+  4-3-implement-frontend-e2e-tests-with-playwright: backlog
+  4-4-implement-load-testing-and-performance-benchmarking: backlog
+  4-5-conduct-internal-security-audit-with-anchor-tools: backlog
+  4-6-fix-identified-bugs-and-security-issues: backlog
+  4-7-deploy-all-programs-to-mainnet: backlog
+  4-8-set-up-production-database-and-event-listener: backlog
+  4-9-deploy-frontend-to-vercel-production: backlog
+  4-10-implement-monitoring-alerting-and-operational-runbooks: backlog
+  4-11-create-user-documentation-and-admin-guides: backlog
+  4-12-soft-launch-with-seed-markets-and-user-validation: backlog
+  epic-4-retrospective: optional
