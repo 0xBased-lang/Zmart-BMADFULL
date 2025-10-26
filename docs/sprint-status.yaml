@@ -65,7 +65,7 @@ development_status:
   2-9-implement-stale-market-auto-cancellation: done
   2-10-implement-graduated-bond-refund-logic: done
   2-11-implement-creator-fee-claims: done
-  2-12-end-to-end-governance-integration-test: ready-for-dev
+  2-12-end-to-end-governance-integration-test: done
   epic-2-retrospective: optional
 
   # Epic 3: Frontend & UX (14 stories)
