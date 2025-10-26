@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "std/": "https://deno.land/std@0.168.0/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.38.0",
+    "@solana/web3.js": "https://esm.sh/@solana/web3.js@1.87.6",
+    "@coral-xyz/anchor": "https://esm.sh/@coral-xyz/anchor@0.29.0"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "types": ["@supabase/functions-js/edge-runtime.d.ts"]
+  }
+}

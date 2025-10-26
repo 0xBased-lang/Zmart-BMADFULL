@@ -111,3 +111,6 @@ verify_jwt = false  # Triggered by cron job or admin
 
 [functions.submit-proposal-vote]
 verify_jwt = false  # Public endpoint for proposal vote submission
+
+[functions.check-stale-markets]
+verify_jwt = false  # Cron job endpoint (Story 2.9: Stale Market Auto-Cancellation)

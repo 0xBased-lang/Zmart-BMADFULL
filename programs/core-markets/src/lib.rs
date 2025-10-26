@@ -392,6 +392,120 @@ pub mod core_markets {
 
         Ok(())
     }
+
+    /// Cancel a stale market (Story 2.9: Stale Market Auto-Cancellation)
+    ///
+    /// Authority-only instruction to mark a market as cancelled.
+    /// Used by the check-stale-markets cron job to cancel markets that:
+    /// - Have status ENDED (from Story 2.3)
+    /// - Have exceeded the stale_market_threshold (default 30 days after end_date)
+    ///
+    /// After cancellation, all bettors can claim 100% refunds via claim_refund.
+    pub fn cancel_market(ctx: Context<CancelMarket>) -> Result<()> {
+        // Get global parameters for authority validation
+        let global_params_data = ctx.accounts.global_parameters.try_borrow_data()?;
+        let params = GlobalParameters::try_deserialize(&mut &global_params_data[..])?;
+        let clock = Clock::get()?;
+
+        let market = &mut ctx.accounts.market;
+
+        // PROTECTION 1: Only platform authority can cancel (authorization)
+        require!(
+            ctx.accounts.authority.key() == params.authority,
+            MarketError::Unauthorized
+        );
+
+        // PROTECTION 2: Market must be Active (cannot cancel resolved markets)
+        require!(
+            market.status == MarketStatus::Active,
+            MarketError::CannotCancelResolvedMarket
+        );
+
+        // PROTECTION 3: Market must be past end date (safety: only cancel ended markets)
+        require!(
+            clock.unix_timestamp >= market.end_date,
+            MarketError::CannotCancelBeforeEndDate
+        );
+
+        // Copy values for event before mutation
+        let market_id = market.market_id;
+        let yes_pool = market.yes_pool;
+        let no_pool = market.no_pool;
+        let total_bets = market.total_bets;
+
+        // Update market status to Cancelled
+        market.status = MarketStatus::Cancelled;
+
+        emit!(MarketCancelledEvent {
+            market_id,
+            yes_pool,
+            no_pool,
+            total_bets,
+            timestamp: clock.unix_timestamp,
+        });
+
+        msg!(
+            "Market {} cancelled: {} bets, {} SOL yes pool, {} SOL no pool",
+            market_id,
+            total_bets,
+            yes_pool as f64 / 1_000_000_000.0,
+            no_pool as f64 / 1_000_000_000.0
+        );
+
+        Ok(())
+    }
+
+    /// Claim full refund for a bet on a cancelled market (Story 2.9)
+    ///
+    /// After a market is cancelled, all bettors can claim 100% refunds of their original bet.
+    /// Refund amount = amount_to_pool + platform_fee + creator_fee (full original amount).
+    pub fn claim_refund(ctx: Context<ClaimRefund>) -> Result<()> {
+        let market = &mut ctx.accounts.market;
+        let user_bet = &mut ctx.accounts.user_bet;
+
+        // Validation checks
+        require!(
+            market.status == MarketStatus::Cancelled,
+            MarketError::MarketNotCancelled
+        );
+        require!(!user_bet.claimed, MarketError::AlreadyClaimed);
+        require!(
+            user_bet.bettor == ctx.accounts.bettor.key(),
+            MarketError::Unauthorized
+        );
+
+        // Calculate 100% refund (original bet amount)
+        let refund_amount = user_bet.amount;
+
+        // Update total_claimed BEFORE transfer (reentrancy protection)
+        market.total_claimed = market.total_claimed
+            .checked_add(refund_amount)
+            .ok_or(MarketError::TotalClaimedOverflow)?;
+
+        // Copy values for event/logging before transfer
+        let market_id = market.market_id;
+
+        // Mark as claimed BEFORE transfer (reentrancy protection)
+        user_bet.claimed = true;
+
+        // Transfer from market PDA to bettor (full refund)
+        **ctx.accounts.market.to_account_info().try_borrow_mut_lamports()? -= refund_amount;
+        **ctx.accounts.bettor.to_account_info().try_borrow_mut_lamports()? += refund_amount;
+
+        emit!(RefundClaimedEvent {
+            market_id,
+            bettor: ctx.accounts.bettor.key(),
+            amount: refund_amount,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+
+        msg!(
+            "Refund claimed: {} SOL (100% of original bet)",
+            refund_amount as f64 / 1_000_000_000.0
+        );
+
+        Ok(())
+    }
 }
 
 // ============================================================================
@@ -599,6 +713,54 @@ pub struct ClaimPayout<'info> {
     pub bettor: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct CancelMarket<'info> {
+    #[account(
+        mut,
+        seeds = [b"market", market.market_id.to_le_bytes().as_ref()],
+        bump = market.bump
+    )]
+    pub market: Account<'info, Market>,
+
+    /// CHECK: Global parameters from ParameterStorage program - validated via seeds
+    #[account(
+        seeds = [b"global-parameters"],
+        bump,
+        seeds::program = parameter_storage_program.key()
+    )]
+    pub global_parameters: AccountInfo<'info>,
+
+    pub authority: Signer<'info>,
+
+    /// CHECK: ParameterStorage program ID
+    pub parameter_storage_program: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimRefund<'info> {
+    #[account(
+        mut,
+        seeds = [b"market", market.market_id.to_le_bytes().as_ref()],
+        bump = market.bump
+    )]
+    pub market: Account<'info, Market>,
+
+    #[account(
+        mut,
+        seeds = [
+            b"user-bet",
+            market.key().as_ref(),
+            bettor.key().as_ref(),
+            &user_bet.market_id.to_le_bytes()
+        ],
+        bump = user_bet.bump
+    )]
+    pub user_bet: Account<'info, UserBet>,
+
+    #[account(mut)]
+    pub bettor: Signer<'info>,
+}
+
 // ============================================================================
 // External Account Structures (from ParameterStorage)
 // ============================================================================
@@ -671,6 +833,23 @@ pub struct PayoutClaimedEvent {
     pub timestamp: i64,
 }
 
+#[event]
+pub struct MarketCancelledEvent {
+    pub market_id: u64,
+    pub yes_pool: u64,
+    pub no_pool: u64,
+    pub total_bets: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct RefundClaimedEvent {
+    pub market_id: u64,
+    pub bettor: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}
+
 // ============================================================================
 // Error Types
 // ============================================================================
@@ -736,4 +915,13 @@ pub enum MarketError {
 
     #[msg("Total claimed amount overflow")]
     TotalClaimedOverflow,
+
+    #[msg("Market is not cancelled")]
+    MarketNotCancelled,
+
+    #[msg("Cannot cancel resolved market")]
+    CannotCancelResolvedMarket,
+
+    #[msg("Cannot cancel market before end date")]
+    CannotCancelBeforeEndDate,
 }

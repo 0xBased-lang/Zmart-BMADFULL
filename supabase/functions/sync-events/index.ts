@@ -131,6 +131,53 @@ async function handlePayoutClaimed(data: any, ctx: EventContext) {
   await logEvent(ctx, "payout_claimed", true);
 }
 
+// Story 2.9: Market Cancellation Event Handler
+async function handleMarketCancelled(data: any, ctx: EventContext) {
+  console.log(`[MarketCancelled] signature=${ctx.signature}`);
+
+  const { error } = await supabase
+    .from("markets")
+    .update({
+      status: "CANCELLED",
+      cancelled_at: new Date(ctx.timestamp).toISOString(),
+      cancellation_reason: "Stale market auto-cancellation (exceeded threshold after end_date)",
+    })
+    .eq("market_id", data.marketId.toString());
+
+  if (error) throw error;
+
+  // Log to stale_market_cancellations audit table
+  const { error: auditError } = await supabase
+    .from("stale_market_cancellations")
+    .insert({
+      market_id: data.marketId,
+      end_date: new Date(data.endDate * 1000).toISOString(),
+      cancelled_at: new Date(ctx.timestamp).toISOString(),
+      threshold_days: 30, // TODO: Fetch from ParameterStorage
+      bet_count: data.totalBets || 0,
+      total_refunded: (data.yesPool || 0) + (data.noPool || 0),
+    });
+
+  if (auditError) console.error(`Audit log failed: ${auditError.message}`);
+
+  await logEvent(ctx, "market_cancelled", true);
+}
+
+// Story 2.9: Refund Claim Event Handler
+async function handleRefundClaimed(data: any, ctx: EventContext) {
+  console.log(`[RefundClaimed] signature=${ctx.signature}`);
+
+  const { error } = await supabase
+    .from("bets")
+    .update({ claimed: true })
+    .eq("bet_id", data.betId?.toString() || `${data.marketId}_${data.bettor}`)
+    .eq("user_wallet", data.bettor.toString());
+
+  if (error) throw error;
+
+  await logEvent(ctx, "refund_claimed", true);
+}
+
 // BondManager Event Handlers
 async function handleBondDeposited(data: any, ctx: EventContext) {
   console.log(`[BondDeposited] signature=${ctx.signature}`);
@@ -372,6 +419,8 @@ const EVENT_HANDLERS: Record<string, (data: any, ctx: EventContext) => Promise<v
   "BetPlaced": handleBetPlaced,
   "MarketResolved": handleMarketResolved,
   "PayoutClaimed": handlePayoutClaimed,
+  "MarketCancelledEvent": handleMarketCancelled, // Story 2.9
+  "RefundClaimedEvent": handleRefundClaimed, // Story 2.9
 
   // BondManager
   "BondDeposited": handleBondDeposited,

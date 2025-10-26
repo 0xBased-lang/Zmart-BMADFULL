@@ -49,6 +49,9 @@ pub mod parameter_storage {
         params.bond_tier_2_lamports = 500_000_000;   // 0.5 SOL
         params.bond_tier_3_lamports = 1_000_000_000; // 1 SOL
 
+        // Stale market auto-cancellation (Story 2.9)
+        params.stale_market_threshold_days = 30; // 30 days after end_date
+
         // Safety constraints
         params.update_cooldown_seconds = 86_400; // 24 hours
         params.max_change_bps = 2000;            // 20%
@@ -181,6 +184,9 @@ pub struct GlobalParameters {
     pub bond_tier_2_lamports: u64,
     pub bond_tier_3_lamports: u64,
 
+    // Stale market auto-cancellation (Story 2.9)
+    pub stale_market_threshold_days: i64,
+
     // Safety constraints
     pub update_cooldown_seconds: i64,
     pub max_change_bps: u16,
@@ -229,6 +235,7 @@ pub enum ParameterType {
     BondTier1,
     BondTier2,
     BondTier3,
+    StaleMarketThreshold, // Story 2.9
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -259,6 +266,7 @@ impl GlobalParameters {
             ParameterType::BondTier1 => self.bond_tier_1_lamports,
             ParameterType::BondTier2 => self.bond_tier_2_lamports,
             ParameterType::BondTier3 => self.bond_tier_3_lamports,
+            ParameterType::StaleMarketThreshold => self.stale_market_threshold_days as u64,
         }
     }
 
@@ -282,6 +290,7 @@ impl GlobalParameters {
             ParameterType::BondTier1 => self.bond_tier_1_lamports = value,
             ParameterType::BondTier2 => self.bond_tier_2_lamports = value,
             ParameterType::BondTier3 => self.bond_tier_3_lamports = value,
+            ParameterType::StaleMarketThreshold => self.stale_market_threshold_days = value as i64,
         }
         Ok(())
     }
@@ -345,7 +354,7 @@ pub struct InitializeParameters<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 2 + 8*2 + 4 + 1, // ~200 bytes
+        space = 8 + 32 + 8*9 + 2*2 + 8*3 + 8 + 8 + 2 + 8*2 + 4 + 1, // ~216 bytes
         seeds = [b"global-parameters"],
         bump
     )]
