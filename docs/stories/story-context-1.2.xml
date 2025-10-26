@@ -1,0 +1,229 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.2</storyId>
+    <title>Implement ProgramRegistry with Version Tracking</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.2.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a platform architect</asA>
+    <iWant>a central program registry that tracks all deployed program addresses</iWant>
+    <soThat>programs can discover and interact with each other without hardcoded addresses</soThat>
+    <tasks>
+      <taskGroup id="1" ac="1">
+        <title>Define ProgramRegistry account structure</title>
+        <subtasks>
+          <subtask>Create Registry account with authority field</subtask>
+          <subtask>Implement ProgramEntry struct with name, program_id, version</subtask>
+          <subtask>Use Vec&lt;ProgramEntry&gt; for dynamic storage</subtask>
+          <subtask>Add PDA bump seed for account derivation</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="2" ac="2">
+        <title>Implement register_program instruction</title>
+        <subtasks>
+          <subtask>Add admin authority validation</subtask>
+          <subtask>Implement input validation (name length, version format)</subtask>
+          <subtask>Add logic to update existing entries or create new ones</subtask>
+          <subtask>Emit program registration events with msg! macro</subtask>
+          <subtask>Add error handling for invalid inputs</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="3" ac="3">
+        <title>Implement get_program_address instruction</title>
+        <subtasks>
+          <subtask>Create read-only view function</subtask>
+          <subtask>Implement program lookup by name</subtask>
+          <subtask>Return Pubkey if found, error if not</subtask>
+          <subtask>Add logging for successful lookups</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="4" ac="4">
+        <title>Add comprehensive version tracking</title>
+        <subtasks>
+          <subtask>Store version string in ProgramEntry (semantic versioning)</subtask>
+          <subtask>Update version on program re-registration</subtask>
+          <subtask>Log version changes for audit trail</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="5" ac="5">
+        <title>Write comprehensive Anchor tests</title>
+        <subtasks>
+          <subtask>Test initialize_registry with proper authority</subtask>
+          <subtask>Test register_program for new programs</subtask>
+          <subtask>Test register_program updates existing programs</subtask>
+          <subtask>Test get_program_address successful lookups</subtask>
+          <subtask>Test get_program_address for non-existent programs</subtask>
+          <subtask>Test admin access control (unauthorized registration fails)</subtask>
+          <subtask>Test input validation (empty names, long names, invalid versions)</subtask>
+          <subtask>Test version tracking updates</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="6" ac="6">
+        <title>Deploy to devnet and verify</title>
+        <subtasks>
+          <subtask>Deploy program-registry to devnet</subtask>
+          <subtask>Initialize registry account on devnet</subtask>
+          <subtask>Register all 6 programs in the registry</subtask>
+          <subtask>Verify lookups work on devnet</subtask>
+          <subtask>Update Anchor.toml with deployed program ID</subtask>
+        </subtasks>
+      </taskGroup>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">ProgramRegistry account structure defined with HashMap&lt;String, Pubkey&gt; for program addresses</criterion>
+    <criterion id="2">register_program instruction implemented with admin-only access control</criterion>
+    <criterion id="3">get_program_address instruction returns program address by name</criterion>
+    <criterion id="4">Version tracking added (program_name → {address, version})</criterion>
+    <criterion id="5">Comprehensive Anchor tests validate registration and lookup</criterion>
+    <criterion id="6">Successfully deployed to devnet with initial registry account created</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Registry Pattern</section>
+        <snippet>Central registry enables dynamic program discovery. Programs interact via PDA-based registry lookups. No hardcoded addresses in cross-program calls.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Access Control</section>
+        <snippet>Admin-only operations for registry management. All users can read program addresses via view functions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>Anchor programs require >90% test coverage. Test all instructions with valid and invalid inputs, access control, and edge cases.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>BMAD-Zmart Epics</title>
+        <section>Epic 1: Foundation &amp; Infrastructure / Story 1.2</section>
+        <snippet>Defines 6 acceptance criteria for ProgramRegistry implementation including account structure, instructions, version tracking, tests, and devnet deployment.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/program-registry/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>program_registry</symbol>
+        <lines>1-99</lines>
+        <reason>Existing ProgramRegistry implementation with all required instructions: initialize_registry, register_program, get_program_address. Already implements version tracking.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/program-registry/Cargo.toml</path>
+        <kind>config</kind>
+        <symbol>program package manifest</symbol>
+        <lines>N/A</lines>
+        <reason>Program dependencies and build configuration. Uses anchor-lang 0.32.1.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/program-registry.ts</path>
+        <kind>test</kind>
+        <symbol>ProgramRegistry test suite</symbol>
+        <lines>N/A</lines>
+        <reason>Comprehensive Anchor tests covering initialization, registration, lookups, access control, edge cases. 9 passing tests validating core functionality.</reason>
+      </artifact>
+      <artifact>
+        <path>Anchor.toml</path>
+        <kind>config</kind>
+        <symbol>workspace configuration</symbol>
+        <lines>8-22</lines>
+        <reason>Program ID configuration for localnet and devnet deployments. Registry deployed at 2ysaGgXXKK7fTjKp59nVyivP7yoUpf9QHJqQHAuavchP on devnet.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1" />
+      </rust>
+      <node>
+        <dependency name="@coral-xyz/anchor" version="^0.32.1" />
+        <dependency name="chai" version="^4.3.4" dev="true" />
+        <dependency name="mocha" version="^9.0.3" dev="true" />
+        <dependency name="ts-mocha" version="^10.0.0" dev="true" />
+      </node>
+      <framework name="Anchor Framework" version="0.32.1" ecosystem="Solana" />
+      <framework name="Solana CLI" version="2.3.13" ecosystem="Solana" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Registry Pattern: Use PDA-based registry for dynamic program discovery, no hardcoded addresses</constraint>
+    <constraint>Access Control: Only registry authority can register/update programs, all users can read</constraint>
+    <constraint>Version Tracking: Semantic versioning format (MAJOR.MINOR.PATCH), log version updates for audit trail</constraint>
+    <constraint>Account Structure: Vec&lt;ProgramEntry&gt; for dynamic storage, max 32 char names, max 16 char versions</constraint>
+    <constraint>Test Coverage: Minimum 90% coverage required, test all instructions with valid/invalid inputs</constraint>
+    <constraint>Error Handling: Custom errors for InvalidProgramName, InvalidVersion, ProgramNotFound, UnauthorizedAccess</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ProgramRegistry::initialize_registry</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn initialize_registry(ctx: Context&lt;InitializeRegistry&gt;) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ProgramRegistry::register_program</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn register_program(ctx: Context&lt;RegisterProgram&gt;, name: String, program_id: Pubkey, version: String) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ProgramRegistry::get_program_address</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn get_program_address(ctx: Context&lt;GetProgramAddress&gt;, name: String) -&gt; Result&lt;Pubkey&gt;</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ProgramRegistry (Account)</name>
+      <kind>Account structure</kind>
+      <signature>pub struct ProgramRegistry { authority: Pubkey, programs: Vec&lt;ProgramEntry&gt;, bump: u8 }</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ProgramEntry (Data)</name>
+      <kind>Data structure</kind>
+      <signature>pub struct ProgramEntry { name: String, program_id: Pubkey, version: String }</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Anchor programs require minimum 90% test coverage. Test framework uses Mocha/Chai with TypeScript. Tests should validate all instructions with both valid and invalid inputs, test access control (admin-only operations), edge cases (duplicate registrations, version updates), and error conditions. Use devnet for integration testing with proper environment variables (ANCHOR_PROVIDER_URL, ANCHOR_WALLET).
+    </standards>
+    <locations>
+      <location>tests/program-registry.ts - Main test suite for ProgramRegistry</location>
+      <location>tests/*.ts - Additional integration tests</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test ProgramRegistry account creation with proper authority field</idea>
+      <idea ac="1">Test ProgramEntry struct serialization/deserialization</idea>
+      <idea ac="1">Test Vec&lt;ProgramEntry&gt; storage and retrieval</idea>
+      <idea ac="2">Test register_program with valid inputs creates new entry</idea>
+      <idea ac="2">Test register_program with existing name updates entry</idea>
+      <idea ac="2">Test register_program rejects empty names</idea>
+      <idea ac="2">Test register_program rejects names longer than 32 chars</idea>
+      <idea ac="2">Test register_program rejects unauthorized callers</idea>
+      <idea ac="3">Test get_program_address returns correct Pubkey for registered program</idea>
+      <idea ac="3">Test get_program_address fails for non-existent program</idea>
+      <idea ac="4">Test version string stored correctly on registration</idea>
+      <idea ac="4">Test version updates when re-registering existing program</idea>
+      <idea ac="4">Test version change events are logged</idea>
+      <idea ac="5">Test comprehensive edge cases (max length names/versions, semantic versioning formats)</idea>
+      <idea ac="6">Test registry initialization on devnet</idea>
+      <idea ac="6">Test registration of all 6 BMAD-Zmart programs on devnet</idea>
+    </ideas>
+  </tests>
+</story-context>

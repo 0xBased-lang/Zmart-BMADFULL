@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>11</storyId>
+    <title>Implement Creator Fee Claims</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.11.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>market creator</asA>
+    <iWant>claim accumulated fees from my successful market</iWant>
+    <soThat>I'm rewarded for creating popular markets</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      Creator fee tracking in database: market_id, creator_wallet, accumulated_fees
+    </criterion>
+    <criterion id="AC2" priority="high">
+      Creator fee percentage based on bond tier: 0.5% (low bond), 1% (medium), 2% (high bond ≥500 ZMart)
+    </criterion>
+    <criterion id="AC3" priority="critical">
+      `claim_creator_fees` instruction in BondManager program transfers accumulated fees to creator
+    </criterion>
+    <criterion id="AC4" priority="high">
+      Fee accumulation happens automatically via betting fee distribution (Epic 1 Story 1.4)
+    </criterion>
+    <criterion id="AC5" priority="critical">
+      Creator can claim fees once market resolves (status = RESOLVED)
+    </criterion>
+    <criterion id="AC6" priority="high">
+      Tests validate fee accumulation, tier calculation, and claims
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac-refs="AC1">
+      <description>Database Schema for Creator Fee Tracking</description>
+      <subtasks>
+        <subtask>Create `creator_fees` table in Supabase with columns: market_id, creator_wallet, accumulated_fees, bond_tier, last_updated</subtask>
+        <subtask>Add indexes on market_id and creator_wallet for efficient queries</subtask>
+        <subtask>Create database migration for creator_fees table</subtask>
+        <subtask>Add RLS policies to allow creators to view their own fee data</subtask>
+      </subtasks>
+    </task>
+    <task id="T2" ac-refs="AC2">
+      <description>Bond Tier Fee Percentage Logic</description>
+      <subtasks>
+        <subtask>Add bond_tier enum to BondManager: LOW, MEDIUM, HIGH</subtask>
+        <subtask>Implement `calculate_bond_tier` helper: &lt;100 ZMart = LOW, 100-499 = MEDIUM, ≥500 = HIGH</subtask>
+        <subtask>Add fee_percentage_bps fields to ParameterStorage: low_tier_fee_bps (50 = 0.5%), medium_tier_fee_bps (100 = 1%), high_tier_fee_bps (200 = 2%)</subtask>
+        <subtask>Store bond_tier in market_bonds database table when bond is locked</subtask>
+      </subtasks>
+    </task>
+    <task id="T3" ac-refs="AC3">
+      <description>Implement claim_creator_fees Instruction</description>
+      <subtasks>
+        <subtask>Add `claim_creator_fees` instruction to BondManager program</subtask>
+        <subtask>Verify market status = RESOLVED before allowing claim</subtask>
+        <subtask>Fetch accumulated_fees from database via CPI or cross-program read pattern</subtask>
+        <subtask>Transfer accumulated fees from program fee vault to creator wallet</subtask>
+        <subtask>Emit CreatorFeesClaimed event with market_id, creator, amount, timestamp</subtask>
+        <subtask>Update creator_fees table to mark fees as claimed (claimed = true, claimed_at timestamp)</subtask>
+      </subtasks>
+    </task>
+    <task id="T4" ac-refs="AC4">
+      <description>Fee Accumulation Integration with Betting Fees</description>
+      <subtasks>
+        <subtask>Update `place_bet` instruction fee distribution to allocate creator fee based on bond tier</subtask>
+        <subtask>Calculate creator_fee_amount = (bet_fee * creator_fee_percentage) / 10000</subtask>
+        <subtask>Store creator fee allocation in creator_fees table (increment accumulated_fees)</subtask>
+        <subtask>Ensure creator fees are tracked separately from protocol fees and liquidity provider fees</subtask>
+      </subtasks>
+    </task>
+    <task id="T5" ac-refs="AC5">
+      <description>Market Resolution Prerequisite</description>
+      <subtasks>
+        <subtask>Add status check in claim_creator_fees: require market.status == RESOLVED</subtask>
+        <subtask>Add error handling for premature claim attempts (market not resolved)</subtask>
+        <subtask>Validate creator wallet matches market creator</subtask>
+        <subtask>Add check to prevent double-claiming (fees already claimed)</subtask>
+      </subtasks>
+    </task>
+    <task id="T6" ac-refs="AC6">
+      <description>Testing and Validation</description>
+      <subtasks>
+        <subtask>Anchor test: Create market with different bond tiers, validate fee percentages</subtask>
+        <subtask>Anchor test: Place bets, verify creator fees accumulate correctly</subtask>
+        <subtask>Anchor test: Resolve market, claim fees, verify transfer and event emission</subtask>
+        <subtask>Anchor test: Negative cases - premature claim, double claim, wrong creator</subtask>
+        <subtask>Deno test: Verify database updates for creator_fees table</subtask>
+        <subtask>Integration test: End-to-end flow from market creation → bets → resolution → fee claim</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-1.4-COMPLETE.md</path>
+        <title>Story 1.4: Core Markets with Betting Functionality - COMPLETE</title>
+        <section>Fee Structure</section>
+        <snippet>UserBet structure includes fee breakdown: platform_fee, creator_fee. Fee distribution happens at bet placement. Total fee is 3-5% split between platform (1%), liquidity provider (1.5%), and creator (0.5-2% based on bond tier).</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.5-COMPLETE.md</path>
+        <title>Story 1.5: BondManager Program for Escrow - COMPLETE</title>
+        <section>BondEscrow Account Structure</section>
+        <snippet>BondEscrow includes accumulated_fees field for tracking creator earnings. Bond tiers (Tier1/Tier2/Tier3) determine creator fee percentage. deposit_bond and refund_bond instructions manage bond lifecycle.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Story 2.5: Proposal Approval/Rejection Logic - COMPLETE</title>
+        <section>Market Resolution State Machine</section>
+        <snippet>Market status transitions: ACTIVE → PENDING_RESOLUTION → RESOLVED. Only RESOLVED markets allow payout claims and creator fee claims. Resolution finality prevents dispute clawbacks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Fee Structure</section>
+        <snippet>3-way fee split design. Creator fees incentivize quality market creation. Bond tier system creates graduated economic incentives. Higher bonds earn higher creator fees (0.5% → 2%).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: Governance & Voting - Story 2.11</title>
+        <section>Story 2.11 Acceptance Criteria</section>
+        <snippet>Prerequisites: Epic 1 Story 1.5 (BondManager), Epic 1 Story 1.4 (fee distribution). Creator fee claims integrate with existing bond and fee infrastructure.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>BondEscrow</symbol>
+        <lines>1-500</lines>
+        <reason>Contains BondEscrow structure with accumulated_fees field and bond_tier. Provides deposit_bond and refund_bond instruction patterns. Need to add claim_creator_fees instruction here.</reason>
+      </file>
+      <file>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>GlobalParameters</symbol>
+        <lines>1-100</lines>
+        <reason>Stores global parameters including bond tier thresholds and fee percentages. Need to add low_tier_fee_bps, medium_tier_fee_bps, high_tier_fee_bps fields.</reason>
+      </file>
+      <file>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>place_bet</symbol>
+        <lines>200-400</lines>
+        <reason>Contains place_bet instruction with fee distribution logic. Need to update to allocate creator fees based on bond tier and accumulate in creator_fees table.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/sync-events/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>syncEvents</symbol>
+        <lines>1-500</lines>
+        <reason>Event listener for Solana program events. Need to add handleCreatorFeesClaimed handler to sync CreatorFeesClaimed events to database.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1">Solana program framework for BondManager claim_creator_fees instruction</dependency>
+        <dependency name="anchor-spl" version="0.32.1">SPL token transfers for fee vault to creator wallet</dependency>
+      </rust>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database queries for creator_fees table and event listener</dependency>
+        <dependency name="@solana/web3.js" version="1.95.x">Solana program interaction and event parsing</dependency>
+      </typescript>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>claim_creator_fees</name>
+      <kind>solana-instruction</kind>
+      <signature>pub fn claim_creator_fees(ctx: Context&lt;ClaimCreatorFees&gt;, market_id: u64) -> Result&lt;()&gt;</signature>
+      <path>programs/bond-manager/src/lib.rs</path>
+      <description>Main instruction for creators to claim accumulated fees. Validates market status is RESOLVED, creator wallet matches, fees not already claimed. Transfers fees from vault to creator and emits CreatorFeesClaimed event.</description>
+    </interface>
+    <interface>
+      <name>calculate_bond_tier</name>
+      <kind>rust-function</kind>
+      <signature>fn calculate_bond_tier(bond_amount: u64) -> BondTier</signature>
+      <path>programs/bond-manager/src/lib.rs</path>
+      <description>Helper function to determine bond tier from bond amount. Returns LOW (&lt;100 SOL), MEDIUM (100-499 SOL), or HIGH (≥500 SOL). Used to determine creator fee percentage.</description>
+    </interface>
+    <interface>
+      <name>get_creator_fee_percentage</name>
+      <kind>rust-function</kind>
+      <signature>fn get_creator_fee_percentage(bond_tier: BondTier, params: &amp;GlobalParameters) -> u16</signature>
+      <path>programs/bond-manager/src/lib.rs</path>
+      <description>Returns fee percentage in basis points based on bond tier. LOW → low_tier_fee_bps (50), MEDIUM → medium_tier_fee_bps (100), HIGH → high_tier_fee_bps (200).</description>
+    </interface>
+    <interface>
+      <name>CreatorFeesClaimed</name>
+      <kind>solana-event</kind>
+      <signature>#[event] pub struct CreatorFeesClaimed { pub market_id: u64, pub creator: Pubkey, pub amount: u64, pub bond_tier: BondTier, pub timestamp: i64 }</signature>
+      <path>programs/bond-manager/src/lib.rs</path>
+      <description>Event emitted when creator claims fees. Triggers database sync via Event Listener to mark fees as claimed in creator_fees table.</description>
+    </interface>
+    <interface>
+      <name>handleCreatorFeesClaimed</name>
+      <kind>typescript-function</kind>
+      <signature>async function handleCreatorFeesClaimed(data: any, ctx: EventContext): Promise&lt;void&gt;</signature>
+      <path>supabase/functions/sync-events/index.ts</path>
+      <description>Event listener handler for CreatorFeesClaimed events. Updates creator_fees table with claimed=true and claimed_at timestamp. Logs to audit trail.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>Bond tier thresholds MUST be: 0-99 SOL = LOW (0.5%), 100-499 SOL = MEDIUM (1%), ≥500 SOL = HIGH (2%)</description>
+    </constraint>
+    <constraint>
+      <description>All fee calculations MUST use basis points (10000 = 100%) for precision and consistency</description>
+    </constraint>
+    <constraint>
+      <description>Fee calculations MUST use checked_mul and checked_div to prevent overflow</description>
+    </constraint>
+    <constraint>
+      <description>Market status MUST be RESOLVED before allowing creator fee claims (state machine enforcement)</description>
+    </constraint>
+    <constraint>
+      <description>Only the market creator wallet MUST be able to claim fees (signature validation required)</description>
+    </constraint>
+    <constraint>
+      <description>Double-claiming MUST be prevented via database claimed flag check</description>
+    </constraint>
+    <constraint>
+      <description>All fee claims MUST emit CreatorFeesClaimed event for audit trail and database sync</description>
+    </constraint>
+    <constraint>
+      <description>Database updates MUST use transactions for multi-table changes (creator_fees + audit_log)</description>
+    </constraint>
+    <constraint>
+      <description>Fee percentages MUST be configurable via ParameterStorage for admin flexibility</description>
+    </constraint>
+    <constraint>
+      <description>Existing fee distribution from Story 1.4 MUST continue to work (backward compatibility)</description>
+    </constraint>
+    <constraint>
+      <description>Creator fees MUST be tracked separately from protocol fees and liquidity provider fees</description>
+    </constraint>
+    <constraint>
+      <description>Fee accumulation MUST happen automatically during betting (no manual intervention)</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Anchor tests for Solana programs (BondManager claim_creator_fees instruction), Deno tests for Edge Functions (Event Listener handler), database migration tests for creator_fees table schema. Integration tests validate full flow from market creation to fee claim.
+    </standards>
+    <locations>
+      <location>tests/bond-manager.ts - BondManager instruction tests including claim_creator_fees</location>
+      <location>tests/core-markets.ts - Fee distribution tests for place_bet instruction</location>
+      <location>supabase/functions/sync-events/test.ts - Event handler tests for handleCreatorFeesClaimed</location>
+      <location>database/migrations/test/creator-fees.test.sql - Database schema and RLS policy tests</location>
+      <location>tests/integration/creator-fees.ts - End-to-end integration tests</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Test creator_fees table creation with all required columns and indexes</idea>
+      <idea ac-ref="AC1">Test RLS policies allow creators to view their own fees but not others'</idea>
+      <idea ac-ref="AC2">Test bond tier calculation: &lt;100 = LOW, 100-499 = MEDIUM, ≥500 = HIGH</idea>
+      <idea ac-ref="AC2">Test fee percentage mapping: LOW=0.5%, MEDIUM=1%, HIGH=2%</idea>
+      <idea ac-ref="AC3">Test claim_creator_fees transfers correct amount from vault to creator</idea>
+      <idea ac-ref="AC3">Test claim_creator_fees emits CreatorFeesClaimed event with correct data</idea>
+      <idea ac-ref="AC3">Test claim fails if market not RESOLVED (error handling)</idea>
+      <idea ac-ref="AC3">Test claim fails if wrong creator attempts claim (authorization)</idea>
+      <idea ac-ref="AC3">Test claim fails if fees already claimed (double-claim prevention)</idea>
+      <idea ac-ref="AC4">Test place_bet correctly allocates creator fee based on bond tier</idea>
+      <idea ac-ref="AC4">Test creator fees accumulate in database during betting</idea>
+      <idea ac-ref="AC4">Test creator fees tracked separately from protocol and LP fees</idea>
+      <idea ac-ref="AC5">Test market status validation before claim (RESOLVED required)</idea>
+      <idea ac-ref="AC6">Integration test: Full flow - create market → bond → bets → resolve → claim fees</idea>
+      <idea ac-ref="AC6">Edge case: Market with zero bets has zero accumulated fees (claim succeeds but amount=0)</idea>
+      <idea ac-ref="AC6">Edge case: Multiple markets from same creator, fees tracked independently per market</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="architecture">
+      Creator fee claims integrate with existing BondManager program (Story 1.5). Leverage bond tier system for graduated fee percentages. Fee vault management follows same security patterns as bond refunds.
+    </note>
+    <note category="fee-distribution">
+      Creator fees are part of 3-way fee split: protocol (1%) + liquidity (1.5%) + creator (0.5-2%). Total fees capped at max_total_fee_bps parameter. Fee percentages stored in ParameterStorage as basis points.
+    </note>
+    <note category="state-machine">
+      Creator fees only claimable after market status = RESOLVED. Resolution finality prevents disputes from clawing back fees. Follows state machine: ACTIVE → PENDING_RESOLUTION → RESOLVED → (claim allowed).
+    </note>
+    <note category="event-driven">
+      CreatorFeesClaimed event triggers database sync via Event Listener (Story 1.9 pattern). Event structure: { market_id, creator_wallet, amount_claimed, bond_tier, timestamp }. Database listener updates creator_fees table with claimed status.
+    </note>
+    <note category="bond-tiers">
+      Bond tier thresholds determine creator fee percentage. LOW (&lt;100 SOL): 0.5% creator fee. MEDIUM (100-499 SOL): 1% creator fee. HIGH (≥500 SOL): 2% creator fee. Incentivizes higher bonds for better markets.
+    </note>
+    <note category="fee-accumulation">
+      Fees accumulate automatically during betting (Story 1.4 place_bet instruction). No manual intervention required. Creator fees stored in creator_fees table, incremented with each bet placed on the market.
+    </note>
+    <note category="security">
+      Only market creator can claim fees (wallet signature validation). Double-claiming prevented via database claimed flag. Market status check ensures no premature claims. All fee transfers from secure program vault.
+    </note>
+    <note category="database-design">
+      creator_fees table tracks accumulated_fees per market. Includes bond_tier for audit purposes. claimed flag and claimed_at timestamp prevent double claims and provide audit trail.
+    </note>
+    <note category="parameter-flexibility">
+      Fee percentages configurable via ParameterStorage admin updates. Allows platform to adjust economic incentives without program redeployment. Default values: 50 bps (LOW), 100 bps (MEDIUM), 200 bps (HIGH).
+    </note>
+    <note category="backward-compatibility">
+      Existing fee distribution from Story 1.4 continues to work. Creator fee allocation integrated into existing place_bet fee logic. No breaking changes to existing betting functionality.
+    </note>
+  </dev-notes>
+</story-context>

@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>10</storyId>
+    <title>Implement Payout Claims Functionality</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.10.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>winning bettor</asA>
+    <iWant>claim my payout after a market resolves</iWant>
+    <soThat>I receive my winnings plus share of the losing pool</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      `claim_payout` instruction in CoreMarkets program
+    </criterion>
+    <criterion id="AC2" priority="critical">
+      Payout calculation: (bet_amount + proportional_share_of_losing_pool - fees)
+    </criterion>
+    <criterion id="AC3" priority="high">
+      Pull-based claiming (users initiate, not automatic push)
+    </criterion>
+    <criterion id="AC4" priority="critical">
+      Validation: market must be RESOLVED, user must have winning bet, payout not already claimed
+    </criterion>
+    <criterion id="AC5" priority="critical">
+      UserBet account marked as "claimed" to prevent double-claims
+    </criterion>
+    <criterion id="AC6" priority="critical">
+      Tokens transferred from market pool PDA to user wallet
+    </criterion>
+    <criterion id="AC7" priority="high">
+      Comprehensive tests for payout calculations and edge cases (dust handling, rounding)
+    </criterion>
+    <criterion id="AC8" priority="medium">
+      Deployed and tested on devnet
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac-refs="AC1">
+      <description>Implement claim_payout Instruction</description>
+      <subtasks>
+        <subtask>Add `claim_payout` instruction to CoreMarkets program</subtask>
+        <subtask>Define ClaimPayout context with required accounts (market, user_bet, user wallet, market pool PDA)</subtask>
+        <subtask>Add instruction parameters (market_id)</subtask>
+        <subtask>Implement basic instruction structure with account validation</subtask>
+      </subtasks>
+    </task>
+    <task id="T2" ac-refs="AC2">
+      <description>Payout Calculation Logic</description>
+      <subtasks>
+        <subtask>Implement calculate_payout helper function</subtask>
+        <subtask>Calculate proportional share: (user_bet_amount / winning_pool_total) * losing_pool_total</subtask>
+        <subtask>Add user's original bet amount to proportional share</subtask>
+        <subtask>Subtract platform fees from payout (if applicable)</subtask>
+        <subtask>Handle edge cases: dust amounts, rounding errors, zero losing pool</subtask>
+        <subtask>Use checked arithmetic (checked_mul, checked_div) to prevent overflow</subtask>
+      </subtasks>
+    </task>
+    <task id="T3" ac-refs="AC3">
+      <description>Pull-Based Claiming Pattern</description>
+      <subtasks>
+        <subtask>Design user-initiated claiming flow (not automatic distribution)</subtask>
+        <subtask>Users call claim_payout instruction after market resolves</subtask>
+        <subtask>No automatic push of payouts (reduces transaction costs for platform)</subtask>
+        <subtask>Document claiming process in user guide</subtask>
+      </subtasks>
+    </task>
+    <task id="T4" ac-refs="AC4">
+      <description>Validation Logic</description>
+      <subtasks>
+        <subtask>Validate market status is RESOLVED before allowing claim</subtask>
+        <subtask>Validate user has a bet on the winning outcome</subtask>
+        <subtask>Validate UserBet.claimed is false (prevent double-claims)</subtask>
+        <subtask>Validate market outcome matches user's bet side</subtask>
+        <subtask>Return clear error messages for validation failures</subtask>
+      </subtasks>
+    </task>
+    <task id="T5" ac-refs="AC5">
+      <description>Prevent Double-Claims</description>
+      <subtasks>
+        <subtask>Update UserBet.claimed field to true after payout</subtask>
+        <subtask>Add claimed_at timestamp to UserBet account</subtask>
+        <subtask>Database sync: Mark bet as claimed in Supabase bets table</subtask>
+        <subtask>Emit PayoutClaimed event for audit trail</subtask>
+      </subtasks>
+    </task>
+    <task id="T6" ac-refs="AC6">
+      <description>Token Transfer Implementation</description>
+      <subtasks>
+        <subtask>Transfer SOL from market pool PDA to user wallet</subtask>
+        <subtask>Use CPI (Cross-Program Invocation) for SPL token transfers if needed</subtask>
+        <subtask>Implement proper PDA signing for market pool transfers</subtask>
+        <subtask>Validate sufficient funds in market pool before transfer</subtask>
+        <subtask>Handle transfer errors gracefully</subtask>
+      </subtasks>
+    </task>
+    <task id="T7" ac-refs="AC7">
+      <description>Comprehensive Testing</description>
+      <subtasks>
+        <subtask>Anchor test: Simple payout claim (2 users, one wins)</subtask>
+        <subtask>Anchor test: Multiple winners claim proportional payouts</subtask>
+        <subtask>Anchor test: Edge case - winning pool has all bets (no losing pool)</subtask>
+        <subtask>Anchor test: Edge case - losing pool has all bets (winners get everything)</subtask>
+        <subtask>Anchor test: Dust handling and rounding (small bet amounts)</subtask>
+        <subtask>Anchor test: Double-claim prevention (attempt claim twice)</subtask>
+        <subtask>Anchor test: Premature claim (market not resolved)</subtask>
+        <subtask>Anchor test: Wrong outcome claim (user bet on losing side)</subtask>
+      </subtasks>
+    </task>
+    <task id="T8" ac-refs="AC8">
+      <description>Devnet Deployment and Testing</description>
+      <subtasks>
+        <subtask>Deploy updated CoreMarkets program to devnet</subtask>
+        <subtask>Create test market on devnet</subtask>
+        <subtask>Place test bets on devnet</subtask>
+        <subtask>Resolve test market on devnet</subtask>
+        <subtask>Execute payout claims on devnet</subtask>
+        <subtask>Verify database sync with claimed status</subtask>
+        <subtask>Document devnet testing results</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-1.4-COMPLETE.md</path>
+        <title>Story 1.4: Core Markets with Betting Functionality - COMPLETE</title>
+        <section>Market and UserBet Account Structures</section>
+        <snippet>Market account tracks yes_pool, no_pool, status, resolved_outcome. UserBet account tracks bet_side, amount, fees, claimed status. Foundation for payout calculations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Story 2.5: Proposal Approval/Rejection Logic - COMPLETE</title>
+        <section>Market Resolution State Machine</section>
+        <snippet>Market status transitions: ACTIVE → PENDING_RESOLUTION → RESOLVED. Only RESOLVED markets allow payout claims. Resolution finality prevents disputes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.9-COMPLETE.md</path>
+        <title>Story 1.9: Event Listener for Solana-Database Sync - COMPLETE</title>
+        <section>Event Pattern</section>
+        <snippet>Event Listener pattern for automatic database sync. Emit PayoutClaimed event, database listener updates bets table with claimed status.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Payout Mechanism</section>
+        <snippet>Pull-based claiming pattern. Users initiate payout claims. Proportional distribution based on pool sizes. Standard DeFi pattern (Uniswap, Compound).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>CoreMarkets</symbol>
+        <lines>1-800</lines>
+        <reason>Contains Market and UserBet structures. Place_bet instruction provides pattern. Need to add claim_payout instruction here. Market pool PDA management.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/sync-events/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>syncEvents</symbol>
+        <lines>1-500</lines>
+        <reason>Event listener for Solana program events. Need to add handlePayoutClaimed handler to sync PayoutClaimed events to bets table.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1">Solana program framework for claim_payout instruction</dependency>
+        <dependency name="anchor-spl" version="0.32.1">SPL token transfers from market pool to user wallet</dependency>
+      </rust>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database updates for claimed status</dependency>
+        <dependency name="@solana/web3.js" version="1.95.x">Solana program interaction and event parsing</dependency>
+      </typescript>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>claim_payout</name>
+      <kind>solana-instruction</kind>
+      <signature>pub fn claim_payout(ctx: Context&lt;ClaimPayout&gt;, market_id: u64) -> Result&lt;()&gt;</signature>
+      <path>programs/core-markets/src/lib.rs</path>
+      <description>Main instruction for users to claim payouts after market resolves. Validates market status is RESOLVED, user bet on winning outcome, payout not claimed. Calculates proportional payout, transfers from pool to user wallet, emits PayoutClaimed event.</description>
+    </interface>
+    <interface>
+      <name>calculate_payout</name>
+      <kind>rust-function</kind>
+      <signature>fn calculate_payout(user_bet: &amp;UserBet, winning_pool: u64, losing_pool: u64) -> Result&lt;u64&gt;</signature>
+      <path>programs/core-markets/src/lib.rs</path>
+      <description>Helper function to calculate proportional payout. Formula: user_bet_amount + (user_bet_amount / winning_pool) * losing_pool. Uses checked arithmetic for overflow protection.</description>
+    </interface>
+    <interface>
+      <name>PayoutClaimed</name>
+      <kind>solana-event</kind>
+      <signature>#[event] pub struct PayoutClaimed { pub market_id: u64, pub user: Pubkey, pub bet_amount: u64, pub payout_amount: u64, pub claimed_at: i64 }</signature>
+      <path>programs/core-markets/src/lib.rs</path>
+      <description>Event emitted when user claims payout. Triggers database sync via Event Listener to mark bet as claimed in bets table.</description>
+    </interface>
+    <interface>
+      <name>handlePayoutClaimed</name>
+      <kind>typescript-function</kind>
+      <signature>async function handlePayoutClaimed(data: any, ctx: EventContext): Promise&lt;void&gt;</signature>
+      <path>supabase/functions/sync-events/index.ts</path>
+      <description>Event listener handler for PayoutClaimed events. Updates bets table with claimed=true, payout_amount, and claimed_at timestamp.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>Market status MUST be RESOLVED before allowing payout claims</description>
+    </constraint>
+    <constraint>
+      <description>User MUST have bet on the winning outcome (bet_side matches resolved_outcome)</description>
+    </constraint>
+    <constraint>
+      <description>UserBet.claimed MUST be false before claim (prevent double-claims)</description>
+    </constraint>
+    <constraint>
+      <description>ALL payout calculations MUST use checked arithmetic (checked_mul, checked_div) to prevent overflow</description>
+    </constraint>
+    <constraint>
+      <description>Market pool PDA MUST have sufficient funds for payout transfer</description>
+    </constraint>
+    <constraint>
+      <description>Proportional payout MUST be calculated as: user_bet + (user_bet / winning_pool) * losing_pool</description>
+    </constraint>
+    <constraint>
+      <description>Dust and rounding MUST be handled gracefully (no panics for small amounts)</description>
+    </constraint>
+    <constraint>
+      <description>All payout claims MUST emit PayoutClaimed event for audit trail</description>
+    </constraint>
+    <constraint>
+      <description>Database claimed status MUST sync via Event Listener (automatic, not manual)</description>
+    </constraint>
+    <constraint>
+      <description>Pull-based pattern: Users MUST initiate claims (no automatic distribution)</description>
+    </constraint>
+    <constraint>
+      <description>Edge case: Zero losing pool MUST be handled (winners only get original bet back)</description>
+    </constraint>
+    <constraint>
+      <description>UserBet.claimed MUST be set to true after successful payout to prevent re-claims</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Anchor tests for Solana programs (CoreMarkets claim_payout instruction), Deno tests for Edge Functions (Event Listener handler), database tests for claimed status updates. All tests must validate payout calculations, edge cases, and double-claim prevention.
+    </standards>
+    <locations>
+      <location>tests/core-markets.ts - CoreMarkets instruction tests including claim_payout</location>
+      <location>supabase/functions/sync-events/test.ts - Event handler tests for handlePayoutClaimed</location>
+      <location>tests/integration/payout-claims.ts - End-to-end integration tests</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Test claim_payout instruction successfully executes with valid inputs</idea>
+      <idea ac-ref="AC2">Test payout calculation: user gets original bet + proportional share of losing pool</idea>
+      <idea ac-ref="AC2">Test proportional distribution: multiple winners get correct shares</idea>
+      <idea ac-ref="AC3">Test pull-based pattern: users must call claim_payout (not automatic)</idea>
+      <idea ac-ref="AC4">Test validation: claim fails if market not RESOLVED</idea>
+      <idea ac-ref="AC4">Test validation: claim fails if user bet on losing outcome</idea>
+      <idea ac-ref="AC4">Test validation: claim fails if payout already claimed</idea>
+      <idea ac-ref="AC5">Test UserBet.claimed set to true after claim</idea>
+      <idea ac-ref="AC5">Test double-claim prevention: second claim attempt fails</idea>
+      <idea ac-ref="AC6">Test SOL transfer from market pool PDA to user wallet</idea>
+      <idea ac-ref="AC6">Test insufficient pool funds error handling</idea>
+      <idea ac-ref="AC7">Edge case: All bets on winning side (no losing pool) - users get original bets back</idea>
+      <idea ac-ref="AC7">Edge case: All bets on losing side (all go to winners) - validate full pool distribution</idea>
+      <idea ac-ref="AC7">Edge case: Dust amounts (1 lamport bets) - no panics, correct rounding</idea>
+      <idea ac-ref="AC7">Edge case: Very large bets - checked arithmetic prevents overflow</idea>
+      <idea ac-ref="AC8">Integration test: Full flow on devnet - market creation to payout claim</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="architecture">
+      Pull-based claiming pattern reduces platform transaction costs. Users initiate claims when ready. Standard DeFi pattern (Uniswap, Compound). No automatic distribution.
+    </note>
+    <note category="payout-calculation">
+      Proportional distribution formula: user_payout = user_bet + (user_bet / winning_pool) * losing_pool. Winners split the losing pool proportionally based on their bet sizes.
+    </note>
+    <note category="state-machine">
+      Payouts only available after market status = RESOLVED (from Story 2.5). Resolution finality prevents dispute complications. State machine: ACTIVE → PENDING_RESOLUTION → RESOLVED → (claims allowed).
+    </note>
+    <note category="event-driven">
+      PayoutClaimed event triggers database sync via Event Listener (Story 1.9 pattern). Event structure: { market_id, user, bet_amount, payout_amount, claimed_at }. Database listener updates bets table.
+    </note>
+    <note category="double-claim-prevention">
+      UserBet.claimed field prevents double-claims at program level. Database claimed flag provides additional check. Both must be validated before allowing claim.
+    </note>
+    <note category="edge-cases">
+      Zero losing pool: Winners only get original bets back (no profit). All losers: Winners split entire pool. Dust amounts: Use checked arithmetic, handle rounding gracefully.
+    </note>
+    <note category="security">
+      Market pool PDA properly signed for transfers. Validate sufficient funds before transfer. All calculations use checked arithmetic. Clear error messages for all validation failures.
+    </note>
+    <note category="integration">
+      Integrates with Story 1.4 (CoreMarkets betting), Story 2.5 (market resolution), Story 1.9 (Event Listener). Critical for Epic 1 completion before Epic 2 governance.
+    </note>
+    <note category="testing-priority">
+      Critical tests: Payout calculation accuracy, double-claim prevention, market status validation. Edge case tests: Zero losing pool, all winners/all losers, dust handling.
+    </note>
+    <note category="devnet-validation">
+      Devnet testing validates real network conditions. Test with actual SOL transfers. Verify database sync works with real events. Document any devnet-specific issues.
+    </note>
+  </dev-notes>
+</story-context>

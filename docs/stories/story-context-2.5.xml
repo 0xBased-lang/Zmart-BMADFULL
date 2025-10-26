@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.5</storyId>
+    <title>Implement Proposal Approval/Rejection Logic</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.5.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>platform operator</asA>
+    <iWant>proposals to automatically approve or reject based on vote results</iWant>
+    <soThat>the community controls market creation</soThat>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Supabase Edge Function `finalize-proposal-vote` aggregates proposal votes</criterion>
+    <criterion id="2">Approval threshold: ≥60% YES votes (configurable parameter)</criterion>
+    <criterion id="3">If approved: call ProposalSystem `approve_proposal` instruction → creates market in CoreMarkets</criterion>
+    <criterion id="4">If rejected: call ProposalSystem `reject_proposal` instruction → refunds 50% of bond</criterion>
+    <criterion id="5">Proposal tax (1% of bond) never refunded, collected regardless of outcome</criterion>
+    <criterion id="6">Creator receives full bond refund on approval</criterion>
+    <criterion id="7">Market creation event synced to database (via existing event listener)</criterion>
+    <criterion id="8">Tests validate approval/rejection flows and bond refunds</criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="1" ac="1">Implement `finalize-proposal-vote` Supabase Edge Function
+      <subtask>Create function in `supabase/functions/finalize-proposal-vote/`</subtask>
+      <subtask>Aggregate YES/NO votes from `proposal_votes` table</subtask>
+      <subtask>Calculate approval percentage</subtask>
+      <subtask>Handle edge cases (no votes, tie scenarios)</subtask>
+    </task>
+    <task id="2" ac="2">Implement Approval Threshold Logic
+      <subtask>Read threshold parameter (default 60%)</subtask>
+      <subtask>Compare vote percentage to threshold</subtask>
+      <subtask>Determine APPROVED vs REJECTED status</subtask>
+    </task>
+    <task id="3" ac="3">Integrate ProposalSystem `approve_proposal` Instruction
+      <subtask>Call on-chain instruction via Anchor</subtask>
+      <subtask>Pass proposal_id and vote_result</subtask>
+      <subtask>Verify market created in CoreMarkets</subtask>
+      <subtask>Capture transaction signature</subtask>
+    </task>
+    <task id="4" ac="4">Integrate ProposalSystem `reject_proposal` Instruction
+      <subtask>Call on-chain instruction for rejected proposals</subtask>
+      <subtask>Verify 50% bond refund executed</subtask>
+      <subtask>Capture refund transaction</subtask>
+    </task>
+    <task id="5" ac="5">Implement Proposal Tax Collection
+      <subtask>Ensure 1% tax collected regardless of outcome</subtask>
+      <subtask>Verify tax NOT refunded in either path</subtask>
+      <subtask>Track tax collection in database</subtask>
+    </task>
+    <task id="6" ac="6">Implement Creator Bond Refund Logic
+      <subtask>Full refund on approval (100% of bond)</subtask>
+      <subtask>50% refund on rejection</subtask>
+      <subtask>Verify refund amounts match bond tier</subtask>
+    </task>
+    <task id="7" ac="7">Sync Market Creation Event to Database
+      <subtask>Use existing event listener from Story 1.9</subtask>
+      <subtask>Verify new market appears in `markets` table</subtask>
+      <subtask>Link market to approved proposal_id</subtask>
+    </task>
+    <task id="8" ac="8">Write Tests for Approval/Rejection Flows
+      <subtask>Test scenario: Proposal with ≥60% YES → APPROVED → market created</subtask>
+      <subtask>Test scenario: Proposal with <60% YES → REJECTED → 50% refund</subtask>
+      <subtask>Test scenario: Proposal tax collected in both paths</subtask>
+      <subtask>Test scenario: Full bond refund on approval</subtask>
+      <subtask>Test scenario: Edge cases (no votes, exactly 60%, etc.)</subtask>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 2.5</section>
+        <snippet>Implements proposal approval/rejection logic with ≥60% YES threshold, bond refunds (100% on approval, 50% on rejection), and 1% non-refundable proposal tax. Bridges off-chain voting with on-chain execution.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Supabase Edge Functions</section>
+        <snippet>Serverless TypeScript functions using Deno runtime for vote aggregation, data processing, and blockchain interaction via Anchor SDK.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.7-COMPLETE.md</path>
+        <title>ProposalSystem Program Completion</title>
+        <section>Instructions</section>
+        <snippet>ProposalSystem deployed with approve_proposal and reject_proposal instructions. Graduated bond tiers (1/5/10 SOL → 0.5%/1.0%/2.0% fees), 1% proposal tax, 60% approval threshold.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.9-COMPLETE.md</path>
+        <title>Event Listener Completion</title>
+        <section>Implementation</section>
+        <snippet>Event listener syncs Solana events to PostgreSQL with idempotent handling, retry logic, and 2-3 second latency. Supports MarketCreated, ProposalApproved, ProposalRejected events.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.4-COMPLETE.md</path>
+        <title>Proposal Voting Completion</title>
+        <section>Implementation</section>
+        <snippet>Proposal voting infrastructure with proposal_votes table, gas-free signature-based voting, and real-time vote aggregation queries.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>solana-program</kind>
+        <symbol>approve_proposal</symbol>
+        <lines>220-286</lines>
+        <reason>On-chain instruction to approve proposal, create market in CoreMarkets via CPI, refund full bond to creator</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>solana-program</kind>
+        <symbol>reject_proposal</symbol>
+        <lines>288-342</lines>
+        <reason>On-chain instruction to reject proposal, refund 50% of bond to creator, keep remaining 50% + 1% tax</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/aggregate-votes/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>aggregateVotes</symbol>
+        <lines>all</lines>
+        <reason>Similar pattern for market resolution voting aggregation - reference implementation for proposal vote aggregation</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/submit-proposal-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>submitProposalVote</symbol>
+        <lines>all</lines>
+        <reason>Vote submission handling - shows database schema and validation patterns for proposal_votes table</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/007_proposal_voting_snapshot_style.sql</path>
+        <kind>database-migration</kind>
+        <symbol>proposal_votes table</symbol>
+        <lines>all</lines>
+        <reason>Defines proposal_votes table schema with vote_choice, vote_weight, voter_wallet, proposal_id columns</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/sync-events/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>syncEvents</symbol>
+        <lines>all</lines>
+        <reason>Event listener that syncs on-chain events to database - will handle MarketCreated events from approved proposals</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="@solana/web3.js" version="^1.87.0" reason="Solana blockchain interaction"/>
+        <package name="@project-serum/anchor" version="^0.32.1" reason="Anchor SDK for calling ProposalSystem instructions"/>
+        <package name="@supabase/supabase-js" version="^2.38.0" reason="Supabase client for database queries"/>
+      </node>
+      <deno>
+        <package name="std/http" version="latest" reason="HTTP server for Edge Functions"/>
+        <package name="std/encoding" version="latest" reason="Base64 encoding for signatures"/>
+      </deno>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>approve_proposal</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>pub fn approve_proposal(ctx: Context&lt;ApproveProposal&gt;) -> Result&lt;()&gt;</signature>
+      <path>programs/proposal-system/src/lib.rs:220-286</path>
+      <description>Approves proposal if ≥60% YES votes, creates market in CoreMarkets via CPI, refunds 100% of bond to creator via BondManager</description>
+    </interface>
+    <interface>
+      <name>reject_proposal</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>pub fn reject_proposal(ctx: Context&lt;RejectProposal&gt;) -> Result&lt;()&gt;</signature>
+      <path>programs/proposal-system/src/lib.rs:288-342</path>
+      <description>Rejects proposal if &lt;60% YES votes, refunds 50% of bond to creator, protocol keeps remaining 50% + 1% tax</description>
+    </interface>
+    <interface>
+      <name>proposal_votes table</name>
+      <kind>Database Schema</kind>
+      <signature>CREATE TABLE proposal_votes (proposal_id, voter_wallet, vote_choice, vote_weight, signature, timestamp)</signature>
+      <path>database/migrations/007_proposal_voting_snapshot_style.sql</path>
+      <description>Stores off-chain proposal votes with signature-based authentication, unique constraint on (proposal_id, voter_wallet)</description>
+    </interface>
+    <interface>
+      <name>finalize-proposal-vote Edge Function</name>
+      <kind>Supabase Edge Function (To Be Created)</kind>
+      <signature>POST /functions/v1/finalize-proposal-vote</signature>
+      <path>supabase/functions/finalize-proposal-vote/index.ts (new)</path>
+      <description>Aggregates votes from proposal_votes table, determines APPROVED/REJECTED status, calls appropriate on-chain instruction</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Use Supabase Edge Functions (Deno runtime) for vote aggregation - established pattern in Epic 2</constraint>
+    <constraint>Call Anchor programs via @project-serum/anchor SDK - follow Epic 1 CPI patterns</constraint>
+    <constraint>Ensure idempotent operations - finalization should be safe to retry</constraint>
+    <constraint>1% proposal tax MUST be collected at proposal creation (Epic 1 Story 1.7) and NEVER refunded</constraint>
+    <constraint>Approval threshold (60%) should be configurable parameter from ParameterStorage</constraint>
+    <constraint>Use existing event listener (Story 1.9) - no new listener needed</constraint>
+    <constraint>Follow Snapshot-style voting pattern from Stories 2.1-2.4</constraint>
+    <constraint>Tests deferred to Story 4.1 (Epic 4 comprehensive testing) per BMAD pattern</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Tests deferred to Epic 4 Story 4.1 per BMAD methodology. When implemented, use Anchor test framework for on-chain instruction tests and Deno test framework for Edge Function tests. Follow existing test patterns in supabase/functions/*/test.ts files.
+    </standards>
+    <locations>
+      <location>tests/ - Anchor program tests</location>
+      <location>supabase/functions/finalize-proposal-vote/test.ts - Edge Function unit tests</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test vote aggregation with various vote distributions (100% YES, 60% YES, 59% YES, 50-50, no votes)</idea>
+      <idea ac="2">Test threshold boundary conditions (exactly 60%, 59.9%, 60.1%)</idea>
+      <idea ac="3">Test approve_proposal CPI call succeeds and market created in CoreMarkets</idea>
+      <idea ac="4">Test reject_proposal refund calculation (50% of bond amount)</idea>
+      <idea ac="5">Test proposal tax (1% of bond) never refunded in either path</idea>
+      <idea ac="6">Test full bond refund on approval via BondManager</idea>
+      <idea ac="7">Test MarketCreated event synced to database with correct proposal_id link</idea>
+      <idea ac="8">Integration test: full proposal lifecycle from creation → voting → approval → market creation</idea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note>Story 2.5 bridges off-chain voting (Stories 2.1-2.4) with on-chain execution (Epic 1 Story 1.7 ProposalSystem)</note>
+    <note>Data flow: proposal_votes (off-chain) → finalize-proposal-vote (aggregation) → approve/reject (on-chain) → Event emitted → Database synced</note>
+    <note>Edge Function should be triggered manually by admin OR via cron job when voting period ends</note>
+    <note>Idempotency critical: finalization may need retry if transaction fails</note>
+    <note>Consider storing aggregation result in database before calling on-chain instruction for audit trail</note>
+    <note>Bond economics: Creator pays 1% tax at proposal creation (Epic 1), gets 100% bond back on approval OR 50% on rejection</note>
+    <note>Protocol economics: Keeps 1% tax + 50% of rejected proposal bonds</note>
+  </devNotes>
+</story-context>

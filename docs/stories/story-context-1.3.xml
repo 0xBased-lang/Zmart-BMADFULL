@@ -1,0 +1,263 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>Implement ParameterStorage with Global Configuration</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a platform admin</asA>
+    <iWant>adjustable global parameters stored on-chain</iWant>
+    <soThat>I can optimize fees, limits, and thresholds without redeploying smart contracts</soThat>
+    <tasks>
+      <taskGroup id="1" ac="1">
+        <title>Define GlobalParameters account structure</title>
+        <subtasks>
+          <subtask>Create GlobalParameters account with authority field</subtask>
+          <subtask>Add platform_fee_bps field (basis points, 0-10000)</subtask>
+          <subtask>Add creator_fee_bps field (basis points, 0-10000)</subtask>
+          <subtask>Add min_market_duration field (seconds)</subtask>
+          <subtask>Add max_market_duration field (seconds)</subtask>
+          <subtask>Add min_bond_amount field (lamports)</subtask>
+          <subtask>Add voting_period_duration field (seconds)</subtask>
+          <subtask>Add dispute_period_duration field (seconds)</subtask>
+          <subtask>Add cooldown_period field (seconds, for parameter updates)</subtask>
+          <subtask>Add max_change_bps field (max % change per update)</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="2" ac="2">
+        <title>Define GlobalFeatureToggles account structure</title>
+        <subtasks>
+          <subtask>Create GlobalFeatureToggles account with authority field</subtask>
+          <subtask>Add market_creation_enabled boolean flag</subtask>
+          <subtask>Add betting_enabled boolean flag</subtask>
+          <subtask>Add voting_enabled boolean flag</subtask>
+          <subtask>Add proposals_enabled boolean flag</subtask>
+          <subtask>Add emergency_pause boolean flag (master kill switch)</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="3" ac="3">
+        <title>Implement initialize_parameters instruction</title>
+        <subtasks>
+          <subtask>Create both GlobalParameters and GlobalFeatureToggles accounts</subtask>
+          <subtask>Set default values for all numeric parameters</subtask>
+          <subtask>Set default values for all feature toggles</subtask>
+          <subtask>Set authority to initializer</subtask>
+          <subtask>Add PDA derivation with seeds for both accounts</subtask>
+          <subtask>Emit initialization event</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="4" ac="4">
+        <title>Implement update_parameter instruction</title>
+        <subtasks>
+          <subtask>Add admin-only access control (has_one = authority)</subtask>
+          <subtask>Implement cooldown enforcement (check last_update + cooldown_period)</subtask>
+          <subtask>Validate max change percentage (current_value ± max_change_bps)</subtask>
+          <subtask>Update the specified parameter field</subtask>
+          <subtask>Update last_update timestamp</subtask>
+          <subtask>Emit parameter update event with old/new values</subtask>
+          <subtask>Add comprehensive input validation</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="5" ac="5">
+        <title>Implement update_toggle instruction</title>
+        <subtasks>
+          <subtask>Add admin-only access control</subtask>
+          <subtask>Update specified feature toggle</subtask>
+          <subtask>Emit toggle update event</subtask>
+          <subtask>Add special handling for emergency_pause</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="6" ac="6">
+        <title>Add parameter update event logging</title>
+        <subtasks>
+          <subtask>Define ParameterUpdated event with parameter_name, old_value, new_value, timestamp</subtask>
+          <subtask>Define ToggleUpdated event with toggle_name, new_value, timestamp</subtask>
+          <subtask>Emit events using emit! macro for on-chain audit trail</subtask>
+          <subtask>Include admin authority in event logs</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="7" ac="7">
+        <title>Write comprehensive tests</title>
+        <subtasks>
+          <subtask>Test initialize_parameters creates both accounts with defaults</subtask>
+          <subtask>Test update_parameter with valid inputs within max_change_bps</subtask>
+          <subtask>Test update_parameter fails when exceeding max_change_bps</subtask>
+          <subtask>Test update_parameter fails during cooldown period</subtask>
+          <subtask>Test update_parameter fails with unauthorized caller</subtask>
+          <subtask>Test update_toggle updates feature flags correctly</subtask>
+          <subtask>Test emergency_pause handling</subtask>
+          <subtask>Test parameter update events are emitted correctly</subtask>
+          <subtask>Test all safety constraints are enforced</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="8" ac="8">
+        <title>Deploy to devnet and verify</title>
+        <subtasks>
+          <subtask>Deploy parameter-storage program to devnet</subtask>
+          <subtask>Initialize both parameter accounts on devnet</subtask>
+          <subtask>Verify default parameters are set correctly</subtask>
+          <subtask>Test parameter update on devnet</subtask>
+          <subtask>Update Anchor.toml with deployed program ID</subtask>
+        </subtasks>
+      </taskGroup>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">GlobalParameters account structure defined with all numeric values (fees, limits, durations)</criterion>
+    <criterion id="2">GlobalFeatureToggles account structure with boolean flags for all major features</criterion>
+    <criterion id="3">initialize_parameters instruction creates both accounts with default values</criterion>
+    <criterion id="4">update_parameter instruction with admin-only access, cooldown enforcement, and max change % validation</criterion>
+    <criterion id="5">update_toggle instruction for feature flag management</criterion>
+    <criterion id="6">Parameter update events emitted for audit trail</criterion>
+    <criterion id="7">Comprehensive tests validate parameter updates respect safety constraints</criterion>
+    <criterion id="8">Deployed to devnet with default parameters set</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Parameter Storage Pattern</section>
+        <snippet>Centralized on-chain configuration eliminates need for program redeployment. Safety constraints prevent dangerous parameter changes (cooldown + max change %).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Safety Constraints</section>
+        <snippet>24-hour cooldown between updates, maximum 20% change per update, admin-only access, event emission for audit trail.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>BMAD-Zmart Epics</title>
+        <section>Epic 1: Foundation &amp; Infrastructure / Story 1.3</section>
+        <snippet>Defines 8 acceptance criteria for ParameterStorage including account structures, instructions, safety constraints, events, tests, and devnet deployment.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>parameter_storage</symbol>
+        <lines>1-150</lines>
+        <reason>Complete ParameterStorage implementation with GlobalParameters and GlobalFeatureToggles accounts, initialize_parameters, update_parameter with safety checks, update_toggle, and event emission.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/parameter-storage/Cargo.toml</path>
+        <kind>config</kind>
+        <symbol>program package manifest</symbol>
+        <lines>N/A</lines>
+        <reason>Program dependencies (anchor-lang 0.32.1)</reason>
+      </artifact>
+      <artifact>
+        <path>Anchor.toml</path>
+        <kind>config</kind>
+        <symbol>workspace configuration</symbol>
+        <lines>8-22</lines>
+        <reason>Program ID: J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD on devnet</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1" />
+      </rust>
+      <node>
+        <dependency name="@coral-xyz/anchor" version="^0.32.1" />
+        <dependency name="chai" version="^4.3.4" dev="true" />
+        <dependency name="mocha" version="^9.0.3" dev="true" />
+        <dependency name="ts-mocha" version="^10.0.0" dev="true" />
+      </node>
+      <framework name="Anchor Framework" version="0.32.1" ecosystem="Solana" />
+      <framework name="Solana CLI" version="2.3.13" ecosystem="Solana" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Safety Constraints: 24-hour cooldown between updates (86400 seconds)</constraint>
+    <constraint>Max Change Limit: Maximum 20% change per update (2000 basis points)</constraint>
+    <constraint>Access Control: Only authority can update parameters and toggles</constraint>
+    <constraint>Event Logging: All parameter/toggle updates emit events for audit trail</constraint>
+    <constraint>PDA Accounts: Both GlobalParameters and GlobalFeatureToggles use PDA derivation</constraint>
+    <constraint>Default Values: All parameters initialized with secure defaults (platform_fee: 2%, creator_fee: 1%, min_duration: 1hr, etc.)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>parameter_storage::initialize_parameters</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn initialize_parameters(ctx: Context&lt;InitializeParameters&gt;) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>parameter_storage::update_parameter</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn update_parameter(ctx: Context&lt;UpdateParameter&gt;, param_type: ParameterType, new_value: u64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>parameter_storage::update_toggle</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn update_toggle(ctx: Context&lt;UpdateToggle&gt;, toggle_type: ToggleType, enabled: bool) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>GlobalParameters (Account)</name>
+      <kind>Account structure</kind>
+      <signature>Fields: authority, creation_bond_lamports, platform_fee_bps, creator_fee_bps, min_bet_lamports, max_bet_lamports, max_market_size_lamports, min_duration_seconds, max_duration_seconds, dispute_window_seconds, bond_tier_1/2/3_lamports, update_cooldown_seconds, max_change_bps, last_updated, cooldown_until, version, bump</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>GlobalFeatureToggles (Account)</name>
+      <kind>Account structure</kind>
+      <signature>Fields: authority, market_creation_enabled, betting_enabled, resolution_enabled, proposals_enabled, emergency_pause, last_updated, version, bump</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ParameterUpdatedEvent</name>
+      <kind>Event</kind>
+      <signature>Fields: authority, param_type, old_value, new_value, timestamp</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ToggleUpdatedEvent</name>
+      <kind>Event</kind>
+      <signature>Fields: authority, toggle_type, old_value, new_value, timestamp</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Anchor programs require minimum 90% test coverage. Test framework uses Mocha/Chai with TypeScript. Tests must validate all safety constraints: cooldown enforcement, max change % validation, admin-only access control. Test edge cases: boundary values, concurrent updates, emergency scenarios. Verify event emission for all parameter/toggle updates.
+    </standards>
+    <locations>
+      <location>tests/parameter-storage.ts - Main test suite for ParameterStorage</location>
+      <location>tests/*.ts - Additional integration tests</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test GlobalParameters account creation with all fields initialized</idea>
+      <idea ac="2">Test GlobalFeatureToggles account creation with all boolean flags</idea>
+      <idea ac="3">Test initialize_parameters creates both accounts with correct defaults</idea>
+      <idea ac="3">Verify default values: platform_fee_bps=200, creator_fee_bps=100, cooldown=86400, max_change=2000</idea>
+      <idea ac="4">Test update_parameter with valid change within max_change_bps succeeds</idea>
+      <idea ac="4">Test update_parameter exceeding max_change_bps fails with error</idea>
+      <idea ac="4">Test update_parameter during cooldown period fails</idea>
+      <idea ac="4">Test update_parameter with unauthorized caller fails</idea>
+      <idea ac="4">Test cooldown_until is properly set after parameter update</idea>
+      <idea ac="5">Test update_toggle successfully updates feature flags</idea>
+      <idea ac="5">Test emergency_pause toggle special handling</idea>
+      <idea ac="6">Test ParameterUpdatedEvent emitted with correct old/new values</idea>
+      <idea ac="6">Test ToggleUpdatedEvent emitted with authority and timestamp</idea>
+      <idea ac="7">Test all safety constraints enforced together</idea>
+      <idea ac="7">Test boundary values (max/min parameter values)</idea>
+      <idea ac="8">Test parameter accounts initialized on devnet</idea>
+      <idea ac="8">Test parameter update on devnet with real transactions</idea>
+    </ideas>
+  </tests>
+</story-context>

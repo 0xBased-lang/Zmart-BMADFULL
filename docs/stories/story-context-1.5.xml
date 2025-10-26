@@ -1,0 +1,225 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.5</storyId>
+    <title>Implement BondManager Program for Escrow</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.5.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>market creator</asA>
+    <iWant>my proposal bond held in escrow securely</iWant>
+    <soThat>I can receive it back when my market succeeds</soThat>
+    <tasks>
+      - Define BondEscrow account structure (AC: #1)
+      - Define enum types
+      - Implement deposit_bond instruction (AC: #2, #5)
+      - Implement refund_bond instruction (AC: #3)
+      - Implement claim_creator_fees instruction (AC: #4)
+      - Implement add_creator_fees instruction
+      - Define error types
+      - Implement event emissions
+      - Write comprehensive tests (AC: #6)
+      - Deploy to devnet (AC: #7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">BondEscrow account structure defined (creator, bond_amount, market_id, status)</criterion>
+    <criterion id="2">deposit_bond instruction transfers tokens to escrow PDA</criterion>
+    <criterion id="3">refund_bond instruction with graduated logic (full refund on success, partial on rejection)</criterion>
+    <criterion id="4">claim_creator_fees instruction for market creators to withdraw accumulated fees</criterion>
+    <criterion id="5">Bond escrow account is PDA derived from market_id for security</criterion>
+    <criterion id="6">Comprehensive tests validate deposit, refund, and fee claim scenarios</criterion>
+    <criterion id="7">Deployed to devnet</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 1: Foundation & Infrastructure</title>
+        <section>Story 1.5</section>
+        <snippet>BondManager provides escrow management for market creator bonds with graduated refund logic. Integrates with ParameterStorage for bond tiers.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Graduated Bond Economics</section>
+        <snippet>Dynamic creator rewards based on commitment. Three bond tiers with increasing creator fee percentages. Incentivizes quality market proposals.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-1.3.md</path>
+        <title>Story 1.3: ParameterStorage</title>
+        <section>Completion Notes</section>
+        <snippet>GlobalParameters provides bond_tier_1/2/3_lamports configuration for BondManager integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-1.4.md</path>
+        <title>Story 1.4: CoreMarkets</title>
+        <section>Completion Notes</section>
+        <snippet>CoreMarkets tracks total_creator_fees per market. Will call BondManager.add_creator_fees to accumulate fees for creators during bet processing.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>bond_manager</symbol>
+        <lines>1-444</lines>
+        <reason>Complete BondManager implementation with 4 instructions: deposit_bond, refund_bond, claim_creator_fees, add_creator_fees. Includes BondEscrow account, graduated refund logic, and event emissions.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>BondEscrow</symbol>
+        <lines>245-256</lines>
+        <reason>BondEscrow account structure with creator, bond_amount, market_id, status, timestamps, accumulated_fees, bond_tier. ~90 bytes space allocation.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>deposit_bond</symbol>
+        <lines>23-85</lines>
+        <reason>Deposits bond to escrow PDA. Reads GlobalParameters for bond tier amounts, transfers SOL, initializes escrow with Active status. Emits BondDepositedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>refund_bond</symbol>
+        <lines>87-152</lines>
+        <reason>Graduated refund logic: Full (100%), Partial (50%), Slash (0%). Validates status and authorization, transfers refund, updates status. Emits BondRefundedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>claim_creator_fees</symbol>
+        <lines>154-196</lines>
+        <reason>Allows creators to withdraw accumulated fees. Validates authorization and fees > 0, transfers to creator, resets accumulated_fees. Emits CreatorFeesClaimedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>add_creator_fees</symbol>
+        <lines>198-237</lines>
+        <reason>Called by CoreMarkets to accumulate bet fees. Transfers fees from fee_payer to escrow, increments accumulated_fees. Emits CreatorFeesAddedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>GlobalParameters</symbol>
+        <lines>1-150</lines>
+        <reason>Cross-program dependency. Provides bond_tier_1/2/3_lamports for deposit_bond instruction.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <anchor>
+        <package>anchor-lang</package>
+        <version>0.32.1</version>
+        <reason>Solana program framework with account macros and CPI support</reason>
+      </anchor>
+      <solana>
+        <package>solana-program</package>
+        <version>Bundled with Anchor</version>
+        <reason>Core Solana primitives and system program</reason>
+      </solana>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Anchor 0.32.1 framework with anchor-lang macros</constraint>
+    <constraint>PDA-derived escrow accounts: seeds = ["bond-escrow", market_id]</constraint>
+    <constraint>Cross-program calls to ParameterStorage for bond tier amounts</constraint>
+    <constraint>Graduated refund logic: Full (100%), Partial (50%), Slash (0%)</constraint>
+    <constraint>Bond tier system: Tier1/2/3 with increasing bond amounts and creator fee percentages</constraint>
+    <constraint>Status validation: can only refund Active bonds, prevents double refunding</constraint>
+    <constraint>Creator authorization: only bond creator can refund or claim fees</constraint>
+    <constraint>Account space: BondEscrow ~90 bytes</constraint>
+    <constraint>Emit events for all state changes</constraint>
+    <constraint>Custom error codes for all failure scenarios</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GlobalParameters (ParameterStorage)</name>
+      <kind>Cross-Program Account Read</kind>
+      <signature>
+        pub struct GlobalParameters {
+          pub bond_tier_1_lamports: u64,
+          pub bond_tier_2_lamports: u64,
+          pub bond_tier_3_lamports: u64,
+          ...
+        }
+      </signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+      <usage>Read in deposit_bond instruction for bond tier amounts</usage>
+    </interface>
+    <interface>
+      <name>deposit_bond</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn deposit_bond(ctx: Context&lt;DepositBond&gt;, market_id: u64, bond_tier: BondTier) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/bond-manager/src/lib.rs:23-85</path>
+      <usage>Creates escrow and deposits bond. Called by ProposalSystem when market proposal created.</usage>
+    </interface>
+    <interface>
+      <name>refund_bond</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn refund_bond(ctx: Context&lt;RefundBond&gt;, refund_type: RefundType) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/bond-manager/src/lib.rs:87-152</path>
+      <usage>Refunds bond to creator with graduated logic. Full (100%), Partial (50%), or Slash (0%).</usage>
+    </interface>
+    <interface>
+      <name>claim_creator_fees</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn claim_creator_fees(ctx: Context&lt;ClaimCreatorFees&gt;) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/bond-manager/src/lib.rs:154-196</path>
+      <usage>Allows creators to withdraw accumulated fees from betting activity.</usage>
+    </interface>
+    <interface>
+      <name>add_creator_fees</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn add_creator_fees(ctx: Context&lt;AddCreatorFees&gt;, fee_amount: u64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/bond-manager/src/lib.rs:198-237</path>
+      <usage>Called by CoreMarkets to accumulate bet fees for market creator.</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Anchor test suite using Mocha and Chai with TypeScript. Tests located in tests/ directory. Each instruction requires:
+      1) Happy path test with valid inputs
+      2) Edge case tests (all three refund types)
+      3) Error case tests (unauthorized access, double refund)
+      4) Integration tests for cross-program calls
+
+      Devnet deployment testing required before marking story complete. Deposit bonds with all three tiers, test refund scenarios, accumulate and claim fees.
+    </standards>
+    <locations>
+      - tests/bond-manager.ts (primary test file)
+      - Anchor.toml (test configuration with devnet cluster)
+    </locations>
+    <ideas>
+      <test ac="1">Test BondEscrow account initialization with all fields</test>
+      <test ac="2">Test deposit_bond with Tier1 bond amount</test>
+      <test ac="2">Test deposit_bond with Tier2 bond amount</test>
+      <test ac="2">Test deposit_bond with Tier3 bond amount</test>
+      <test ac="2">Test SOL transfer from creator to escrow PDA</test>
+      <test ac="3">Test refund_bond with Full refund (100%)</test>
+      <test ac="3">Test refund_bond with Partial refund (50%)</test>
+      <test ac="3">Test refund_bond with Slash (0% refund)</test>
+      <test ac="3">Test status transitions (Active → Refunded/PartialRefund/Slashed)</test>
+      <test ac="4">Test claim_creator_fees with accumulated fees</test>
+      <test ac="4">Test error when no fees to claim</test>
+      <test ac="5">Test PDA derivation from market_id</test>
+      <test ac="6">Test unauthorized access (wrong creator)</test>
+      <test ac="6">Test double refund prevention (BondAlreadyProcessed error)</test>
+      <test ac="6">Test add_creator_fees accumulation</test>
+      <test ac="7">Deploy to devnet and verify program ID</test>
+      <test ac="7">Test deposit and refund on devnet</test>
+      <test ac="7">Test fee accumulation and claiming on devnet</test>
+    </ideas>
+  </tests>
+</story-context>

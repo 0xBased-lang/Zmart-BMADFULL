@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.7</storyId>
+    <title>Implement Admin Override for Disputed Markets</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.7.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>platform admin</asA>
+    <iWant>review disputes and override community votes if necessary</iWant>
+    <soThat>obviously incorrect resolutions can be corrected during MVP</soThat>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Admin dashboard query lists markets in DISPUTE_WINDOW status with all dispute details</criterion>
+    <criterion id="2">`admin-override-resolution` Supabase Edge Function to process admin overrides</criterion>
+    <criterion id="3">Admin can change outcome from YES → NO, NO → YES, or mark as CANCELLED</criterion>
+    <criterion id="4">Override reason required (stored in database)</criterion>
+    <criterion id="5">Market status transitions from UNDER_REVIEW → RESOLVED (final)</criterion>
+    <criterion id="6">Disputes table updated with admin decision and notes</criterion>
+    <criterion id="7">Tests validate admin override functionality and status transitions</criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="1" ac="1">Create admin dashboard query for disputed markets
+      <subtask>Query function to fetch markets with status = UNDER_REVIEW</subtask>
+      <subtask>Join with disputes table to show all dispute details</subtask>
+      <subtask>Include dispute count, reasons, evidence links</subtask>
+      <subtask>Sort by dispute count DESC, timestamp DESC</subtask>
+    </task>
+    <task id="2" ac="2,3,4">Create admin-override-resolution Edge Function
+      <subtask>Initialize Edge Function directory and config</subtask>
+      <subtask>Implement admin authentication/authorization check</subtask>
+      <subtask>Validate override request (market_id, new_outcome, reason)</subtask>
+      <subtask>Update market outcome and status to RESOLVED</subtask>
+      <subtask>Log override reason in database</subtask>
+      <subtask>Return success confirmation</subtask>
+    </task>
+    <task id="3" ac="6">Update disputes table with admin decision
+      <subtask>Add admin review fields to existing disputes</subtask>
+      <subtask>Update dispute status to 'resolved'</subtask>
+      <subtask>Store admin notes and decision</subtask>
+      <subtask>Track which admin processed the dispute</subtask>
+    </task>
+    <task id="4" ac="5">Implement market status transition logic
+      <subtask>Validate market is in UNDER_REVIEW status</subtask>
+      <subtask>Update market status from UNDER_REVIEW → RESOLVED</subtask>
+      <subtask>Set resolved_outcome to admin's decision (YES/NO/CANCELLED)</subtask>
+      <subtask>Set resolved_at timestamp</subtask>
+      <subtask>Prevent further disputes after resolution</subtask>
+    </task>
+    <task id="5" ac="2">Create admin authorization helper function
+      <subtask>Admin wallet whitelist in ParameterStorage or database</subtask>
+      <subtask>Verify caller is authorized admin</subtask>
+      <subtask>Return clear error for unauthorized attempts</subtask>
+      <subtask>Log all override attempts for audit trail</subtask>
+    </task>
+    <task id="6" ac="7">Write comprehensive tests
+      <subtask>Test admin can override YES → NO</subtask>
+      <subtask>Test admin can override NO → YES</subtask>
+      <subtask>Test admin can mark as CANCELLED</subtask>
+      <subtask>Test unauthorized user cannot override</subtask>
+      <subtask>Test market transitions to RESOLVED</subtask>
+      <subtask>Test disputes marked as resolved</subtask>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - Community Governance & Voting</title>
+        <section>Story 2.7</section>
+        <snippet>Admin can review disputes and override community votes if necessary to correct obviously incorrect resolutions during MVP. Includes admin dashboard, override endpoint, outcome changes (YES/NO/CANCELLED), reason logging, and market finalization.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-2.6.md</path>
+        <title>Story 2.6 - Dispute Flagging Mechanism</title>
+        <section>Completion Notes</section>
+        <snippet>Created disputes table with 9 columns, 5 helper functions (get_disputed_markets, get_market_disputes, count_market_disputes, has_user_disputed_market, is_market_disputable), UNDER_REVIEW status added to markets table. Admin_notes column ready for admin override reason.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Market Resolution Flow</section>
+        <snippet>Market status state machine includes UNDER_REVIEW state for disputed markets. Admin override transitions UNDER_REVIEW → RESOLVED with final outcome. No further changes allowed after RESOLVED status.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>database/migrations/008_disputes_table.sql</path>
+        <kind>database-migration</kind>
+        <symbol>get_disputed_markets, get_market_disputes functions</symbol>
+        <lines>148-177</lines>
+        <reason>Story 2.6 created helper functions for admin dashboard. get_disputed_markets() returns markets with pending disputes sorted by count. get_market_disputes(market_id) returns all disputes for a specific market with details.</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/008_disputes_table.sql</path>
+        <kind>database-migration</kind>
+        <symbol>disputes table schema</symbol>
+        <lines>38-75</lines>
+        <reason>Disputes table structure from Story 2.6. Includes admin_notes TEXT column ready for admin override reason. Status field transitions from 'pending' → 'resolved'. Unique constraint on (market_id, disputer_wallet).</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/flag-dispute/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>Edge Function structure, validation patterns</symbol>
+        <lines>1-100</lines>
+        <reason>Pattern for Edge Function implementation from Story 2.6. Shows TypeScript interfaces, CORS handling, request validation, database queries with Supabase client, and error responses. Use as template for admin-override-resolution.</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/006_vote_results_and_voting_statuses.sql</path>
+        <kind>database-migration</kind>
+        <symbol>Market status enum with UNDER_REVIEW</symbol>
+        <lines>14-20</lines>
+        <reason>Markets table status constraint includes UNDER_REVIEW status. Story 2.7 will transition UNDER_REVIEW → RESOLVED. Verify status enum before updating.</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/001_initial_schema.sql</path>
+        <kind>database-migration</kind>
+        <symbol>markets table schema</symbol>
+        <lines>39-73</lines>
+        <reason>Markets table structure. Need to update status, resolved_outcome, and resolved_at columns when admin overrides. Check existing columns and constraints.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/flag-dispute/deno.json</path>
+        <kind>configuration</kind>
+        <symbol>Deno configuration for Edge Functions</symbol>
+        <lines>all</lines>
+        <reason>Deno configuration pattern for Supabase Edge Functions. Use same structure for admin-override-resolution/deno.json.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <supabase>
+        <package name="@supabase/supabase-js" version="^2.38.0" reason="Supabase client for database queries and Edge Functions"/>
+      </supabase>
+      <deno>
+        <package name="std/http" version="0.168.0" reason="HTTP server for Edge Functions (Deno standard library)"/>
+      </deno>
+      <database>
+        <package name="PostgreSQL" version="15.x" reason="Primary database (Supabase managed)"/>
+      </database>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>admin-override-resolution Edge Function</name>
+      <kind>Supabase Edge Function (HTTP POST)</kind>
+      <signature>POST /functions/v1/admin-override-resolution
+Request: {
+  market_id: string,
+  admin_wallet: string,
+  new_outcome: "YES" | "NO" | "CANCELLED",
+  override_reason: string,
+  timestamp: number
+}
+Response: {
+  success: boolean,
+  message?: string,
+  error?: string
+}</signature>
+      <path>supabase/functions/admin-override-resolution/index.ts (to be created)</path>
+      <description>Allows authorized admins to override market outcomes during dispute period. Validates admin authorization, updates market status to RESOLVED, sets outcome, and logs reason in disputes table.</description>
+    </interface>
+    <interface>
+      <name>get_disputed_markets function</name>
+      <kind>PostgreSQL Function</kind>
+      <signature>SELECT * FROM get_disputed_markets()
+RETURNS TABLE (
+  market_id BIGINT,
+  market_title TEXT,
+  dispute_count BIGINT,
+  first_dispute_at TIMESTAMPTZ,
+  latest_dispute_at TIMESTAMPTZ
+)</signature>
+      <path>database/migrations/008_disputes_table.sql (already exists)</path>
+      <description>Returns all markets with pending disputes, ordered by dispute count DESC. Used for admin dashboard to show markets requiring review.</description>
+    </interface>
+    <interface>
+      <name>get_market_disputes function</name>
+      <kind>PostgreSQL Function</kind>
+      <signature>SELECT * FROM get_market_disputes(p_market_id BIGINT)
+RETURNS TABLE (
+  dispute_id BIGINT,
+  disputer_wallet TEXT,
+  reason_text TEXT,
+  evidence_links TEXT[],
+  timestamp TIMESTAMPTZ,
+  status TEXT,
+  admin_notes TEXT
+)</signature>
+      <path>database/migrations/008_disputes_table.sql (already exists)</path>
+      <description>Returns all disputes for a specific market with full details. Used to display dispute information to admin before making override decision.</description>
+    </interface>
+    <interface>
+      <name>Admin authorization check</name>
+      <kind>Helper Function Pattern</kind>
+      <signature>async function isAuthorizedAdmin(wallet: string): Promise&lt;boolean&gt;</signature>
+      <path>supabase/functions/admin-override-resolution/index.ts (to be created)</path>
+      <description>Validates if caller wallet is in admin whitelist. Option 1: Query ParameterStorage for admin_wallets parameter. Option 2: Query admin_wallets database table. Returns boolean indicating authorization status.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Use Supabase Edge Functions (Deno runtime) for admin override API - established pattern in Epic 2</constraint>
+    <constraint>Admin authorization required before any override - whitelist-based access control</constraint>
+    <constraint>Market must be in UNDER_REVIEW status to allow override - validate status before update</constraint>
+    <constraint>Override reason is mandatory - minimum 10 characters, stored in disputes.admin_notes</constraint>
+    <constraint>Market status transition is one-way: UNDER_REVIEW → RESOLVED (no reverting after override)</constraint>
+    <constraint>All disputes for market must be updated to 'resolved' status when admin overrides</constraint>
+    <constraint>Follow existing Edge Function patterns from Stories 2.1-2.6 - CORS handling, validation, error responses</constraint>
+    <constraint>Use Story 2.6's helper functions (get_disputed_markets, get_market_disputes) for admin dashboard queries</constraint>
+    <constraint>Tests deferred to Epic 4 Story 4.1 per BMAD pattern - document test scenarios in completion doc</constraint>
+    <constraint>Admin dashboard UI deferred to Epic 3 Story 3.10 - Story 2.7 only creates backend infrastructure</constraint>
+    <constraint>Audit trail required - log all override attempts (successful and failed) for security review</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Tests deferred to Epic 4 Story 4.1 per BMAD methodology for this project. When implemented, use Deno test framework for Edge Function tests (following patterns in supabase/functions/*/test.ts if they exist). For database, use PostgreSQL test fixtures. Follow existing test patterns from Epic 1 and Epic 2 completion docs.
+    </standards>
+    <locations>
+      <location>supabase/functions/admin-override-resolution/test.ts - Edge Function unit tests</location>
+      <location>database/migrations/test/ - Database migration tests (if pattern exists)</location>
+      <location>tests/ - Integration tests (if directory exists)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test get_disputed_markets query: returns markets with pending disputes, sorted by dispute count, includes all required fields</idea>
+      <idea ac="2">Test admin-override-resolution endpoint: valid admin can override, returns success, updates database</idea>
+      <idea ac="3">Test outcome changes: admin can override YES → NO, NO → YES, or → CANCELLED, outcome persists correctly</idea>
+      <idea ac="4">Test override reason validation: missing reason returns 400, reason stored in disputes.admin_notes</idea>
+      <idea ac="5">Test market status transition: UNDER_REVIEW → RESOLVED, resolved_at timestamp set, status cannot change after RESOLVED</idea>
+      <idea ac="6">Test disputes table update: all disputes for market marked 'resolved', admin_notes populated</idea>
+      <idea ac="7">Test admin authorization: unauthorized wallet returns 401, only whitelisted admins can override</idea>
+      <idea ac="all">Edge case: Override attempt on market not in UNDER_REVIEW (should fail with clear error)</idea>
+      <idea ac="all">Edge case: Multiple override attempts on same market (second should fail - already RESOLVED)</idea>
+      <idea ac="all">Edge case: Override with empty reason (should fail with validation error)</idea>
+      <idea ac="all">Integration test: Full flow - dispute flagged → admin override → market resolved → payouts can be claimed</idea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note>Story 2.7 creates backend infrastructure only - admin dashboard UI deferred to Epic 3 Story 3.10</note>
+    <note>Use Story 2.6's get_disputed_markets() and get_market_disputes() functions for admin queries - already implemented and tested</note>
+    <note>Admin authorization strategy: Recommended to use ParameterStorage for admin whitelist (simpler, on-chain authority). Alternative: database table for MVP flexibility.</note>
+    <note>Edge Function follows established Epic 2 pattern: validate → query → business logic → update → response</note>
+    <note>Override reason stored in disputes.admin_notes column (already exists from Story 2.6 migration)</note>
+    <note>Market status transition is final - once RESOLVED, no further changes allowed (enforce in validation)</note>
+    <note>Integration with Story 2.6: Uses disputes table, UNDER_REVIEW status, and helper functions</note>
+    <note>Data flow: Disputed market (Story 2.6) → Admin query (get_disputed_markets) → Admin override (Story 2.7) → Market RESOLVED → Payouts enabled (Epic 1)</note>
+  </devNotes>
+</story-context>

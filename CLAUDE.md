@@ -33,9 +33,50 @@ As the AI assistant (Claude Code), you have a DUAL role:
 
 ---
 
+## 🚀 MANDATORY PRE-FLIGHT VALIDATION
+
+### BEFORE STARTING ANY WORK SESSION - RUN PRE-FLIGHT FIRST
+
+**CRITICAL REQUIREMENT:**
+
+```bash
+/bmad-pre-flight
+```
+
+**This command is MANDATORY at the start of EVERY work session.**
+
+**What it does:**
+1. ✅ Reads `docs/bmm-workflow-status.md` (single source of truth)
+2. ✅ Verifies CURRENT_STORY matches intended work
+3. ✅ Checks story file exists
+4. ✅ Validates no stories skipped
+5. ✅ Confirms previous stories have completion docs
+6. ✅ Validates epic prerequisites (retrospectives exist)
+7. ✅ Verifies user intent matches workflow state
+8. ✅ **BLOCKS work if ANY validation fails**
+
+**Why it's bulletproof:**
+- Cannot bypass - validation is programmatic
+- Cannot forget - command is explicit
+- Cannot deviate - failures block work
+- Cannot miss issues - comprehensive checks
+
+**When pre-flight fails:**
+- Shows exactly what's wrong
+- Provides clear fix instructions
+- Refuses to proceed until fixed
+- No exceptions, no workarounds
+
+**AI ASSISTANT RULE:**
+You (Claude Code) MUST run `/bmad-pre-flight` validation before responding to ANY implementation request. If pre-flight fails, REFUSE to proceed and show the user the pre-flight output.
+
+---
+
 ## 📋 PRE-WORK VALIDATION CHECKLIST
 
-### BEFORE STARTING ANY WORK SESSION
+### MANUAL CHECKLIST (IF NOT USING PRE-FLIGHT)
+
+**Note:** `/bmad-pre-flight` automates this checklist. Use the command instead of manual checks.
 
 **Run this checklist EVERY SINGLE TIME before doing ANY work:**
 
@@ -374,33 +415,33 @@ git status --short
 #### Before Every Response:
 ```python
 def before_implementation_response():
-    # Step 1: Read workflow status
-    workflow_status = read_file("docs/bmm-workflow-status.md")
-    current_story = extract_current_story(workflow_status)
+    # Step 0: MANDATORY PRE-FLIGHT VALIDATION
+    # Run /bmad-pre-flight command to validate all compliance checks
+    preflight_result = run_preflight_validation()
 
-    # Step 2: Validate request against workflow
-    if user_request_matches_current_story():
-        proceed()
-    else:
-        refuse_with_explanation()
-        suggest_correct_next_action()
+    if preflight_result.failed:
+        refuse_with_preflight_output(preflight_result.message)
+        suggest("Fix the issues shown by pre-flight, then try again")
         return
 
-    # Step 3: Check story file exists
-    story_file = f"docs/STORY-{current_story}.md"
-    if not file_exists(story_file):
-        refuse("Story file missing")
-        suggest("Create story file first")
-        return
+    # If pre-flight passed, we're guaranteed:
+    # - workflow status is loaded and valid
+    # - current story matches workflow state
+    # - story file exists
+    # - no stories skipped
+    # - completion docs exist (or warnings noted)
+    # - epic prerequisites validated
+    # - user intent verified
 
-    # Step 4: Reference architecture
+    # Step 1: Reference architecture (pre-flight doesn't check this)
     architecture = read_file("docs/architecture.md")
     if request_contradicts_architecture():
         warn("Contradicts architecture.md")
         ask("Should we update architecture first?")
         return
 
-    # Step 5: Now proceed with implementation
+    # Step 2: Now proceed with implementation
+    # All other validations already done by pre-flight
     implement()
 ```
 
@@ -643,9 +684,10 @@ By working on this project, all participants (human and AI) commit to:
 ## 📌 QUICK REFERENCE
 
 ### Before ANY Work:
-1. Read `docs/bmm-workflow-status.md`
-2. Verify story file exists
-3. Check `docs/architecture.md`
+1. **RUN `/bmad-pre-flight` FIRST** (this does steps 2-4 automatically)
+2. Read `docs/bmm-workflow-status.md` (done by pre-flight)
+3. Verify story file exists (done by pre-flight)
+4. Check `docs/architecture.md`
 
 ### During Work:
 1. Follow acceptance criteria

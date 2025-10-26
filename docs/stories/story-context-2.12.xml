@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>12</storyId>
+    <title>End-to-End Governance Integration Test</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.12.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>validate the complete governance flow works end-to-end</iWant>
+    <soThat>I'm confident community governance is production-ready</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      E2E test script: user proposes market → community votes → proposal approved → market created → users bet → voting period → community votes on resolution → dispute flagged → admin reviews → market resolves → payouts claimed
+    </criterion>
+    <criterion id="AC2" priority="high">
+      Gas-free voting validated: users sign messages, no SOL spent on votes
+    </criterion>
+    <criterion id="AC3" priority="high">
+      Activity point integration tested: weighted voting mode uses correct weights
+    </criterion>
+    <criterion id="AC4" priority="medium">
+      Stale market cancellation tested: old markets auto-cancel and refund
+    </criterion>
+    <criterion id="AC5" priority="critical">
+      All Epic 2 acceptance criteria passing
+    </criterion>
+    <criterion id="AC6" priority="high">
+      Performance benchmarks: vote submission &lt;2s, aggregation &lt;5s for 1000 votes
+    </criterion>
+    <criterion id="AC7" priority="medium">
+      Documentation updated: governance workflows, admin procedures
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac-refs="AC1">
+      <description>Create E2E Governance Flow Test Script</description>
+      <subtasks>
+        <subtask>Set up test environment with devnet connection and test wallets (proposer, voters, admin, bettors)</subtask>
+        <subtask>Implement test step: User proposes market via ProposalSystem</subtask>
+        <subtask>Implement test step: Community votes on proposal via Snapshot-style signatures (Story 2.1, 2.2)</subtask>
+        <subtask>Implement test step: Vote aggregation and on-chain result posting (Story 2.3)</subtask>
+        <subtask>Implement test step: Proposal approved via approval logic (Story 2.5)</subtask>
+        <subtask>Implement test step: Market created in CoreMarkets program</subtask>
+        <subtask>Implement test step: Users place bets on market outcomes</subtask>
+        <subtask>Implement test step: Voting period opens for market resolution (Story 1.6)</subtask>
+        <subtask>Implement test step: Community votes on resolution outcome</subtask>
+        <subtask>Implement test step: Dispute flagged by user (Story 2.6)</subtask>
+        <subtask>Implement test step: Admin reviews and overrides if needed (Story 2.7)</subtask>
+        <subtask>Implement test step: Market resolves with final outcome</subtask>
+        <subtask>Implement test step: Winners claim payouts (Story 1.10)</subtask>
+        <subtask>Add assertions for each step to validate state transitions</subtask>
+        <subtask>Add cleanup logic to reset test state between runs</subtask>
+      </subtasks>
+    </task>
+    <task id="T2" ac-refs="AC2">
+      <description>Validate Gas-Free Voting</description>
+      <subtasks>
+        <subtask>Monitor wallet SOL balances before and after vote submission</subtask>
+        <subtask>Verify vote submission uses off-chain signatures (TweetNaCl Ed25519)</subtask>
+        <subtask>Validate only vote aggregation transaction (on-chain) requires SOL</subtask>
+        <subtask>Confirm voters do not pay any SOL for individual votes</subtask>
+        <subtask>Test with multiple voters (10+) to ensure no gas costs accumulate</subtask>
+        <subtask>Document gas cost breakdown: 0 SOL for votes, ~0.005 SOL for aggregation</subtask>
+      </subtasks>
+    </task>
+    <task id="T3" ac-refs="AC3">
+      <description>Activity Point Weighted Voting Test</description>
+      <subtasks>
+        <subtask>Create test scenario with users having different activity point balances</subtask>
+        <subtask>Enable weighted voting mode via ParameterStorage toggle</subtask>
+        <subtask>Submit votes from users with varying activity points (0, 50, 100, 500, 1000)</subtask>
+        <subtask>Verify vote weights match activity point balances (not 1-vote-per-user)</subtask>
+        <subtask>Validate vote aggregation respects weighted mode</subtask>
+        <subtask>Compare results with democratic mode (1-vote-per-user) to confirm difference</subtask>
+        <subtask>Test edge case: user with 0 activity points cannot vote in weighted mode</subtask>
+      </subtasks>
+    </task>
+    <task id="T4" ac-refs="AC4">
+      <description>Stale Market Cancellation Test</description>
+      <subtasks>
+        <subtask>Create market with voting_period_end timestamp in the past</subtask>
+        <subtask>Trigger stale market check function (cron simulation or manual invocation)</subtask>
+        <subtask>Verify market status changes to CANCELLED</subtask>
+        <subtask>Confirm all bettors receive refunds automatically</subtask>
+        <subtask>Validate creator bond refund based on graduated bond logic (Story 2.10)</subtask>
+        <subtask>Check database updates for cancelled market and refund records</subtask>
+        <subtask>Test multiple stale markets in single batch run</subtask>
+      </subtasks>
+    </task>
+    <task id="T5" ac-refs="AC5">
+      <description>Epic 2 Acceptance Criteria Validation</description>
+      <subtasks>
+        <subtask>Run all Story 2.1 acceptance criteria tests (Snapshot vote signatures)</subtask>
+        <subtask>Run all Story 2.2 acceptance criteria tests (Vote collection and storage)</subtask>
+        <subtask>Run all Story 2.3 acceptance criteria tests (Vote aggregation)</subtask>
+        <subtask>Run all Story 2.4 acceptance criteria tests (Proposal voting)</subtask>
+        <subtask>Run all Story 2.5 acceptance criteria tests (Proposal approval/rejection)</subtask>
+        <subtask>Run all Story 2.6 acceptance criteria tests (Dispute flagging)</subtask>
+        <subtask>Run all Story 2.7 acceptance criteria tests (Admin override)</subtask>
+        <subtask>Run all Story 2.8 acceptance criteria tests (Voting weight modes)</subtask>
+        <subtask>Run all Story 2.9 acceptance criteria tests (Stale market cancellation)</subtask>
+        <subtask>Run all Story 2.10 acceptance criteria tests (Graduated bond refund)</subtask>
+        <subtask>Run all Story 2.11 acceptance criteria tests (Creator fee claims)</subtask>
+        <subtask>Generate Epic 2 test coverage report</subtask>
+      </subtasks>
+    </task>
+    <task id="T6" ac-refs="AC6">
+      <description>Performance Benchmarking</description>
+      <subtasks>
+        <subtask>Benchmark vote submission latency (target: &lt;2s per vote)</subtask>
+        <subtask>Test vote submission with network latency simulation (100ms, 500ms)</subtask>
+        <subtask>Benchmark vote aggregation for 1000 votes (target: &lt;5s)</subtask>
+        <subtask>Test aggregation performance scaling (100, 500, 1000, 5000 votes)</subtask>
+        <subtask>Monitor database query performance during high vote load</subtask>
+        <subtask>Identify and document any performance bottlenecks</subtask>
+        <subtask>Create performance regression test suite for future runs</subtask>
+      </subtasks>
+    </task>
+    <task id="T7" ac-refs="AC7">
+      <description>Documentation Updates</description>
+      <subtasks>
+        <subtask>Document complete governance workflow with sequence diagrams</subtask>
+        <subtask>Create admin procedures guide: override process, dispute resolution</subtask>
+        <subtask>Document vote aggregation process and timing considerations</subtask>
+        <subtask>Create troubleshooting guide for common governance issues</subtask>
+        <subtask>Update architecture.md with governance flow diagrams</subtask>
+        <subtask>Document performance benchmarks and scaling considerations</subtask>
+        <subtask>Create runbook for Epic 2 regression testing</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-2.1-COMPLETE.md</path>
+        <title>Story 2.1: Snapshot-Style Vote Signature Verification - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>Implements Ed25519 signature verification for gas-free voting. Vote messages signed off-chain, verified on-chain. Nonce tracking prevents replay attacks. Integration point for all voting operations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.2-COMPLETE.md</path>
+        <title>Story 2.2: Vote Collection and Storage - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>Votes table with vote weight calculation. Democratic mode (weight=1) default. submit-vote Edge Function stores verified votes. Real-time vote aggregation with market_vote_summary view.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.3-COMPLETE.md</path>
+        <title>Story 2.3: Vote Aggregation and On-Chain Result Posting - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>aggregate-votes Edge Function calculates weighted vote totals. Posts results on-chain to MarketResolution program. Batch processing for efficiency. Weighted majority determination.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.4-COMPLETE.md</path>
+        <title>Story 2.4: Proposal Voting via Snapshot - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>Proposal voting with Snapshot-style signatures. proposal_votes table with vote weights. submit-proposal-vote Edge Function. Configurable voting periods. finalize-proposal-vote aggregation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Story 2.5: Proposal Approval/Rejection Logic - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>Proposal approval based on weighted vote majority. Market creation gated by proposal approval. State machine: PROPOSED → VOTING → APPROVED/REJECTED. Threshold-based approval (configurable via ParameterStorage).</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.6-COMPLETE.md</path>
+        <title>Story 2.6: Dispute Flagging Mechanism - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>flag-dispute Edge Function allows community to flag questionable resolutions. disputes table tracks all flagged markets. 48-hour dispute window after resolution. Dispute flagging gates final settlement.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.7-COMPLETE.md</path>
+        <title>Story 2.7: Admin Override for Disputed Markets - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>admin-override-resolution Edge Function allows final resolution of disputes. Admin wallet authorization required. Override updates market status to RESOLVED with admin-determined outcome. Audit trail for all overrides.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.9-COMPLETE.md</path>
+        <title>Story 2.9: Stale Market Auto-Cancellation - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>check-stale-markets Edge Function (cron) identifies markets past voting deadline. Automatic status change to CANCELLED. Refund processing for all bettors. MarketCancelled event triggers database sync.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Governance Flow</section>
+        <snippet>Snapshot-style voting for gas-free governance. Activity point meritocracy for weighted voting. 48-hour dispute window with admin override. Complete governance lifecycle from proposal to payout.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>ProposalSystem</symbol>
+        <lines>1-300</lines>
+        <reason>Proposal creation and lifecycle management. Integration point for proposal voting flow (Story 2.4, 2.5).</reason>
+      </file>
+      <file>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>BondManager</symbol>
+        <lines>1-500</lines>
+        <reason>Bond locking, refunds, and graduated bond logic (Story 2.10). Creator fee claims (Story 2.11). Integration with market creation.</reason>
+      </file>
+      <file>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>CoreMarkets</symbol>
+        <lines>1-600</lines>
+        <reason>Market creation, betting, and status management. Integration point for proposal-gated market creation. Payout claims (Story 1.10).</reason>
+      </file>
+      <file>
+        <path>programs/market-resolution/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>MarketResolution</symbol>
+        <lines>1-400</lines>
+        <reason>Resolution voting and finalization. Receives aggregated vote results from Edge Functions. State machine management.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/submit-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>submitVote</symbol>
+        <lines>1-250</lines>
+        <reason>Resolution vote submission with signature verification (Story 2.1, 2.2). Vote weight calculation. Database storage.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/submit-proposal-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>submitProposalVote</symbol>
+        <lines>1-400</lines>
+        <reason>Proposal vote submission with signature verification (Story 2.4). Vote weight calculation. Database storage.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/aggregate-votes/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>aggregateVotes</symbol>
+        <lines>1-300</lines>
+        <reason>Vote aggregation and on-chain result posting (Story 2.3). Weighted vote totals. Batch processing.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/flag-dispute/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>flagDispute</symbol>
+        <lines>1-200</lines>
+        <reason>Dispute flagging mechanism (Story 2.6). Community-driven quality control.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/admin-override-resolution/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>adminOverrideResolution</symbol>
+        <lines>1-250</lines>
+        <reason>Admin override for disputed markets (Story 2.7). Final resolution authority.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/check-stale-markets/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>checkStaleMarkets</symbol>
+        <lines>1-200</lines>
+        <reason>Stale market auto-cancellation (Story 2.9). Cron-based market cleanup.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1">Solana program framework for all program interactions</dependency>
+        <dependency name="anchor-spl" version="0.32.1">SPL token support for transfers and payouts</dependency>
+      </rust>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database queries and Edge Function runtime</dependency>
+        <dependency name="@solana/web3.js" version="1.95.x">Solana program interaction and transaction building</dependency>
+        <dependency name="tweetnacl" version="latest">Ed25519 signature verification for gas-free voting</dependency>
+        <dependency name="@project-serum/anchor" version="0.32.1">Anchor TypeScript client for program interaction</dependency>
+      </typescript>
+      <testing>
+        <dependency name="mocha" version="latest">Test framework for Anchor tests</dependency>
+        <dependency name="chai" version="latest">Assertion library for tests</dependency>
+        <dependency name="ts-mocha" version="latest">TypeScript support for Mocha</dependency>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>E2EGovernanceTestSuite</name>
+      <kind>test-suite</kind>
+      <signature>describe('Epic 2: End-to-End Governance Flow', () => { ... })</signature>
+      <path>tests/integration/governance-e2e.ts</path>
+      <description>Main E2E test suite validating complete governance lifecycle. Tests all Epic 2 stories integrated together. Validates state machine transitions and cross-program interactions.</description>
+    </interface>
+    <interface>
+      <name>TestWalletManager</name>
+      <kind>test-utility</kind>
+      <signature>class TestWalletManager { proposer, voters, admin, bettors, disputer }</signature>
+      <path>tests/helpers/test-wallets.ts</path>
+      <description>Manages test wallets for different roles in governance flow. Provides wallet generation, SOL funding, and cleanup utilities.</description>
+    </interface>
+    <interface>
+      <name>GovernanceFlowHelpers</name>
+      <kind>test-utility</kind>
+      <signature>{ createProposal, submitVote, aggregateVotes, approveProposal, ... }</signature>
+      <path>tests/helpers/governance-utils.ts</path>
+      <description>Common helper functions for governance test scenarios. Abstracts complex multi-step operations for test readability.</description>
+    </interface>
+    <interface>
+      <name>PerformanceBenchmarkSuite</name>
+      <kind>test-suite</kind>
+      <signature>describe('Epic 2: Performance Benchmarks', () => { ... })</signature>
+      <path>tests/performance/vote-benchmarks.ts</path>
+      <description>Performance testing suite for vote submission and aggregation. Validates &lt;2s vote submission, &lt;5s aggregation for 1000 votes.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>All tests MUST run against devnet (not localnet) to validate real network conditions</description>
+    </constraint>
+    <constraint>
+      <description>Test wallets MUST be funded with devnet SOL before test execution</description>
+    </constraint>
+    <constraint>
+      <description>Tests MUST clean up state after execution to prevent test pollution</description>
+    </constraint>
+    <constraint>
+      <description>All Epic 2 story acceptance criteria MUST pass before Epic 2 considered complete</description>
+    </constraint>
+    <constraint>
+      <description>Gas-free voting MUST be validated - voters spend 0 SOL on vote submission</description>
+    </constraint>
+    <constraint>
+      <description>Performance benchmarks MUST meet targets: &lt;2s vote submission, &lt;5s aggregation (1000 votes)</description>
+    </constraint>
+    <constraint>
+      <description>State machine transitions MUST be validated at each step (PROPOSED → VOTING → APPROVED → ACTIVE → RESOLVED → CLAIMED)</description>
+    </constraint>
+    <constraint>
+      <description>Database consistency MUST be validated - on-chain state matches database records</description>
+    </constraint>
+    <constraint>
+      <description>Activity point weighted voting MUST correctly calculate vote weights (not simple vote counts)</description>
+    </constraint>
+    <constraint>
+      <description>Stale market cancellation MUST trigger automatic refunds for all participants</description>
+    </constraint>
+    <constraint>
+      <description>Dispute flagging and admin override MUST follow proper authorization and audit trail</description>
+    </constraint>
+    <constraint>
+      <description>Documentation MUST be updated with governance workflows and admin procedures</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Anchor integration tests for cross-program interactions. TypeScript integration tests for Edge Function workflows. Performance benchmarking tests for vote submission and aggregation. Database consistency validation. All Epic 2 story acceptance criteria validated.
+    </standards>
+    <locations>
+      <location>tests/integration/governance-e2e.ts - Main E2E test suite</location>
+      <location>tests/helpers/test-wallets.ts - Test wallet management utilities</location>
+      <location>tests/helpers/governance-utils.ts - Common governance test helpers</location>
+      <location>tests/performance/vote-benchmarks.ts - Performance benchmarking suite</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Full governance flow: Propose → Vote → Approve → Create Market → Bet → Resolve → Dispute → Override → Claim</idea>
+      <idea ac-ref="AC1">Validate all state transitions: PROPOSED → VOTING → APPROVED → ACTIVE → VOTING → DISPUTED → RESOLVED → CLAIMED</idea>
+      <idea ac-ref="AC1">Database consistency: On-chain state matches database records at each step</idea>
+      <idea ac-ref="AC2">Gas-free voting: Monitor wallet balances, confirm 0 SOL spent by voters</idea>
+      <idea ac-ref="AC2">Only aggregation transaction costs SOL (~0.005 SOL)</idea>
+      <idea ac-ref="AC3">Activity point weighted voting: Users with different AP balances have different vote weights</idea>
+      <idea ac-ref="AC3">Democratic vs weighted mode: Confirm different outcomes based on mode</idea>
+      <idea ac-ref="AC4">Stale market cancellation: Markets past deadline auto-cancel with refunds</idea>
+      <idea ac-ref="AC4">Graduated bond refunds: Creator refund percentage based on cancellation reason</idea>
+      <idea ac-ref="AC5">Run ALL Epic 2 story acceptance criteria tests and validate 100% pass rate</idea>
+      <idea ac-ref="AC6">Vote submission latency &lt;2s under normal network conditions</idea>
+      <idea ac-ref="AC6">Aggregation for 1000 votes &lt;5s with weighted vote calculation</idea>
+      <idea ac-ref="AC6">Performance scaling test: 100, 500, 1000, 5000 votes</idea>
+      <idea ac-ref="AC7">Document complete governance workflow with sequence diagrams</idea>
+      <idea ac-ref="AC7">Create admin runbook for dispute resolution and override procedures</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="epic-integration">
+      Story 2.12 is the Epic 2 capstone - validates all 11 previous stories working together. Tests complete governance lifecycle from proposal to payout. Ensures production readiness.
+    </note>
+    <note category="cross-program-validation">
+      Tests validate interactions between ProposalSystem, BondManager, CoreMarkets, MarketResolution programs. State machine transitions must be consistent across all programs.
+    </note>
+    <note category="snapshot-governance">
+      Gas-free voting critical for user adoption. Tests must validate 0 SOL cost for voters. Only aggregation transaction (admin) costs SOL.
+    </note>
+    <note category="activity-meritocracy">
+      Activity point weighted voting distinguishes BMAD-Zmart from other prediction markets. Tests must validate correct weight calculation and aggregation.
+    </note>
+    <note category="dispute-resolution">
+      48-hour dispute window allows community quality control. Admin override provides final resolution authority. Tests must validate both paths.
+    </note>
+    <note category="performance-targets">
+      Vote submission &lt;2s, aggregation &lt;5s for 1000 votes. Performance critical for user experience and scalability.
+    </note>
+    <note category="database-consistency">
+      Database must accurately reflect on-chain state at all times. Event Listener pattern (Story 1.9) ensures automatic sync. Tests validate consistency.
+    </note>
+    <note category="test-infrastructure">
+      Reusable test wallets, helpers, and utilities enable efficient test development. Performance benchmarking establishes regression baselines.
+    </note>
+    <note category="documentation">
+      Governance workflows and admin procedures must be documented for operations team. Runbooks critical for production support.
+    </note>
+    <note category="epic-completion">
+      Epic 2 not complete until ALL acceptance criteria pass. This story gates Epic 2 completion and Epic 3 (Frontend) start.
+    </note>
+  </dev-notes>
+</story-context>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>10</storyId>
+    <title>Implement Graduated Bond Refund Logic</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.10.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>market creator</asA>
+    <iWant>my bond refund amount to reflect the proposal outcome</iWant>
+    <soThat>there's a penalty for rejected proposals but full refund for success</soThat>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-2.10.1">
+      <description>Bond refund logic implemented in BondManager program with graduated percentages:
+        - Approved proposal → 100% bond refund
+        - Rejected proposal → 50% bond refund
+        - Cancelled market → 100% bond refund</description>
+    </criterion>
+    <criterion id="AC-2.10.2">
+      <description>`calculate_refund_amount` function implements graduated logic based on proposal outcome</description>
+    </criterion>
+    <criterion id="AC-2.10.3">
+      <description>Refund percentages configurable via ParameterStorage:
+        - `approved_refund_bps` (default: 10000 = 100%)
+        - `rejected_refund_bps` (default: 5000 = 50%)
+        - `cancelled_refund_bps` (default: 10000 = 100%)</description>
+    </criterion>
+    <criterion id="AC-2.10.4">
+      <description>Tests validate all refund scenarios: approval, rejection, cancellation</description>
+    </criterion>
+    <criterion id="AC-2.10.5">
+      <description>Integration tested with proposal approval/rejection (Story 2.5)</description>
+    </criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="1" acs="AC-2.10.3">
+      <description>Add refund percentage parameters to ParameterStorage</description>
+      <subtask id="1.1">Add `approved_refund_bps`, `rejected_refund_bps`, `cancelled_refund_bps` fields to GlobalParameters</subtask>
+      <subtask id="1.2">Add enum variants to ParameterType</subtask>
+      <subtask id="1.3">Update get/set methods for new parameters</subtask>
+      <subtask id="1.4">Initialize default values (10000, 5000, 10000)</subtask>
+    </task>
+    <task id="2" acs="AC-2.10.1,AC-2.10.2">
+      <description>Implement `calculate_refund_amount` function in BondManager</description>
+      <subtask id="2.1">Create helper function that takes outcome and bond amount</subtask>
+      <subtask id="2.2">Query ParameterStorage for refund percentages</subtask>
+      <subtask id="2.3">Calculate refund based on outcome type</subtask>
+      <subtask id="2.4">Add overflow protection for percentage calculations</subtask>
+    </task>
+    <task id="3" acs="AC-2.10.1">
+      <description>Update `refund_bond` instruction in BondManager</description>
+      <subtask id="3.1">Call `calculate_refund_amount` with proposal outcome</subtask>
+      <subtask id="3.2">Transfer calculated refund amount to creator</subtask>
+      <subtask id="3.3">Emit BondRefunded event with outcome and amount</subtask>
+      <subtask id="3.4">Update bond escrow status</subtask>
+    </task>
+    <task id="4" acs="AC-2.10.5">
+      <description>Add Event Listener support for BondRefunded event</description>
+      <subtask id="4.1">Add `handleBondRefunded` event handler to sync-events</subtask>
+      <subtask id="4.2">Register event in EVENT_HANDLERS</subtask>
+      <subtask id="4.3">Update database with refund details</subtask>
+      <subtask id="4.4">Log to audit trail</subtask>
+    </task>
+    <task id="5" acs="AC-2.10.5">
+      <description>Integration testing with Story 2.5</description>
+      <subtask id="5.1">Test approved proposal → verify 100% refund</subtask>
+      <subtask id="5.2">Test rejected proposal → verify 50% refund</subtask>
+      <subtask id="5.3">Test cancelled market → verify 100% refund</subtask>
+      <subtask id="5.4">Test parameter updates → verify refund percentages change</subtask>
+      <subtask id="5.5">Test Event Listener syncs refund to database</subtask>
+    </task>
+    <task id="6" acs="AC-2.10.4">
+      <description>Write Anchor tests</description>
+      <subtask id="6.1">Test calculate_refund_amount with all outcomes</subtask>
+      <subtask id="6.2">Test refund_bond with approved proposal</subtask>
+      <subtask id="6.3">Test refund_bond with rejected proposal</subtask>
+      <subtask id="6.4">Test refund_bond with cancelled market</subtask>
+      <subtask id="6.5">Test parameter updates affect refund amounts</subtask>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 Story 2.10 Definition</title>
+        <section>Story 2.10: Implement Graduated Bond Refund Logic</section>
+        <snippet>Bond refund logic in BondManager with graduated percentages (100%/50%/100% for approved/rejected/cancelled). Refund percentages configurable via ParameterStorage. Integration with Story 2.5 proposal outcomes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.5-COMPLETE.md</path>
+        <title>BondManager Program Implementation (Story 1.5)</title>
+        <section>Refund Bond Instruction</section>
+        <snippet>BondEscrow account structure with status tracking (Active, Refunded, PartialRefund, Slashed). Existing refund_bond instruction with RefundType enum (Full, Partial, Slash). PDA-based escrow with seeds ["bond-escrow", market_id].</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Proposal Approval/Rejection Logic (Story 2.5)</title>
+        <section>Bond Refund Economics</section>
+        <snippet>Proposal outcomes: APPROVED (≥60% YES votes) triggers 100% bond refund, REJECTED (<60%) triggers 50% refund. ProposalSystem approve_proposal and reject_proposal instructions. 1% proposal tax (non-refundable) collected at creation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Bond Manager Pattern - Graduated Bond Economics</section>
+        <snippet>BondManager manages escrow for market creator bonds. Graduated bond refund economics: approval → full refund, rejection → partial refund, cancellation → full refund. All economic parameters configurable via ParameterStorage with safety constraints (24h cooldown, max 20% change). Refund percentages stored as basis points (bps): 10000 = 100%.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>refund_bond</symbol>
+        <lines>existing instruction</lines>
+        <reason>Existing refund_bond instruction needs modification to support graduated refund logic based on proposal outcome</reason>
+      </artifact>
+      <artifact>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>GlobalParameters</symbol>
+        <lines>account structure</lines>
+        <reason>Need to add approved_refund_bps, rejected_refund_bps, cancelled_refund_bps fields for configurable refund percentages</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/sync-events/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>EVENT_HANDLERS</symbol>
+        <lines>event router</lines>
+        <reason>Need to add BondRefunded event handler to automatically sync refund events to database</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <rust>
+        <package name="anchor-lang" version="0.32.1">Solana program framework</package>
+        <package name="anchor-spl" version="0.32.1">SPL token integration</package>
+      </rust>
+      <typescript>
+        <package name="@supabase/supabase-js" version="^2.38.0">Supabase client for Edge Functions</package>
+        <package name="@solana/web3.js" version="^1.87.6">Solana JavaScript SDK</package>
+      </typescript>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>calculate_refund_amount</name>
+      <kind>Helper Function (Rust)</kind>
+      <signature>fn calculate_refund_amount(bond_amount: u64, refund_bps: u16) -> Result&lt;u64&gt;</signature>
+      <description>Calculate refund amount based on bond amount and refund percentage (basis points). Returns calculated refund with overflow protection. Used by refund_bond instruction to determine actual refund based on proposal outcome.</description>
+    </interface>
+    <interface>
+      <name>refund_bond (updated)</name>
+      <kind>Solana Instruction</kind>
+      <signature>pub fn refund_bond(ctx: Context&lt;RefundBond&gt;, outcome: ProposalOutcome) -> Result&lt;()&gt;</signature>
+      <description>Update existing refund_bond instruction to accept ProposalOutcome enum (Approved, Rejected, Cancelled) instead of RefundType. Query ParameterStorage for appropriate refund percentage based on outcome. Calculate refund using helper function. Transfer refund to creator and emit BondRefunded event.</description>
+    </interface>
+    <interface>
+      <name>BondRefunded Event</name>
+      <kind>Solana Event</kind>
+      <signature>#[event] pub struct BondRefundedEvent { pub market_id: u64, pub creator: Pubkey, pub outcome: ProposalOutcome, pub bond_amount: u64, pub refund_amount: u64, pub refund_bps: u16, pub timestamp: i64 }</signature>
+      <description>Event emitted when bond is refunded. Captured by Event Listener (sync-events) to automatically update database with refund details and log to audit trail.</description>
+    </interface>
+    <interface>
+      <name>handleBondRefunded</name>
+      <kind>Event Handler (TypeScript)</kind>
+      <signature>async function handleBondRefunded(data: any, ctx: EventContext): Promise&lt;void&gt;</signature>
+      <description>Event Listener handler for BondRefunded event. Updates database with refund details, logs to audit trail, awards activity points if applicable. Pattern follows existing event handlers in sync-events (handleMarketCancelled, handleRefundClaimed).</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>All refund percentages must be stored as basis points (bps) where 10000 = 100%</constraint>
+    <constraint>Refund calculation must include overflow protection using checked_mul and checked_div</constraint>
+    <constraint>ParameterStorage parameters subject to safety constraints: 24h cooldown between updates, maximum 20% change per update</constraint>
+    <constraint>BondEscrow status must be Active before refund can be processed</constraint>
+    <constraint>Creator ownership must be verified before refund transfer</constraint>
+    <constraint>Event Listener must handle BondRefunded event automatically (no manual database updates)</constraint>
+    <constraint>Follow Story 1.9 Event Listener pattern for database sync (zero technical debt)</constraint>
+    <constraint>Follow Story 2.9 event emission pattern for new events</constraint>
+    <constraint>Maintain backward compatibility with existing BondManager functionality (Story 1.5)</constraint>
+    <constraint>ProposalOutcome enum must align with Story 2.5 proposal approval/rejection logic</constraint>
+    <constraint>Default refund percentages: Approved=10000 (100%), Rejected=5000 (50%), Cancelled=10000 (100%)</constraint>
+  </constraints>
+
+  <tests>
+    <standards>Anchor tests for Solana programs (programs/*/tests/*.ts), Deno tests for Edge Functions (supabase/functions/*/test.ts). All refund scenarios must be tested: approved (100%), rejected (50%), cancelled (100%). Integration tests must verify Event Listener syncs refund events to database. Test parameter updates to verify refund percentages change accordingly.</standards>
+    <locations>
+      <location>tests/bond-manager.ts</location>
+      <location>supabase/functions/sync-events/test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="AC-2.10.1">Test approved proposal refund: create bond escrow, set outcome=Approved, call refund_bond, verify 100% refund transferred</idea>
+      <idea ac="AC-2.10.1">Test rejected proposal refund: create bond escrow, set outcome=Rejected, call refund_bond, verify 50% refund transferred</idea>
+      <idea ac="AC-2.10.1">Test cancelled market refund: create bond escrow, set outcome=Cancelled, call refund_bond, verify 100% refund transferred</idea>
+      <idea ac="AC-2.10.2">Test calculate_refund_amount with various bond amounts and refund percentages, verify overflow protection</idea>
+      <idea ac="AC-2.10.3">Test parameter updates: update approved_refund_bps from 10000 to 9000, verify refunds reflect new percentage</idea>
+      <idea ac="AC-2.10.3">Test parameter safety constraints: attempt to update by >20%, verify transaction fails</idea>
+      <idea ac="AC-2.10.4">Test edge case: zero bond amount, verify refund calculation handles correctly</idea>
+      <idea ac="AC-2.10.4">Test edge case: maximum bond amount (u64::MAX), verify no overflow in refund calculation</idea>
+      <idea ac="AC-2.10.5">Test Event Listener: emit BondRefunded event, verify sync-events updates database with refund details</idea>
+      <idea ac="AC-2.10.5">Test integration with Story 2.5: approve proposal, verify bond refund triggered with 100% amount</idea>
+      <idea ac="AC-2.10.5">Test integration with Story 2.5: reject proposal, verify bond refund triggered with 50% amount</idea>
+      <idea ac="AC-2.10.4">Test unauthorized refund attempt: non-creator tries to refund bond, verify transaction fails</idea>
+      <idea ac="AC-2.10.4">Test invalid escrow status: attempt refund on already-refunded escrow, verify transaction fails</idea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note>Story 2.10 builds on existing BondManager program (Story 1.5) by adding graduated refund logic tied to proposal outcomes (Story 2.5)</note>
+    <note>Refund percentages are configurable via ParameterStorage following the same pattern as other economic parameters (Story 1.3)</note>
+    <note>Event Listener pattern (Story 1.9) ensures automatic database sync with zero technical debt - no manual database updates needed</note>
+    <note>BondRefunded event follows the same emission pattern as MarketCancelledEvent (Story 2.9) for consistency</note>
+    <note>ProposalOutcome enum should align with Story 2.5 outcomes: Approved (≥60% YES votes), Rejected (<60%), Cancelled (market cancelled)</note>
+    <note>Basis points (bps) system: 10000 = 100%, 5000 = 50%, 2500 = 25%, etc. This allows fine-grained percentage control</note>
+    <note>Overflow protection critical: use checked_mul and checked_div for all percentage calculations to prevent arithmetic overflow</note>
+    <note>Integration point with Story 2.5: approve_proposal and reject_proposal instructions should call refund_bond with appropriate outcome</note>
+    <note>Default percentages (100%/50%/100%) strike balance between incentivizing good proposals and penalizing bad ones</note>
+    <note>Testing deferred to Epic 4 per project plan, but comprehensive test scenarios documented for future implementation</note>
+  </devNotes>
+</story-context>

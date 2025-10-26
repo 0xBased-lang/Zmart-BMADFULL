@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>8</storyId>
+    <title>Implement Voting Weight Modes (Democratic vs. Activity-Based)</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.8.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>platform admin</asA>
+    <iWant>toggle between democratic and activity-weighted voting</iWant>
+    <soThat>we can experiment with governance models</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      `voting_weight_mode` parameter in ParameterStorage: DEMOCRATIC or ACTIVITY_WEIGHTED
+    </criterion>
+    <criterion id="AC2" priority="high">
+      Democratic mode: all votes have weight = 1
+    </criterion>
+    <criterion id="AC3" priority="high">
+      Activity-weighted mode: vote weight = user's activity_points balance
+    </criterion>
+    <criterion id="AC4" priority="critical">
+      Vote weight calculation updated in both resolution voting (Story 2.2) and proposal voting (Story 2.4)
+    </criterion>
+    <criterion id="AC5" priority="medium">
+      Admin can toggle mode via parameter update instruction
+    </criterion>
+    <criterion id="AC6" priority="low">
+      Frontend displays vote weight mode and user's weight on voting UI
+    </criterion>
+    <criterion id="AC7" priority="high">
+      Tests validate correct weight calculations in both modes
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac-refs="AC1,AC5">
+      <description>Add voting_weight_mode parameter to ParameterStorage</description>
+      <subtasks>
+        <subtask>Define parameter in ParameterStorage program state</subtask>
+        <subtask>Add default value: DEMOCRATIC</subtask>
+        <subtask>Create set_voting_weight_mode instruction</subtask>
+        <subtask>Restrict parameter updates to admins only</subtask>
+      </subtasks>
+    </task>
+    <task id="T2" ac-refs="AC2">
+      <description>Implement democratic voting weight calculation</description>
+      <subtasks>
+        <subtask>Create get_vote_weight helper function</subtask>
+        <subtask>Democratic mode: return weight = 1 for all users</subtask>
+        <subtask>Add unit tests for democratic weight calculation</subtask>
+      </subtasks>
+    </task>
+    <task id="T3" ac-refs="AC3">
+      <description>Implement activity-weighted voting calculation</description>
+      <subtasks>
+        <subtask>Query user's activity_points balance from database</subtask>
+        <subtask>Activity-weighted mode: return weight = activity_points</subtask>
+        <subtask>Handle users with zero activity points (default to weight = 1)</subtask>
+        <subtask>Add unit tests for activity-weighted calculation</subtask>
+      </subtasks>
+    </task>
+    <task id="T4" ac-refs="AC4">
+      <description>Update resolution voting to use weight modes</description>
+      <subtasks>
+        <subtask>Modify submit-vote Edge Function (Story 2.2)</subtask>
+        <subtask>Fetch voting_weight_mode from ParameterStorage</subtask>
+        <subtask>Calculate vote weight based on mode</subtask>
+        <subtask>Store vote with calculated weight</subtask>
+        <subtask>Update aggregate-votes to respect weights</subtask>
+      </subtasks>
+    </task>
+    <task id="T5" ac-refs="AC4">
+      <description>Update proposal voting to use weight modes</description>
+      <subtasks>
+        <subtask>Modify submit-proposal-vote Edge Function (Story 2.4)</subtask>
+        <subtask>Fetch voting_weight_mode from ParameterStorage</subtask>
+        <subtask>Calculate vote weight based on mode</subtask>
+        <subtask>Store proposal vote with calculated weight</subtask>
+        <subtask>Update finalize-proposal-vote to respect weights</subtask>
+      </subtasks>
+    </task>
+    <task id="T6" ac-refs="AC4">
+      <description>Create helper function to fetch current voting mode</description>
+      <subtasks>
+        <subtask>Query ParameterStorage for voting_weight_mode</subtask>
+        <subtask>Cache mode value to reduce database queries</subtask>
+        <subtask>Return default (DEMOCRATIC) if parameter not set</subtask>
+        <subtask>Handle errors gracefully</subtask>
+      </subtasks>
+    </task>
+    <task id="T7" ac-refs="AC7">
+      <description>Write comprehensive tests</description>
+      <subtasks>
+        <subtask>Test democratic mode: all votes weight = 1</subtask>
+        <subtask>Test activity-weighted mode: weight = activity_points</subtask>
+        <subtask>Test mode toggling between DEMOCRATIC and ACTIVITY_WEIGHTED</subtask>
+        <subtask>Test vote aggregation with different weight modes</subtask>
+        <subtask>Test edge case: user with zero activity points</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-2.2-COMPLETE.md</path>
+        <title>Story 2.2: Vote Collection and Storage - COMPLETE</title>
+        <section>Implementation Summary</section>
+        <snippet>Vote weight calculation already implemented with democratic mode (weight = 1) as default. Database function `calculate_vote_weight()` exists. Vote weight stored at submission time. This story extends it to support activity-weighted mode.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.4-COMPLETE.md</path>
+        <title>Story 2.4: Proposal Voting via Snapshot - COMPLETE</title>
+        <section>AC4: Vote Weight Modes</section>
+        <snippet>Proposal voting implements democratic mode (vote_weight = 1 for all voters). Activity-weighted mode prepared but commented out, awaiting Story 2.8 implementation. Vote weight stored in `proposal_votes.vote_weight` column.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>ParameterStorage Pattern</section>
+        <snippet>ParameterStorage program provides adjustable global parameters stored on-chain. Admin-only access control. Parameter update events emitted for audit trail. Used for fees, limits, durations, and feature toggles.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: Governance & Voting - Story 2.8</title>
+        <section>Story 2.8 Acceptance Criteria</section>
+        <snippet>Prerequisites: Epic 1 Story 1.3 (ParameterStorage), Story 1.11 (Activity Point Tracking), Story 2.2 (Vote Collection), Story 2.4 (Proposal Voting).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>GlobalParameters</symbol>
+        <lines>1-100</lines>
+        <reason>Contains GlobalParameters structure where voting_weight_mode parameter will be added. Provides update_parameter instruction pattern for admin-controlled parameter changes.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/submit-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>submitVote</symbol>
+        <lines>1-250</lines>
+        <reason>Resolution voting Edge Function from Story 2.2. Needs modification to fetch voting_weight_mode and calculate vote weight based on mode. Currently implements democratic mode (weight=1) only.</reason>
+      </file>
+      <file>
+        <path>supabase/functions/submit-proposal-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>submitProposalVote</symbol>
+        <lines>1-400</lines>
+        <reason>Proposal voting Edge Function from Story 2.4. Needs modification to fetch voting_weight_mode and calculate vote weight based on mode. Currently implements democratic mode (weight=1) only.</reason>
+      </file>
+      <file>
+        <path>database/migrations/005_votes_table.sql</path>
+        <kind>migration</kind>
+        <symbol>calculate_vote_weight</symbol>
+        <lines>150-180</lines>
+        <reason>Database function for vote weight calculation. Currently returns 1 for all votes (democratic mode). May need update to support activity-weighted mode query.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1">Solana program framework for ParameterStorage modifications</dependency>
+        <dependency name="anchor-spl" version="0.32.1">SPL token support if needed for parameter access</dependency>
+      </rust>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database queries for activity points and parameter storage</dependency>
+        <dependency name="@solana/web3.js" version="1.95.x">Solana wallet public key handling</dependency>
+        <dependency name="tweetnacl" version="latest">Ed25519 signature verification (Story 2.1)</dependency>
+      </typescript>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>getVoteWeight</name>
+      <kind>typescript-function</kind>
+      <signature>async function getVoteWeight(userWallet: string, mode: 'DEMOCRATIC' | 'ACTIVITY_WEIGHTED'): Promise&lt;number&gt;</signature>
+      <path>supabase/functions/lib/vote-weight.ts</path>
+      <description>Core helper function to calculate vote weight based on voting mode. Returns 1 for democratic mode, or user's activity_points for weighted mode (minimum 1).</description>
+    </interface>
+    <interface>
+      <name>fetchVotingWeightMode</name>
+      <kind>typescript-function</kind>
+      <signature>async function fetchVotingWeightMode(): Promise&lt;'DEMOCRATIC' | 'ACTIVITY_WEIGHTED'&gt;</signature>
+      <path>supabase/functions/lib/parameter-storage.ts</path>
+      <description>Queries ParameterStorage for current voting_weight_mode parameter. Returns 'DEMOCRATIC' as default if parameter not set. Implements caching to reduce database queries.</description>
+    </interface>
+    <interface>
+      <name>fetchUserActivityPoints</name>
+      <kind>typescript-function</kind>
+      <signature>async function fetchUserActivityPoints(userWallet: string): Promise&lt;number&gt;</signature>
+      <path>supabase/functions/lib/activity-points.ts</path>
+      <description>Queries user's current activity_points balance from database. Returns 0 if user has no activity points. Used by activity-weighted voting mode.</description>
+    </interface>
+    <interface>
+      <name>set_voting_weight_mode</name>
+      <kind>solana-instruction</kind>
+      <signature>pub fn set_voting_weight_mode(ctx: Context&lt;UpdateParameter&gt;, mode: VotingWeightMode) -> Result&lt;()&gt;</signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+      <description>Admin-only instruction to update voting_weight_mode parameter in ParameterStorage. Emits ParameterUpdated event for audit trail. Validates caller has admin authority.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>Default voting mode MUST be DEMOCRATIC (weight=1 for all users) to maintain backward compatibility</description>
+    </constraint>
+    <constraint>
+      <description>Users with zero activity points in ACTIVITY_WEIGHTED mode MUST have minimum weight of 1 to allow participation</description>
+    </constraint>
+    <constraint>
+      <description>Voting mode parameter updates MUST be admin-only (no public access to change governance model)</description>
+    </constraint>
+    <constraint>
+      <description>Vote weight calculation MUST happen at vote submission time and be stored in database (not recalculated later)</description>
+    </constraint>
+    <constraint>
+      <description>Vote weight mode MUST apply globally to both resolution voting (Story 2.2) and proposal voting (Story 2.4)</description>
+    </constraint>
+    <constraint>
+      <description>Parameter fetch operations SHOULD be cached to reduce database queries and improve performance</description>
+    </constraint>
+    <constraint>
+      <description>Vote aggregation functions MUST use weighted sums (sum of vote_weight values) not simple vote counts</description>
+    </constraint>
+    <constraint>
+      <description>Activity points query MUST handle missing/null values gracefully (return 0, not error)</description>
+    </constraint>
+    <constraint>
+      <description>Voting weight mode changes MUST NOT retroactively affect already-submitted votes</description>
+    </constraint>
+    <constraint>
+      <description>Edge Functions MUST validate voting mode value is valid enum ('DEMOCRATIC' or 'ACTIVITY_WEIGHTED') before using</description>
+    </constraint>
+    <constraint>
+      <description>All vote weight calculations MUST be deterministic and reproducible for audit purposes</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Anchor tests for Solana programs (ParameterStorage modifications), Deno tests for Edge Functions (submit-vote, submit-proposal-vote), database function tests for vote weight calculation. All tests must validate both democratic and activity-weighted modes.
+    </standards>
+    <locations>
+      <location>tests/parameter-storage.ts - ParameterStorage instruction tests</location>
+      <location>supabase/functions/submit-vote/test.ts - Resolution voting weight tests</location>
+      <location>supabase/functions/submit-proposal-vote/test.ts - Proposal voting weight tests</location>
+      <location>database/migrations/test/vote-weight.test.sql - Database function tests</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Test adding voting_weight_mode parameter to ParameterStorage with default DEMOCRATIC value</idea>
+      <idea ac-ref="AC2">Test democratic mode returns weight=1 for all users regardless of activity points</idea>
+      <idea ac-ref="AC3">Test activity-weighted mode returns correct activity_points value as weight</idea>
+      <idea ac-ref="AC3">Test activity-weighted mode returns weight=1 for users with zero activity points</idea>
+      <idea ac-ref="AC4">Test resolution voting calculates and stores correct weight in both modes</idea>
+      <idea ac-ref="AC4">Test proposal voting calculates and stores correct weight in both modes</idea>
+      <idea ac-ref="AC5">Test admin can toggle voting mode between DEMOCRATIC and ACTIVITY_WEIGHTED</idea>
+      <idea ac-ref="AC5">Test non-admin users cannot change voting_weight_mode parameter (403 error)</idea>
+      <idea ac-ref="AC7">Test vote aggregation uses weighted sums correctly in both modes</idea>
+      <idea ac-ref="AC7">Test voting mode change does not retroactively affect existing votes</idea>
+      <idea ac-ref="AC7">Integration test: Full voting flow with democratic mode, then switch to weighted mode</idea>
+      <idea ac-ref="AC7">Edge case: User with high activity points (10000+) vote weight calculated correctly</idea>
+      <idea ac-ref="AC7">Edge case: Parameter fetch when ParameterStorage not initialized (returns default DEMOCRATIC)</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="architecture">
+      Story 2.8 implements flexible voting weight modes to support governance experimentation. Allows platform to toggle between democratic (1-person-1-vote) and activity-weighted (stake-based) voting.
+    </note>
+    <note category="integration">
+      Integrates with Story 2.2 (resolution voting), Story 2.4 (proposal voting), Story 1.11 (activity points tracking), and Story 1.3 (ParameterStorage). All voting operations must respect the global voting_weight_mode parameter.
+    </note>
+    <note category="implementation">
+      Vote weight calculation happens at submission time using getVoteWeight() helper function. Weight value stored in database (votes.vote_weight, proposal_votes.vote_weight columns). Aggregation functions use weighted sums.
+    </note>
+    <note category="data-flow">
+      Admin sets voting_weight_mode → User submits vote → Edge Function fetches mode → Calculates weight (1 or activity_points) → Stores vote with weight → Aggregation uses weighted sum → Result determined by weighted majority.
+    </note>
+    <note category="performance">
+      Parameter fetch operations should be cached to avoid repeated database queries. Activity points query only needed in ACTIVITY_WEIGHTED mode. Democratic mode requires no database lookup (always returns 1).
+    </note>
+    <note category="governance-strategy">
+      Democratic mode (default): Simple, fair for small communities. Activity-weighted mode: Rewards engagement, prevents Sybil attacks. Platform can experiment with both models to find optimal governance.
+    </note>
+    <note category="backward-compatibility">
+      Default mode is DEMOCRATIC to maintain compatibility with existing voting infrastructure from Stories 2.2 and 2.4. Vote weight columns already exist in both tables.
+    </note>
+    <note category="edge-cases">
+      Users with zero activity points in ACTIVITY_WEIGHTED mode default to weight=1 to ensure minimum participation. Parameter not set defaults to DEMOCRATIC mode.
+    </note>
+    <note category="testing-priority">
+      Critical tests: Mode toggling, weight calculation correctness in both modes, vote aggregation with weighted sums. Integration tests validate full voting flows in both modes.
+    </note>
+    <note category="future-enhancement">
+      Frontend display of voting mode and user's weight (AC#6) deferred to Epic 3. This story focuses on backend implementation only.
+    </note>
+  </dev-notes>
+</story-context>

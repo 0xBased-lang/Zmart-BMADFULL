@@ -1,0 +1,149 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.7</storyId>
+    <title>Implement ProposalSystem Program - Market Creation Governance</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.7.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>market creator</asA>
+    <iWant>to propose new markets through a governance process</iWant>
+    <soThat>the community controls what markets get created</soThat>
+    <tasks>
+      - Define Proposal account structure (AC: #1)
+      - Define ProposalVoteRecord account structure (AC: #3)
+      - Define enum types
+      - Implement create_proposal instruction (AC: #2, #6)
+      - Implement vote_on_proposal instruction (AC: #3)
+      - Implement approve_proposal instruction (AC: #4, #6)
+      - Implement reject_proposal instruction (AC: #5)
+      - Implement graduated bond tier system (AC: #6)
+      - Define error types
+      - Implement event emissions
+      - Write comprehensive tests (AC: #7)
+      - Deploy to devnet (AC: #8)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Proposal account structure defined (title, description, creator, bond_amount, status, yes_votes, no_votes)</criterion>
+    <criterion id="2">create_proposal instruction with bond requirement and proposal tax collection (1% non-refundable)</criterion>
+    <criterion id="3">vote_on_proposal instruction (placeholder for Epic 2's full Snapshot integration)</criterion>
+    <criterion id="4">approve_proposal instruction creates market in CoreMarkets if ≥60% YES votes</criterion>
+    <criterion id="5">reject_proposal instruction refunds 50% of bond to creator</criterion>
+    <criterion id="6">Graduated bond scaling: bond amount determines creator fee tier (0.5% to 2%)</criterion>
+    <criterion id="7">Tests validate proposal creation, voting, approval, and rejection flows</criterion>
+    <criterion id="8">Deployed to devnet</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 1: Foundation & Infrastructure</title>
+        <section>Story 1.7</section>
+        <snippet>ProposalSystem enables community-driven market creation with graduated bond tiers, 1% proposal tax, and ≥60% approval threshold.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Graduated Bond Economics</section>
+        <snippet>Three bond tiers (1/5/10 SOL) determine creator fee percentages (0.5%/1.0%/2.0%). Higher commitment earns higher ongoing rewards.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>proposal_system</symbol>
+        <lines>1-560</lines>
+        <reason>Complete ProposalSystem with 4 instructions: create_proposal, vote_on_proposal, approve_proposal, reject_proposal. Includes governance, graduated bonds, 1% tax, 60% threshold.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>Proposal</symbol>
+        <lines>314-332</lines>
+        <reason>Proposal account with 16 fields (~800 bytes). Tracks proposal details, bond tier, tax, status, vote counts, timing.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>create_proposal</symbol>
+        <lines>26-119</lines>
+        <reason>Creates proposal with bond + 1% tax. Validates inputs, transfers funds, initializes with Pending status.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>approve_proposal</symbol>
+        <lines>179-243</lines>
+        <reason>Approves proposal if ≥60% YES votes. Updates status, records market_id. Epic 2 adds CPI to BondManager and CoreMarkets.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>reject_proposal</symbol>
+        <lines>245-306</lines>
+        <reason>Rejects proposal if <60% YES. Refunds 50% of bond to creator, keeps 1% tax.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <anchor>
+        <package>anchor-lang</package>
+        <version>0.32.1</version>
+        <reason>Solana program framework</reason>
+      </anchor>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>PDA-derived: Proposal = ["proposal", proposal_id], ProposalVoteRecord = ["proposal-vote", proposal_id, voter]</constraint>
+    <constraint>1% proposal tax (non-refundable) prevents spam</constraint>
+    <constraint>≥60% YES votes required for approval</constraint>
+    <constraint>50% bond refund on rejection</constraint>
+    <constraint>Graduated bond tiers: Tier1 (1 SOL, 0.5% fee), Tier2 (5 SOL, 1.0% fee), Tier3 (10 SOL, 2.0% fee)</constraint>
+    <constraint>One vote per wallet enforced by PDA derivation</constraint>
+    <constraint>Must wait until end_date before processing</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>create_proposal</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn create_proposal(ctx: Context&lt;CreateProposal&gt;, proposal_id: u64, title: String, description: String, bond_tier: BondTier, end_date: i64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/proposal-system/src/lib.rs:26-119</path>
+      <usage>Creates governance proposal with bond + 1% tax. Initializes with Pending status.</usage>
+    </interface>
+    <interface>
+      <name>approve_proposal</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn approve_proposal(ctx: Context&lt;ApproveProposal&gt;, market_id: u64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/proposal-system/src/lib.rs:179-243</path>
+      <usage>Approves if ≥60% YES. Epic 2: CPI to create market in CoreMarkets.</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Anchor test suite. Each instruction requires happy path, edge cases, error cases. Devnet testing with multiple proposals and voting scenarios.
+    </standards>
+    <locations>
+      - tests/proposal-system.ts
+      - Anchor.toml
+    </locations>
+    <ideas>
+      <test ac="2">Test create_proposal with all three bond tiers</test>
+      <test ac="2">Test 1% tax calculation</test>
+      <test ac="3">Test vote_on_proposal updates counters</test>
+      <test ac="4">Test approve_proposal with ≥60% YES</test>
+      <test ac="4">Test approve_proposal rejects with <60%</test>
+      <test ac="5">Test reject_proposal with 50% refund</test>
+      <test ac="6">Verify graduated bond tier amounts</test>
+    </ideas>
+  </tests>
+</story-context>

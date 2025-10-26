@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.9</storyId>
+    <title>Implement Stale Market Auto-Cancellation</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.9.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>platform operator</asA>
+    <iWant>markets that never resolve to automatically cancel and refund bets</iWant>
+    <soThat>users don't have funds locked indefinitely</soThat>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">stale_market_threshold parameter in ParameterStorage (default: 30 days after end_date)</criterion>
+    <criterion id="2">Supabase cron job check-stale-markets runs daily</criterion>
+    <criterion id="3">Markets in ENDED status for >threshold days automatically marked CANCELLED</criterion>
+    <criterion id="4">cancel_market instruction in CoreMarkets program refunds all bets proportionally</criterion>
+    <criterion id="5">All UserBet accounts for cancelled market marked as "refunded"</criterion>
+    <criterion id="6">Event emitted for cancellation, synced to database</criterion>
+    <criterion id="7">Tests validate stale market detection and full refund logic</criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="1" ac="1">Add stale_market_threshold parameter to ParameterStorage
+      <subtask>Define parameter in ParameterStorage program state</subtask>
+      <subtask>Set default value: 30 days (2592000 seconds)</subtask>
+      <subtask>Create set_stale_market_threshold instruction</subtask>
+      <subtask>Add parameter query function</subtask>
+    </task>
+    <task id="2" ac="2,3">Create check-stale-markets Supabase Edge Function
+      <subtask>Initialize Edge Function directory and config</subtask>
+      <subtask>Implement daily cron job trigger (Supabase cron)</subtask>
+      <subtask>Query markets with status = ENDED and end_date + threshold < NOW</subtask>
+      <subtask>Mark identified markets as CANCELLED</subtask>
+      <subtask>Log stale market cancellations for audit</subtask>
+      <subtask>Handle errors gracefully (retry logic)</subtask>
+    </task>
+    <task id="3" ac="4,5">Implement cancel_market instruction in CoreMarkets
+      <subtask>Create cancel_market instruction in CoreMarkets program</subtask>
+      <subtask>Calculate proportional refunds for all bets</subtask>
+      <subtask>Update all UserBet accounts to "refunded" status</subtask>
+      <subtask>Transfer refunded amounts back to user wallets</subtask>
+      <subtask>Validate all bets refunded before finalizing</subtask>
+    </task>
+    <task id="4" ac="6">Emit cancellation event and sync to database
+      <subtask>Define MarketCancelled event in CoreMarkets</subtask>
+      <subtask>Emit event with market_id, reason, timestamp</subtask>
+      <subtask>Event listener catches cancellation event</subtask>
+      <subtask>Update database: market status → CANCELLED</subtask>
+      <subtask>Store cancellation metadata (reason, refund_count)</subtask>
+    </task>
+    <task id="5" ac="2,6">Create database migration for stale market tracking
+      <subtask>Add cancelled_at timestamp to markets table</subtask>
+      <subtask>Add cancellation_reason TEXT column</subtask>
+      <subtask>Add stale_market_cancellations audit log table</subtask>
+      <subtask>Create indexes for stale market queries</subtask>
+    </task>
+    <task id="6" ac="7">Write comprehensive tests
+      <subtask>Test stale market detection (market > threshold days)</subtask>
+      <subtask>Test proportional refund calculation</subtask>
+      <subtask>Test all UserBet accounts marked "refunded"</subtask>
+      <subtask>Test edge case: market exactly at threshold</subtask>
+      <subtask>Test edge case: no bets on stale market</subtask>
+      <subtask>Test cron job execution and error handling</subtask>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - Community Governance & Voting</title>
+        <section>Story 2.9</section>
+        <snippet>Automatic cancellation and refund for stale markets that never resolve. Includes stale_market_threshold parameter (30 days default), daily cron job, cancel_market instruction, full refunds for all bets, and event emission for database sync.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-2.3.md</path>
+        <title>Story 2.3 - Vote Aggregation and On-Chain Result Posting</title>
+        <section>Market Status Transitions</section>
+        <snippet>Established market status state machine including ENDED status. Market transitions through ACTIVE → VOTING → ENDED → RESOLVED. Story 2.9 adds CANCELLED status for stale markets.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Supabase Cron Jobs, Event Emission</section>
+        <snippet>Architecture supports Supabase cron jobs for automated daily tasks. Event emission pattern established in Epic 1 for syncing on-chain events to off-chain database.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>database/migrations/001_initial_schema.sql</path>
+        <kind>database-migration</kind>
+        <symbol>markets table schema</symbol>
+        <lines>40-79</lines>
+        <reason>Markets table structure from Epic 1. Need to add cancelled_at TIMESTAMPTZ and cancellation_reason TEXT columns. Current status constraint includes ACTIVE, RESOLVED, CANCELLED (need to verify ENDED exists from Story 2.3).</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/006_vote_results_and_voting_statuses.sql</path>
+        <kind>database-migration</kind>
+        <symbol>ENDED status addition</symbol>
+        <lines>all</lines>
+        <reason>Story 2.3 added ENDED status to markets table. Check this migration to understand status enum before adding CANCELLED status for stale markets.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/flag-dispute/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>Edge Function structure pattern</symbol>
+        <lines>1-100</lines>
+        <reason>Pattern for Supabase Edge Function implementation. Use as template for check-stale-markets cron job. Shows TypeScript structure, Supabase client, database queries, error handling.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/admin-override-resolution/deno.json</path>
+        <kind>configuration</kind>
+        <symbol>Deno configuration for Edge Functions</symbol>
+        <lines>all</lines>
+        <reason>Deno configuration pattern for Supabase Edge Functions. Use same structure for check-stale-markets/deno.json.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <supabase>
+        <package name="@supabase/supabase-js" version="^2.38.0" reason="Supabase client for database queries and Edge Functions"/>
+      </supabase>
+      <deno>
+        <package name="std/http" version="0.168.0" reason="HTTP server for Edge Functions (Deno standard library)"/>
+      </deno>
+      <database>
+        <package name="PostgreSQL" version="15.x" reason="Primary database (Supabase managed)"/>
+      </database>
+      <solana>
+        <package name="@solana/web3.js" version="^1.87.6" reason="Solana blockchain interaction for cancel_market instruction"/>
+        <package name="@coral-xyz/anchor" version="^0.29.0" reason="Anchor framework for Solana program development"/>
+      </solana>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>check-stale-markets Edge Function (Cron Job)</name>
+      <kind>Supabase Edge Function (Cron-triggered)</kind>
+      <signature>Cron Schedule: Daily at 00:00 UTC
+Execution: Automated (no HTTP request needed)
+Logic:
+1. Fetch stale_market_threshold from ParameterStorage
+2. Query markets WHERE status = 'ENDED' AND end_date + threshold < NOW()
+3. For each stale market:
+   - Call cancel_market instruction (on-chain)
+   - Update database status to CANCELLED (manual until Story 1.9)
+   - Log to stale_market_cancellations table
+4. Return summary: { cancelled_count, total_refunded, errors }</signature>
+      <path>supabase/functions/check-stale-markets/index.ts (to be created)</path>
+      <description>Daily cron job that identifies and cancels stale markets. Queries ENDED markets past threshold, calls on-chain cancel_market for refunds, updates database, logs audit trail.</description>
+    </interface>
+    <interface>
+      <name>cancel_market instruction (CoreMarkets Solana Program)</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>pub fn cancel_market(ctx: Context&lt;CancelMarket&gt;) -> Result&lt;()&gt;
+Accounts:
+- market: Market account (mut)
+- authority: Platform admin or cron service
+- system_program: System Program
+Logic:
+1. Validate market status is ENDED
+2. Fetch all UserBet accounts for market
+3. Calculate 100% refund for each bet
+4. Transfer SOL from market escrow to user wallets
+5. Mark all UserBet accounts as "refunded"
+6. Emit MarketCancelled event
+7. Update market status to CANCELLED</signature>
+      <path>programs/core-markets/src/instructions/cancel_market.rs (to be created)</path>
+      <description>On-chain instruction to cancel stale markets and refund all bets. Trustless refund execution via Solana program. Emits event for off-chain database sync.</description>
+    </interface>
+    <interface>
+      <name>stale_market_threshold parameter (ParameterStorage)</name>
+      <kind>On-chain Parameter</kind>
+      <signature>Parameter: stale_market_threshold
+Type: u64 (seconds)
+Default: 2592000 (30 days)
+Access: Admin-only write, public read
+Query: get_parameter("stale_market_threshold")</signature>
+      <path>programs/parameter-storage/src/state.rs (modification)</path>
+      <description>Configurable threshold for stale market detection. After market end_date + threshold passes, market is eligible for auto-cancellation. Default 30 days provides reasonable grace period.</description>
+    </interface>
+    <interface>
+      <name>stale_market_cancellations audit table</name>
+      <kind>PostgreSQL Table</kind>
+      <signature>CREATE TABLE stale_market_cancellations (
+  id BIGSERIAL PRIMARY KEY,
+  market_id BIGINT NOT NULL REFERENCES markets(market_id),
+  end_date TIMESTAMPTZ NOT NULL,
+  cancelled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  threshold_days INTEGER NOT NULL,
+  bet_count INTEGER NOT NULL,
+  total_refunded BIGINT NOT NULL
+)</signature>
+      <path>database/migrations/010_stale_market_cancellation.sql (to be created)</path>
+      <description>Audit log for all stale market cancellations. Tracks when market ended, when cancelled, threshold used, number of bets refunded, total amount refunded. Provides transparency and compliance trail.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Use Supabase cron job for daily automated checks - established serverless pattern</constraint>
+    <constraint>Default threshold: 30 days after end_date - balances user protection with resolution grace period</constraint>
+    <constraint>Market must be in ENDED status to be cancelled - prevents cancelling active or resolved markets</constraint>
+    <constraint>100% refund for all bets - not proportional to outcome, full refund since market never resolved</constraint>
+    <constraint>On-chain cancel_market instruction for trustless refunds - Solana program handles refunds, not off-chain code</constraint>
+    <constraint>Event emission for database sync - follows Epic 1 event-driven architecture pattern</constraint>
+    <constraint>Manual database update until Story 1.9 implemented - cron job updates database directly as workaround</constraint>
+    <constraint>Audit trail required - all cancellations logged to stale_market_cancellations table for transparency</constraint>
+    <constraint>Error handling: cron job continues on individual failures - one market failure doesn't block others</constraint>
+    <constraint>Tests deferred to Epic 4 Story 4.1 - document test scenarios in completion doc</constraint>
+    <constraint>Authorization: automated cron service needs authority to call cancel_market - configure admin permissions</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Tests deferred to Epic 4 Story 4.1 per BMAD methodology. When implemented, use Anchor test framework for Solana program tests (cancel_market instruction). Use Deno test framework for Edge Function tests (check-stale-markets cron job). Use PostgreSQL test fixtures for database migration tests.
+    </standards>
+    <locations>
+      <location>tests/core-markets.ts - Anchor tests for cancel_market instruction</location>
+      <location>supabase/functions/check-stale-markets/test.ts - Edge Function unit tests</location>
+      <location>database/migrations/test/ - Database migration tests (if pattern exists)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test stale_market_threshold parameter: default value 30 days, admin can update, query returns correct value</idea>
+      <idea ac="2">Test cron job triggers daily: check-stale-markets executes on schedule, logs execution</idea>
+      <idea ac="3">Test stale market detection: market ENDED for 31 days is identified, market at 29 days is not</idea>
+      <idea ac="4">Test cancel_market instruction: all bets refunded 100%, SOL transferred back to users</idea>
+      <idea ac="5">Test UserBet status update: all UserBet accounts marked "refunded" after cancellation</idea>
+      <idea ac="6">Test MarketCancelled event: event emitted with correct market_id, reason, timestamp</idea>
+      <idea ac="7">Test database sync: market status updated to CANCELLED, audit log populated</idea>
+      <idea ac="all">Edge case: Market exactly at threshold (30.0 days) - should be cancelled or not?</idea>
+      <idea ac="all">Edge case: Stale market with zero bets - should still mark CANCELLED, no refunds needed</idea>
+      <idea ac="all">Edge case: Stale market with one bet - refund = bet amount (100%)</idea>
+      <idea ac="all">Edge case: Multiple stale markets in single cron run - all processed correctly</idea>
+      <idea ac="all">Error case: cancel_market instruction fails - cron logs error, skips market, continues with others</idea>
+      <idea ac="all">Error case: Database update fails - market still cancelled on-chain (source of truth), log error</idea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note>Story 2.9 implements safety mechanism to prevent indefinite fund locking - critical for platform reliability</note>
+    <note>Manual database update until Story 1.9 (Event Listener) implemented - cron job updates database directly as workaround</note>
+    <note>Default 30-day threshold balances user protection with resolution grace period - configurable via ParameterStorage</note>
+    <note>100% refund for all bets since market never resolved - different from outcome-based payouts</note>
+    <note>Cron job schedule: Daily at 00:00 UTC - sufficient frequency for 30-day threshold</note>
+    <note>Error handling: individual market failures don't block batch - cron continues processing all stale markets</note>
+    <note>Authorization: automated cron service needs admin authority to call cancel_market - configure in program</note>
+    <note>Epic 1 Story 1.4 (CoreMarkets) is DONE - can add cancel_market instruction to existing program</note>
+    <note>Story 2.3 added ENDED status - verify status enum includes ENDED before implementing</note>
+    <note>When Story 1.9 implemented later, replace manual database update with automatic event listener sync</note>
+  </devNotes>
+</story-context>

@@ -45,11 +45,11 @@ development_status:
   1-5-implement-bondmanager-program-for-escrow: done
   1-6-implement-marketresolution-program-community-voting-foundation: done
   1-7-implement-proposalsystem-program-market-creation-governance: done
-  1-8-set-up-postgresql-database-with-supabase: backlog
-  1-9-implement-event-listener-for-solana-database-sync: backlog
-  1-10-implement-payout-claims-functionality: backlog
-  1-11-implement-activity-point-tracking-system: backlog
-  1-12-end-to-end-integration-test-and-devnet-deployment: backlog
+  1-8-set-up-postgresql-database-with-supabase: done
+  1-9-implement-event-listener-for-solana-database-sync: done
+  1-10-implement-payout-claims-functionality: done
+  1-11-implement-activity-point-tracking-system: done
+  1-12-end-to-end-integration-test-and-devnet-deployment: done
   epic-1-retrospective: optional
 
   # Epic 2: Governance & Voting (12 stories)
@@ -59,13 +59,13 @@ development_status:
   2-3-implement-vote-aggregation-and-on-chain-result-posting: done
   2-4-implement-proposal-voting-via-snapshot: done
   2-5-implement-proposal-approval-rejection-logic: done
-  2-6-implement-dispute-flagging-mechanism: backlog
-  2-7-implement-admin-override-for-disputed-markets: backlog
-  2-8-implement-voting-weight-modes-democratic-vs-activity-based: backlog
-  2-9-implement-stale-market-auto-cancellation: backlog
-  2-10-implement-graduated-bond-refund-logic: backlog
-  2-11-implement-creator-fee-claims: backlog
-  2-12-end-to-end-governance-integration-test: backlog
+  2-6-implement-dispute-flagging-mechanism: ready-for-dev
+  2-7-implement-admin-override-for-disputed-markets: ready-for-dev
+  2-8-implement-voting-weight-modes-democratic-vs-activity-based: ready-for-dev
+  2-9-implement-stale-market-auto-cancellation: done
+  2-10-implement-graduated-bond-refund-logic: ready-for-dev
+  2-11-implement-creator-fee-claims: ready-for-dev
+  2-12-end-to-end-governance-integration-test: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Frontend & UX (14 stories)

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>11</storyId>
+    <title>Implement Activity Point Tracking System</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.11.md</sourceStoryPath>
+    <critical>REQUIRED FOR EPIC 2 STORY 2.8 (WEIGHTED VOTING)</critical>
+  </metadata>
+
+  <story>
+    <asA>platform user</asA>
+    <iWant>earn activity points for participation</iWant>
+    <soThat>I build governance weight and reputation</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      `activity_points` table in PostgreSQL with: user_wallet, total_points, breakdown (bets, markets_created, votes, correct_predictions)
+    </criterion>
+    <criterion id="AC2" priority="critical">
+      Points awarded via database triggers on: bet placement (+5), market creation (+20), voting (+10), winning bets (+accuracy_bonus)
+    </criterion>
+    <criterion id="AC3" priority="medium">
+      Leaderboard query functions created: top_by_points, top_by_win_rate, top_by_volume
+    </criterion>
+    <criterion id="AC4" priority="high">
+      User profile API returns activity points balance
+    </criterion>
+    <criterion id="AC5" priority="critical">
+      Points integration tested with event listener (automatic point awards)
+    </criterion>
+    <criterion id="AC6" priority="low">
+      Manual point adjustment API for admin corrections if needed
+    </criterion>
+  </acceptance-criteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-1.9-COMPLETE.md</path>
+        <title>Story 1.9: Event Listener for Solana-Database Sync - COMPLETE</title>
+        <section>Event Pattern</section>
+        <snippet>Event Listener pattern for automatic database updates. Activity points awarded via database triggers when events sync to database. No manual intervention.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.8-COMPLETE.md</path>
+        <title>Story 1.8: Set Up PostgreSQL Database with Supabase - COMPLETE</title>
+        <section>Database Infrastructure</section>
+        <snippet>Supabase PostgreSQL database foundation. Supports triggers, materialized views, RLS policies. Foundation for activity point system.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Activity Point Meritocracy</section>
+        <snippet>Participation-based governance weight. Activity points grant voting power in weighted mode. Transparent, gamified engagement system.</snippet>
+      </doc>
+    </docs>
+
+    <dependencies>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database queries for activity points and leaderboards</dependency>
+      </typescript>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>activity_points table</name>
+      <kind>database-table</kind>
+      <signature>CREATE TABLE activity_points (user_wallet TEXT PRIMARY KEY, total_points BIGINT, ...)</signature>
+      <path>database/migrations/014_activity_points.sql</path>
+      <description>Main table tracking user activity points. Includes total_points and breakdown by category.</description>
+    </interface>
+    <interface>
+      <name>award_bet_points trigger</name>
+      <kind>database-trigger</kind>
+      <signature>CREATE TRIGGER trigger_award_bet_points AFTER INSERT ON bets FOR EACH ROW EXECUTE FUNCTION award_bet_points()</signature>
+      <path>database/migrations/014_activity_points.sql</path>
+      <description>Database trigger that automatically awards +5 points when user places bet.</description>
+    </interface>
+    <interface>
+      <name>get-user-profile</name>
+      <kind>edge-function</kind>
+      <signature>export async function getUserProfile(userWallet: string): Promise&lt;UserProfile&gt;</signature>
+      <path>supabase/functions/get-user-profile/index.ts</path>
+      <description>API endpoint returning user's activity points balance and breakdown by category.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>Points MUST be awarded automatically via database triggers (no manual processing)</description>
+    </constraint>
+    <constraint>
+      <description>ALL point changes MUST be logged in activity_point_history for audit trail</description>
+    </constraint>
+    <constraint>
+      <description>total_points MUST equal sum of all awards in history (verifiable consistency)</description>
+    </constraint>
+    <constraint>
+      <description>Concurrent point awards MUST be handled correctly (database-level locking)</description>
+    </constraint>
+    <constraint>
+      <description>Manual adjustments MUST require admin authorization</description>
+    </constraint>
+    <constraint>
+      <description>total_points MUST NOT go negative (validation required)</description>
+    </constraint>
+    <constraint>
+      <description>Activity points MUST be queryable for weighted voting (Story 2.8 dependency)</description>
+    </constraint>
+    <constraint>
+      <description>Leaderboard queries MUST complete in &lt;100ms (materialized views for performance)</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Database tests for trigger logic, leaderboard queries, RLS policies. Deno tests for Edge Functions (get-user-profile, admin-adjust-points). Integration tests for automatic point awards from user actions.
+    </standards>
+    <locations>
+      <location>database/migrations/test/activity-points.test.sql - Database trigger and function tests</location>
+      <location>supabase/functions/get-user-profile/test.ts - Profile API tests</location>
+      <location>tests/integration/activity-points.ts - End-to-end point award tests</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Test activity_points table creation with all required columns and indexes</idea>
+      <idea ac-ref="AC2">Test bet placement trigger awards +5 points automatically</idea>
+      <idea ac-ref="AC2">Test market creation trigger awards +20 points automatically</idea>
+      <idea ac-ref="AC2">Test vote submission trigger awards +10 points automatically</idea>
+      <idea ac-ref="AC2">Test winning bet claim awards accuracy bonus points</idea>
+      <idea ac-ref="AC3">Test leaderboard queries return correct rankings</idea>
+      <idea ac-ref="AC4">Test get-user-profile API returns activity points balance</idea>
+      <idea ac-ref="AC5">Integration test: Place bet → verify +5 points awarded → query confirms total</idea>
+      <idea ac-ref="AC5">Test concurrent point awards (race conditions) handled correctly</idea>
+      <idea ac-ref="AC6">Test admin-adjust-points requires authorization</idea>
+      <idea ac-ref="AC6">Test admin adjustment logs to activity_point_history</idea>
+      <idea>CRITICAL: Test activity points queryable for Story 2.8 weighted voting integration</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="epic-2-dependency">
+      CRITICAL: Story 2.8 (Weighted Voting) DEPENDS on this story. Activity points provide voting weight in activity-weighted mode. Must be fully implemented and tested before Epic 2 Story 2.8.
+    </note>
+    <note category="event-driven">
+      Database triggers automatically award points when Event Listener syncs events to database (Story 1.9 pattern). Bet placed → Event synced → Trigger awards +5 points. No manual intervention.
+    </note>
+    <note category="audit-trail">
+      activity_point_history table maintains complete audit trail. All point changes logged with action_type, reference_id, timestamp. Enables verification: total_points = sum(history).
+    </note>
+    <note category="performance">
+      Leaderboard uses materialized view for &lt;100ms queries. Refresh strategy: daily cron or on-demand. Indexes optimize ranking queries (points DESC, win_rate DESC, volume DESC).
+    </note>
+    <note category="gamification">
+      Point system gamifies engagement: +5 bets, +20 markets, +10 votes, +accuracy_bonus wins. Encourages participation and quality predictions. Transparent breakdown visible to users.
+    </note>
+    <note category="governance-integration">
+      Activity points critical for governance meritocracy. High-activity users gain more voting weight in weighted mode. Prevents Sybil attacks (fake accounts have zero points).
+    </note>
+    <note category="admin-flexibility">
+      Admin adjustment API allows corrections for edge cases. Requires admin authorization. Logs to history with admin flag. Use sparingly to maintain system integrity.
+    </note>
+    <note category="database-design">
+      Separate tables: activity_points (current state), activity_point_breakdown (category totals), activity_point_history (audit log). Normalized design with proper indexes.
+    </note>
+  </dev-notes>
+</story-context>

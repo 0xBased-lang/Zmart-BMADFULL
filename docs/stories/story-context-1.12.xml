@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+id="bmad/bmm/workflows/4-implementation/story-context/template"
+v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>12</storyId>
+    <title>End-to-End Integration Test and Devnet Deployment</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.12.md</sourceStoryPath>
+    <critical>EPIC 1 CAPSTONE - GATES EPIC 2 WORK</critical>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>validate the complete system works end-to-end on devnet</iWant>
+    <soThat>I'm confident the foundation is solid before Epic 2</soThat>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      Complete E2E test script: create market → place bets → resolve market → claim payouts
+    </criterion>
+    <criterion id="AC2" priority="critical">
+      All 6 programs deployed to devnet with correct addresses registered in ProgramRegistry
+    </criterion>
+    <criterion id="AC3" priority="critical">
+      ParameterStorage initialized with default values on devnet
+    </criterion>
+    <criterion id="AC4" priority="critical">
+      Event listener running and successfully syncing devnet events to database
+    </criterion>
+    <criterion id="AC5" priority="critical">
+      Database queries return accurate data matching on-chain state
+    </criterion>
+    <criterion id="AC6" priority="critical">
+      Activity points correctly awarded for test actions
+    </criterion>
+    <criterion id="AC7" priority="high">
+      Performance benchmarks: database queries &lt;100ms, transaction success rate &gt;99%
+    </criterion>
+    <criterion id="AC8" priority="medium">
+      Documentation created: devnet program IDs, test accounts, known issues
+    </criterion>
+    <criterion id="AC9" priority="critical">
+      All Epic 1 acceptance criteria validated and passing
+    </criterion>
+  </acceptance-criteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-1.1-COMPLETE.md</path>
+        <title>Story 1.1: Initialize Anchor Workspace - COMPLETE</title>
+        <section>Foundation</section>
+        <snippet>Anchor workspace with all 6 programs. Foundation for Epic 1 development.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.2-COMPLETE.md</path>
+        <title>Story 1.2: ProgramRegistry - COMPLETE</title>
+        <section>Cross-Program Communication</section>
+        <snippet>Registry pattern for program discovery. All 6 programs must be registered on devnet.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.3-COMPLETE.md</path>
+        <title>Story 1.3: ParameterStorage - COMPLETE</title>
+        <section>Global Configuration</section>
+        <snippet>On-chain parameter storage. Must be initialized on devnet with default values.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-1.9-COMPLETE.md</path>
+        <title>Story 1.9: Event Listener - COMPLETE</title>
+        <section>Database Sync</section>
+        <snippet>Event Listener pattern for automatic database sync. Critical for devnet testing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart System Architecture</title>
+        <section>Epic Boundary Testing</section>
+        <snippet>Epic 1 capstone validates all stories working together. Gates Epic 2 (Governance) work.</snippet>
+      </doc>
+    </docs>
+
+    <dependencies>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1">All 6 Solana programs</dependency>
+        <dependency name="anchor-spl" version="0.32.1">Token transfers</dependency>
+      </rust>
+      <typescript>
+        <dependency name="@supabase/supabase-js" version="latest">Database and Edge Functions</dependency>
+        <dependency name="@solana/web3.js" version="1.95.x">Devnet interaction</dependency>
+        <dependency name="@project-serum/anchor" version="0.32.1">Anchor TypeScript client</dependency>
+      </typescript>
+      <testing>
+        <dependency name="mocha" version="latest">Test framework</dependency>
+        <dependency name="chai" version="latest">Assertions</dependency>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>Epic1E2ETestSuite</name>
+      <kind>test-suite</kind>
+      <signature>describe('Epic 1: End-to-End Integration Test', () => { ... })</signature>
+      <path>tests/integration/epic-1-e2e.ts</path>
+      <description>Main E2E test suite validating complete Epic 1 foundation. Tests all 11 stories integrated together on devnet.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <description>Tests MUST run against devnet (not localnet) for real network validation</description>
+    </constraint>
+    <constraint>
+      <description>ALL 6 programs MUST be deployed and registered on devnet</description>
+    </constraint>
+    <constraint>
+      <description>ParameterStorage MUST be initialized with default values on devnet</description>
+    </constraint>
+    <constraint>
+      <description>Event listener MUST be running and syncing devnet events to database</description>
+    </constraint>
+    <constraint>
+      <description>Database state MUST match on-chain state at all times (consistency validation)</description>
+    </constraint>
+    <constraint>
+      <description>Activity points MUST be awarded correctly for all test actions (Story 1.11 validation)</description>
+    </constraint>
+    <constraint>
+      <description>Performance targets MUST be met: database &lt;100ms, transactions &gt;99% success</description>
+    </constraint>
+    <constraint>
+      <description>ALL Epic 1 acceptance criteria (Stories 1.1-1.11) MUST pass before Epic 1 considered complete</description>
+    </constraint>
+    <constraint>
+      <description>Devnet program IDs and deployment info MUST be documented</description>
+    </constraint>
+    <constraint>
+      <description>Tests MUST be repeatable (proper cleanup between runs)</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Anchor integration tests for cross-program interactions on devnet. TypeScript integration tests for database consistency. Performance benchmarking tests. All Epic 1 story acceptance criteria validated.
+    </standards>
+    <locations>
+      <location>tests/integration/epic-1-e2e.ts - Main E2E test suite</location>
+      <location>tests/helpers/devnet-utils.ts - Devnet deployment and management</location>
+      <location>tests/performance/benchmarks.ts - Performance testing</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Full Epic 1 flow: Create market → Bond → Bet → Resolve → Claim payouts → Activity points awarded</idea>
+      <idea ac-ref="AC2">Validate all 6 programs deployed and registered in ProgramRegistry on devnet</idea>
+      <idea ac-ref="AC3">Validate ParameterStorage initialized with correct default values</idea>
+      <idea ac-ref="AC4">Validate Event Listener syncing devnet events to database in real-time</idea>
+      <idea ac-ref="AC5">Database consistency: On-chain Market state matches database markets table</idea>
+      <idea ac-ref="AC5">Database consistency: On-chain UserBet state matches database bets table</idea>
+      <idea ac-ref="AC6">Activity points: +20 for market creation, +5 for bet, +10 for vote (Story 1.11)</idea>
+      <idea ac-ref="AC7">Performance: Database queries complete in &lt;100ms</idea>
+      <idea ac-ref="AC7">Performance: Transaction success rate &gt;99% on devnet</idea>
+      <idea ac-ref="AC9">Run ALL Epic 1 story acceptance criteria tests (Stories 1.1-1.11) and validate 100% pass</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note category="epic-capstone">
+      Story 1.12 is Epic 1 capstone - validates all 11 previous stories working together. Tests complete foundation from ProgramRegistry to Activity Points. Gates Epic 2 (Governance) work.
+    </note>
+    <note category="devnet-validation">
+      Devnet deployment validates real network conditions (not localnet simulation). Persistent deployment for integration testing. Real SOL transfers, real event syncing, real database updates.
+    </note>
+    <note category="cross-program">
+      Tests validate cross-program interactions: ProposalSystem → BondManager → CoreMarkets → MarketResolution. State machine transitions must be consistent across all programs.
+    </note>
+    <note category="database-consistency">
+      Database must accurately reflect on-chain state at all times. Event Listener pattern (Story 1.9) ensures automatic sync. Tests validate consistency after every operation.
+    </note>
+    <note category="activity-points">
+      Activity point integration critical for Epic 2 Story 2.8 (weighted voting). Tests must validate points awarded correctly and queryable for governance.
+    </note>
+    <note category="performance-baselines">
+      Performance benchmarks establish regression baselines. Database &lt;100ms, transactions &gt;99% success. Monitor for performance degradation in future stories.
+    </note>
+    <note category="epic-boundary">
+      Epic 1 not complete until ALL acceptance criteria pass. This story gates Epic 2 start. No Epic 2 work should begin until Epic 1 foundation is solid.
+    </note>
+    <note category="documentation">
+      Devnet program IDs and deployment info must be documented for Epic 2 work. Test wallets, RPC endpoints, known issues all documented for future reference.
+    </note>
+  </dev-notes>
+</story-context>

@@ -1,0 +1,263 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.4</storyId>
+    <title>Implement CoreMarkets Program - Market Creation and Betting</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.4.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>bettor</asA>
+    <iWant>to place bets on active markets using ZMart tokens</iWant>
+    <soThat>I can participate in prediction markets</soThat>
+    <tasks>
+      - Define Market account structure (AC: #1)
+      - Define UserBet account structure (AC: #6)
+      - Implement create_market instruction (AC: #2)
+      - Implement place_bet instruction (AC: #3, #5, #8)
+      - Implement BPS fee calculation and tracking (AC: #4)
+      - Implement real-time odds calculation (AC: #7)
+      - Implement resolve_market instruction (AC: #4)
+      - Implement claim_payout instruction
+      - Add overflow protection and security (All ACs)
+      - Define error types
+      - Implement event emissions
+      - Write comprehensive tests (AC: #9)
+      - Deploy to devnet (AC: #10)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Market account structure defined (id, title, end_date, yes_pool, no_pool, status, creator, etc.)</criterion>
+    <criterion id="2">create_market instruction implemented (admin-only for Epic 1, proposal system integration comes in Epic 2)</criterion>
+    <criterion id="3">place_bet instruction with token transfer, pool updates, and odds calculation</criterion>
+    <criterion id="4">BPS-based fee calculation and distribution to platform/team/burn/creator wallets</criterion>
+    <criterion id="5">Minimum/maximum bet limits enforced from ParameterStorage</criterion>
+    <criterion id="6">UserBet account created tracking bet amount, side (YES/NO), and user wallet</criterion>
+    <criterion id="7">Real-time odds calculation: YES% = yes_pool / (yes_pool + no_pool)</criterion>
+    <criterion id="8">Market status validation (only ACTIVE markets accept bets)</criterion>
+    <criterion id="9">Comprehensive tests for betting mechanics and fee distribution</criterion>
+    <criterion id="10">Successfully deployed to devnet with test markets created</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 1: Foundation &amp; Infrastructure</title>
+        <section>Story 1.4</section>
+        <snippet>CoreMarkets is the central betting engine with market creation, betting mechanics, fee distribution, and odds calculation. Integrates with ParameterStorage for dynamic configuration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Registry Pattern</section>
+        <snippet>Independent program upgrades without breaking integrations. CoreMarkets will use cross-program calls to ParameterStorage for fee and limit validation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Technology Stack - Blockchain Layer</section>
+        <snippet>Solana mainnet-beta with Anchor 0.32.1 framework. Rust 1.85.0 for program implementation. Sub-cent fees with 400ms finality.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-1.3.md</path>
+        <title>Story 1.3: ParameterStorage</title>
+        <section>Completion Notes</section>
+        <snippet>GlobalParameters deployed at J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD on devnet. Provides platform_fee_bps, creator_fee_bps, min_bet_lamports, max_bet_lamports for CoreMarkets integration.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>core_markets</symbol>
+        <lines>1-740</lines>
+        <reason>Complete CoreMarkets implementation with 4 instructions: create_market, place_bet, resolve_market, claim_payout. Includes Market and UserBet account structures, fee calculation, odds algorithm, overflow protection, and event emissions.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>Market</symbol>
+        <lines>402-431</lines>
+        <reason>Market account structure with market_id, creator, title, description, end_date, yes_pool, no_pool, total_volume, fee tracking, payout tracking, status, and metrics. ~800 bytes space allocation.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>UserBet</symbol>
+        <lines>434-447</lines>
+        <reason>UserBet account tracking individual bet positions with market_id, bettor, bet_side, amount, fees, timestamp, claimed status, and odds_at_bet. ~140 bytes space allocation.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>create_market</symbol>
+        <lines>18-86</lines>
+        <reason>Creates prediction market with validation (title 1-128 chars, description 1-512 chars, end_date in future). Initializes empty pools and Active status. Emits MarketCreatedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>place_bet</symbol>
+        <lines>88-216</lines>
+        <reason>Core betting logic with cross-program ParameterStorage read, market validation, bet limit enforcement, SOL transfer, pool updates, fee calculation (BPS), UserBet creation, odds calculation, and BetPlacedEvent emission.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>resolve_market</symbol>
+        <lines>218-297</lines>
+        <reason>Market resolution with creator authorization, platform wallet validation, status checks, outcome recording, and accumulated fee distribution to platform and creator wallets. Emits MarketResolvedEvent.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>instruction</kind>
+        <symbol>claim_payout</symbol>
+        <lines>299-394</lines>
+        <reason>Payout claiming with win validation, proportional calculation (share of winning pool), division by zero protection, over-claiming prevention via total_claimed tracking, reentrancy guards, and PayoutClaimedEvent emission.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>helper</kind>
+        <symbol>calculate_odds</symbol>
+        <lines>470-477</lines>
+        <reason>Real-time odds calculation algorithm: YES% = (yes_pool * 10000) / (yes_pool + no_pool) in basis points. Returns 5000 (50%) if no bets yet. Used for odds_at_bet tracking.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>account</kind>
+        <symbol>GlobalParameters</symbol>
+        <lines>1-150</lines>
+        <reason>Cross-program dependency. Provides platform_fee_bps, creator_fee_bps, min_bet_lamports, max_bet_lamports for fee calculation and bet limit enforcement in place_bet instruction.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <anchor>
+        <package>anchor-lang</package>
+        <version>0.32.1</version>
+        <reason>Solana program framework with account macros, CPI support, and error handling</reason>
+      </anchor>
+      <solana>
+        <package>solana-program</package>
+        <version>Bundled with Anchor</version>
+        <reason>Core Solana primitives, system program, and account info</reason>
+      </solana>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Anchor 0.32.1 framework with anchor-lang macros for account definitions and instruction contexts</constraint>
+    <constraint>All accounts must be PDAs (Program Derived Addresses) for trustless ownership: Market seeds = ["market", market_id], UserBet seeds = ["user-bet", market.key(), bettor.key(), total_bets]</constraint>
+    <constraint>Use checked arithmetic (checked_add, checked_mul, checked_div) for all numeric operations to prevent overflow</constraint>
+    <constraint>Implement reentrancy guards: update state variables BEFORE performing transfers or CPI calls</constraint>
+    <constraint>Cross-program calls to ParameterStorage (J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD) for GlobalParameters read with proper PDA seed validation</constraint>
+    <constraint>Fee calculation uses basis points (BPS): 1 BPS = 0.01%, calculated as (amount * bps) / 10000</constraint>
+    <constraint>Account space allocation: Market ~800 bytes, UserBet ~140 bytes. Must account for discriminator (8 bytes) + all fields</constraint>
+    <constraint>Emit events for all state changes: MarketCreatedEvent, BetPlacedEvent, MarketResolvedEvent, PayoutClaimedEvent</constraint>
+    <constraint>Custom error codes for all failure scenarios with descriptive messages</constraint>
+    <constraint>Deploy to devnet first, verify functionality before mainnet consideration</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GlobalParameters (ParameterStorage)</name>
+      <kind>Cross-Program Account Read</kind>
+      <signature>
+        pub struct GlobalParameters {
+          pub authority: Pubkey,
+          pub platform_fee_bps: u16,
+          pub creator_fee_bps: u16,
+          pub min_bet_lamports: u64,
+          pub max_bet_lamports: u64,
+          ...
+        }
+      </signature>
+      <path>programs/parameter-storage/src/lib.rs</path>
+      <usage>Read in place_bet instruction via try_borrow_data() and try_deserialize() for fee rates and bet limits</usage>
+    </interface>
+    <interface>
+      <name>create_market</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn create_market(ctx: Context&lt;CreateMarket&gt;, market_id: u64, title: String, description: String, end_date: i64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/core-markets/src/lib.rs:18-86</path>
+      <usage>Creates new prediction market. Admin-only for Epic 1. Validates inputs, initializes Market account with empty pools.</usage>
+    </interface>
+    <interface>
+      <name>place_bet</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn place_bet(ctx: Context&lt;PlaceBet&gt;, bet_side: BetSide, amount: u64) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/core-markets/src/lib.rs:88-216</path>
+      <usage>Places bet on active market. Validates limits, transfers SOL, updates pools, calculates fees (BPS), creates UserBet, emits event with odds.</usage>
+    </interface>
+    <interface>
+      <name>resolve_market</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn resolve_market(ctx: Context&lt;ResolveMarket&gt;, outcome: BetSide) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/core-markets/src/lib.rs:218-297</path>
+      <usage>Resolves market with outcome. Creator-only authorization. Distributes accumulated fees to platform and creator wallets. Updates status to Resolved.</usage>
+    </interface>
+    <interface>
+      <name>claim_payout</name>
+      <kind>Anchor Instruction</kind>
+      <signature>pub fn claim_payout(ctx: Context&lt;ClaimPayout&gt;) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/core-markets/src/lib.rs:299-394</path>
+      <usage>Claims winnings after market resolution. Calculates proportional payout, prevents over-claiming via total_claimed tracking, transfers to bettor.</usage>
+    </interface>
+    <interface>
+      <name>calculate_odds</name>
+      <kind>Helper Function</kind>
+      <signature>fn calculate_odds(yes_pool: u64, no_pool: u64) -&gt; u16</signature>
+      <path>programs/core-markets/src/lib.rs:470-477</path>
+      <usage>Returns YES odds in basis points. Formula: (yes_pool * 10000) / total_pool. Returns 5000 (50%) if total is zero.</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Anchor test suite using Mocha and Chai with TypeScript. Tests located in tests/ directory. Each instruction requires:
+      1) Happy path test with valid inputs
+      2) Edge case tests (zero pools, overflow scenarios)
+      3) Error case tests (unauthorized access, invalid inputs)
+      4) Integration tests for cross-program calls
+      5) End-to-end tests for complete market lifecycle
+
+      Devnet deployment testing required before marking story complete. Create test markets, place bets from multiple wallets, resolve markets, claim payouts. Verify all events emitted correctly.
+    </standards>
+    <locations>
+      - tests/core-markets.ts (primary test file)
+      - Anchor.toml (test configuration with devnet cluster)
+    </locations>
+    <ideas>
+      <test ac="1">Test Market account initialization with all fields</test>
+      <test ac="2">Test create_market with valid inputs, verify MarketCreatedEvent</test>
+      <test ac="2">Test create_market validation errors (empty title, invalid end_date)</test>
+      <test ac="3">Test place_bet updates yes_pool correctly</test>
+      <test ac="3">Test place_bet updates no_pool correctly</test>
+      <test ac="3">Test place_bet SOL transfer from bettor to market PDA</test>
+      <test ac="4">Test platform_fee calculation with various BPS values</test>
+      <test ac="4">Test creator_fee calculation with various BPS values</test>
+      <test ac="4">Test fee distribution on market resolution</test>
+      <test ac="5">Test min_bet_lamports enforcement (error when below)</test>
+      <test ac="5">Test max_bet_lamports enforcement (error when above)</test>
+      <test ac="6">Test UserBet account creation with correct fields</test>
+      <test ac="6">Test UserBet tracks bet_side (Yes/No) correctly</test>
+      <test ac="7">Test odds calculation accuracy with various pool ratios</test>
+      <test ac="7">Test odds calculation when pools are zero (should return 50%)</test>
+      <test ac="7">Test odds_at_bet stored in UserBet matches calculated odds</test>
+      <test ac="8">Test place_bet rejects when market status is not Active</test>
+      <test ac="8">Test place_bet rejects when end_date exceeded</test>
+      <test ac="9">Test overflow protection in pool updates (checked_add)</test>
+      <test ac="9">Test overflow protection in fee calculations (checked_mul, checked_div)</test>
+      <test ac="9">Test reentrancy protection (state updates before transfers)</test>
+      <test ac="10">Deploy to devnet and verify program ID</test>
+      <test ac="10">Create test market on devnet</test>
+      <test ac="10">Place bets on devnet from different wallets</test>
+      <test ac="10">Resolve market and verify fee distribution on devnet</test>
+      <test ac="10">Claim payouts and verify calculations on devnet</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.6</storyId>
+    <title>Implement Dispute Flagging Mechanism</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2.6.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>bettor</asA>
+    <iWant>flag a market resolution if I believe it's incorrect</iWant>
+    <soThat>the community can review disputed outcomes</soThat>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">`disputes` table in PostgreSQL: market_id, disputer_wallet, reason_text, evidence_links, timestamp, status</criterion>
+    <criterion id="2">Dispute window: 48 hours after vote result posted (enforced by market status)</criterion>
+    <criterion id="3">API endpoint `flag-dispute` allows users to submit dispute with reason and evidence</criterion>
+    <criterion id="4">Multiple users can flag same market (tracked separately)</criterion>
+    <criterion id="5">Disputed markets show "Under Review" status in frontend</criterion>
+    <criterion id="6">Admin dashboard displays disputed markets in queue</criterion>
+    <criterion id="7">Tests validate dispute submission during valid window only</criterion>
+  </acceptanceCriteria>
+
+  <tasks>
+    <task id="1" ac="1">Create disputes table in PostgreSQL
+      <subtask>Design table schema with required fields</subtask>
+      <subtask>Create migration file for disputes table</subtask>
+      <subtask>Add indexes for market_id and disputer_wallet lookups</subtask>
+      <subtask>Deploy migration to database</subtask>
+    </task>
+    <task id="2" ac="2">Implement 48-hour dispute window enforcement
+      <subtask>Add dispute_window_end timestamp to markets table</subtask>
+      <subtask>Update market status transitions (VOTING → DISPUTE_WINDOW)</subtask>
+      <subtask>Implement time-based validation in flag-dispute endpoint</subtask>
+      <subtask>Test dispute window expiration logic</subtask>
+    </task>
+    <task id="3" ac="3">Create flag-dispute Supabase Edge Function
+      <subtask>Initialize Edge Function directory and config</subtask>
+      <subtask>Implement dispute submission validation</subtask>
+      <subtask>Store dispute with reason and evidence links</subtask>
+      <subtask>Return dispute ID and confirmation</subtask>
+      <subtask>Add error handling for invalid requests</subtask>
+    </task>
+    <task id="4" ac="4">Support multiple disputes per market
+      <subtask>Allow unique (market_id, disputer_wallet) entries</subtask>
+      <subtask>Aggregate disputes by market for admin view</subtask>
+      <subtask>Track dispute count per market</subtask>
+      <subtask>Prevent duplicate disputes from same user</subtask>
+    </task>
+    <task id="5" ac="5">Update market status for disputed markets
+      <subtask>Set market status to "Under Review" when first dispute filed</subtask>
+      <subtask>Update frontend to display dispute status</subtask>
+      <subtask>Show dispute count on market detail page</subtask>
+      <subtask>Prevent betting on disputed markets</subtask>
+    </task>
+    <task id="6" ac="6">Create admin dashboard view for disputes
+      <subtask>Query to fetch all disputed markets</subtask>
+      <subtask>Display dispute details (reason, evidence, timestamp)</subtask>
+      <subtask>Show list of all disputers per market</subtask>
+      <subtask>Sort by dispute count and timestamp</subtask>
+    </task>
+    <task id="7" ac="7">Write comprehensive tests
+      <subtask>Test dispute submission during valid window</subtask>
+      <subtask>Test rejection outside dispute window</subtask>
+      <subtask>Test multiple disputes on same market</subtask>
+      <subtask>Test duplicate dispute prevention</subtask>
+      <subtask>Test market status transitions</subtask>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - Community Governance & Voting</title>
+        <section>Story 2.6</section>
+        <snippet>Implements dispute flagging after vote results posted. 48-hour dispute window enforced. Multiple users can flag same market. Admin dashboard displays disputed markets in queue for review.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - Community Governance & Voting</title>
+        <section>Story 2.3</section>
+        <snippet>Vote result posting transitions market status to DISPUTE_WINDOW (48 hours). VoteResult account created on-chain. Market status state machine: VOTING → DISPUTE_WINDOW → RESOLVED.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>48-Hour Dispute Window</section>
+        <snippet>48-hour dispute window is a key architectural innovation. State machine for resolution validation ensures community can review results before finalization. Prevents premature market resolution.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.3-COMPLETE.md</path>
+        <title>Story 2.3 Completion - Vote Aggregation</title>
+        <section>AC6: Market Status Transitions</section>
+        <snippet>Market status transitions from VOTING → DISPUTE_WINDOW (48 hours) after vote result posted. dispute_window_end timestamp set to 48 hours from vote result posting. Database sync via event listener.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Story 2.5 Completion - Proposal Finalization</title>
+        <section>Supabase Edge Function Pattern</section>
+        <snippet>Pattern for Edge Functions: Validation → Database query → Business logic → Database write → Response. Uses Supabase client with service role key. CORS handling for OPTIONS requests.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>database/migrations/007_proposal_voting_snapshot_style.sql</path>
+        <kind>database-migration</kind>
+        <symbol>proposal_votes table, ALTER TABLE patterns</symbol>
+        <lines>all</lines>
+        <reason>Reference pattern for creating disputes table migration. Shows proper ALTER TABLE syntax, index creation, UNIQUE constraints, and CHECK constraints.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/submit-proposal-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>serve, SubmitProposalVoteRequest interface</symbol>
+        <lines>1-80</lines>
+        <reason>Reference pattern for Edge Function structure. Shows TypeScript interfaces, CORS handling, validation pattern, and Supabase client initialization.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/aggregate-votes/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>fetchMarket, validateVotingPeriod</symbol>
+        <lines>185-232</lines>
+        <reason>Reference for time-based validation logic. Shows pattern for checking if time window has passed and validating market status.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/finalize-proposal-vote/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>validateProposalState</symbol>
+        <lines>240-257</lines>
+        <reason>Reference for state validation pattern. Shows how to validate proposal/market state and time windows before allowing operations.</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/001_initial_schema.sql</path>
+        <kind>database-migration</kind>
+        <symbol>markets table definition</symbol>
+        <lines>all</lines>
+        <reason>Markets table schema. May need to add dispute_window_end column if not already present. Check existing columns and status enum values.</reason>
+      </artifact>
+      <artifact>
+        <path>database/migrations/006_vote_results_and_voting_statuses.sql</path>
+        <kind>database-migration</kind>
+        <symbol>market status enum, DISPUTE_WINDOW status</symbol>
+        <lines>all</lines>
+        <reason>Market status enum definition. Verify DISPUTE_WINDOW status exists. May need to add "Under Review" state for frontend display.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <supabase>
+        <package name="@supabase/supabase-js" version="^2.38.0" reason="Supabase client for database queries and Edge Functions"/>
+      </supabase>
+      <deno>
+        <package name="std/http" version="0.168.0" reason="HTTP server for Edge Functions (Deno standard library)"/>
+      </deno>
+      <database>
+        <package name="PostgreSQL" version="15.x" reason="Primary database (Supabase managed)"/>
+      </database>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>flag-dispute Edge Function</name>
+      <kind>Supabase Edge Function (HTTP POST)</kind>
+      <signature>POST /functions/v1/flag-dispute
+Request: {
+  market_id: string,
+  disputer_wallet: string,
+  reason_text: string,
+  evidence_links: string[],
+  timestamp: number
+}
+Response: {
+  success: boolean,
+  dispute_id?: string,
+  error?: string
+}</signature>
+      <path>supabase/functions/flag-dispute/index.ts (to be created)</path>
+      <description>Allows users to flag a market resolution during the 48-hour dispute window. Validates dispute window timing, prevents duplicate disputes, stores dispute with reason and evidence.</description>
+    </interface>
+    <interface>
+      <name>disputes table</name>
+      <kind>PostgreSQL Table Schema</kind>
+      <signature>CREATE TABLE disputes (
+  id BIGSERIAL PRIMARY KEY,
+  market_id BIGINT NOT NULL REFERENCES markets(market_id),
+  disputer_wallet TEXT NOT NULL,
+  reason_text TEXT NOT NULL,
+  evidence_links TEXT[],
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  status TEXT NOT NULL DEFAULT 'pending',
+  admin_notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(market_id, disputer_wallet)
+);
+CREATE INDEX idx_disputes_market_id ON disputes(market_id);
+CREATE INDEX idx_disputes_status ON disputes(status);
+CREATE INDEX idx_disputes_timestamp ON disputes(timestamp DESC);</signature>
+      <path>database/migrations/008_disputes_table.sql (to be created)</path>
+      <description>Stores dispute records off-chain. Unique constraint ensures one dispute per user per market. Indexes support admin dashboard queries.</description>
+    </interface>
+    <interface>
+      <name>markets table - dispute_window_end column</name>
+      <kind>Database Schema Extension</kind>
+      <signature>ALTER TABLE markets ADD COLUMN IF NOT EXISTS dispute_window_end TIMESTAMPTZ;</signature>
+      <path>database/migrations/008_disputes_table.sql (add if not exists)</path>
+      <description>Timestamp when 48-hour dispute window ends. Set to 48 hours after vote result posted. Used for validation in flag-dispute endpoint.</description>
+    </interface>
+    <interface>
+      <name>market status enum - Under Review</name>
+      <kind>Database Enum Extension</kind>
+      <signature>ALTER TABLE markets DROP CONSTRAINT IF EXISTS market_status_check;
+ALTER TABLE markets ADD CONSTRAINT market_status_check
+CHECK (status IN (...existing statuses..., 'UNDER_REVIEW'));</signature>
+      <path>database/migrations/008_disputes_table.sql (may need to add)</path>
+      <description>Frontend status to indicate market has been disputed. Set when first dispute is filed during dispute window.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Use Supabase Edge Functions (Deno runtime) for dispute submission API - established pattern in Epic 2</constraint>
+    <constraint>Store all dispute data off-chain in PostgreSQL - gas-free pattern consistent with Epic 2 governance</constraint>
+    <constraint>48-hour dispute window must be enforced via timestamp comparison - validate current time against dispute_window_end</constraint>
+    <constraint>One dispute per user per market - enforce with UNIQUE constraint (market_id, disputer_wallet)</constraint>
+    <constraint>Multiple users can dispute same market - allow multiple rows with same market_id, different disputer_wallet</constraint>
+    <constraint>Market status state machine must be preserved - DISPUTE_WINDOW → UNDER_REVIEW (when disputed) → RESOLVED (Story 2.7 admin override)</constraint>
+    <constraint>Follow existing Edge Function patterns from Stories 2.1-2.5 - CORS handling, validation, error responses</constraint>
+    <constraint>Tests deferred to Epic 4 Story 4.1 per BMAD pattern - document test scenarios in completion doc</constraint>
+    <constraint>Admin dashboard implementation deferred to Epic 3 (Frontend) - Story 2.6 only creates backend infrastructure</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Tests deferred to Epic 4 Story 4.1 per BMAD methodology for this project. When implemented, use Deno test framework for Edge Function tests (following patterns in supabase/functions/*/test.ts if they exist). For database, use PostgreSQL test fixtures. Follow existing test patterns from Epic 1 and Epic 2 completion docs.
+    </standards>
+    <locations>
+      <location>supabase/functions/flag-dispute/test.ts - Edge Function unit tests</location>
+      <location>database/migrations/test/ - Database migration tests (if pattern exists)</location>
+      <location>tests/ - Integration tests (if directory exists)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test disputes table creation: verify schema, indexes, unique constraint, foreign key to markets</idea>
+      <idea ac="2">Test dispute window enforcement: submit dispute within 48h (success), after 48h (failure), before vote result posted (failure)</idea>
+      <idea ac="3">Test flag-dispute endpoint: valid request returns dispute_id, invalid request returns error, missing fields returns 400</idea>
+      <idea ac="4">Test multiple disputes: 3 users dispute same market (success), same user disputes twice (failure with unique constraint error)</idea>
+      <idea ac="5">Test market status transitions: first dispute sets UNDER_REVIEW, subsequent disputes don't change status</idea>
+      <idea ac="6">Test admin dashboard query: fetch all disputed markets, group by market_id, count disputes, sort by count DESC</idea>
+      <idea ac="7">Edge case: Dispute submitted exactly at 48-hour boundary (timestamp comparison precision)</idea>
+      <idea ac="all">Integration test: Full flow - vote result posted → 48h window starts → user flags dispute → market status UNDER_REVIEW → admin reviews (Story 2.7)</idea>
+    </ideas>
+  </tests>
+
+  <devNotes>
+    <note>Story 2.6 creates backend infrastructure only - admin dashboard UI deferred to Epic 3 (Frontend stories)</note>
+    <note>dispute_window_end column may already exist in markets table from Story 2.3 - check migration 006 before adding</note>
+    <note>Market status enum may need "UNDER_REVIEW" added - verify against existing migrations before altering</note>
+    <note>Edge Function follows established Epic 2 pattern: validate → query → business logic → insert → response</note>
+    <note>Evidence links stored as TEXT[] array in PostgreSQL - validate URLs format in Edge Function before storing</note>
+    <note>Duplicate dispute prevention via database UNIQUE constraint - Edge Function should catch error and return user-friendly message</note>
+    <note>Integration with Story 2.7 (Admin Override): Story 2.7 will read disputes table and allow admin to change market outcome</note>
+    <note>Data flow: Vote result (Story 2.3) → 48h window → flag-dispute (Story 2.6) → admin override (Story 2.7) → final resolution</note>
+  </devNotes>
+</story-context>

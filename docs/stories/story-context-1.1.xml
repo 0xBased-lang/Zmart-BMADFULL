@@ -1,0 +1,261 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.1</storyId>
+    <title>Initialize Anchor Workspace and Development Environment</title>
+    <status>Ready for Dev</status>
+    <generatedAt>2025-10-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-1.1.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>to set up the complete Anchor workspace with all 6 programs</iWant>
+    <soThat>I have a structured development environment ready for implementation</soThat>
+    <tasks>
+      <taskGroup id="1" ac="1">
+        <title>Initialize Anchor workspace</title>
+        <subtasks>
+          <subtask>Run `anchor init bmad-zmart` command</subtask>
+          <subtask>Verify Anchor.toml file created with default configuration</subtask>
+          <subtask>Verify initial project structure generated</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="2" ac="2">
+        <title>Create all 6 program directories</title>
+        <subtasks>
+          <subtask>Create `programs/program-registry/` directory</subtask>
+          <subtask>Create `programs/parameter-storage/` directory</subtask>
+          <subtask>Create `programs/core-markets/` directory</subtask>
+          <subtask>Create `programs/market-resolution/` directory</subtask>
+          <subtask>Create `programs/proposal-system/` directory</subtask>
+          <subtask>Create `programs/bond-manager/` directory</subtask>
+          <subtask>Initialize each program with basic Anchor structure (lib.rs, Cargo.toml)</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="3" ac="3">
+        <title>Configure Anchor.toml for multi-program workspace</title>
+        <subtasks>
+          <subtask>Add all 6 programs to [programs.localnet] section</subtask>
+          <subtask>Add all 6 programs to [programs.devnet] section</subtask>
+          <subtask>Configure cluster URLs (localnet, devnet)</subtask>
+          <subtask>Set up test configuration</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="4" ac="4">
+        <title>Verify compilation and deployment to localnet</title>
+        <subtasks>
+          <subtask>Run `anchor build` to compile all programs</subtask>
+          <subtask>Start local validator with `solana-test-validator`</subtask>
+          <subtask>Run `anchor deploy` to deploy to localnet</subtask>
+          <subtask>Verify all 6 programs deploy successfully</subtask>
+          <subtask>Run `anchor test` to verify basic functionality</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="5" ac="5">
+        <title>Configure Solana CLI for devnet</title>
+        <subtasks>
+          <subtask>Verify Solana CLI installed (version 2.1.15)</subtask>
+          <subtask>Run `solana config set --url https://api.devnet.solana.com`</subtask>
+          <subtask>Verify configuration with `solana config get`</subtask>
+          <subtask>Generate development wallet with `solana-keygen new`</subtask>
+        </subtasks>
+      </taskGroup>
+      <taskGroup id="6" ac="6">
+        <title>Fund development wallet</title>
+        <subtasks>
+          <subtask>Run `solana airdrop 2` to fund wallet with devnet SOL</subtask>
+          <subtask>Verify balance with `solana balance`</subtask>
+          <subtask>Ensure sufficient SOL (>2 SOL) for development</subtask>
+        </subtasks>
+      </taskGroup>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Anchor workspace initialized with `anchor init bmad-zmart`</criterion>
+    <criterion id="2">All 6 program directories created: `program-registry`, `parameter-storage`, `core-markets`, `market-resolution`, `proposal-system`, `bond-manager`</criterion>
+    <criterion id="3">Anchor.toml configured with correct program IDs and cluster settings</criterion>
+    <criterion id="4">Basic "Hello World" program compiles and deploys to localnet successfully</criterion>
+    <criterion id="5">Solana CLI installed and configured for devnet access</criterion>
+    <criterion id="6">Development wallet funded with devnet SOL</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Technology Stack</section>
+        <snippet>Anchor Framework 0.32.1, Solana CLI 2.1.15, Rust 1.85.0. Critical versions for workspace initialization and program development.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Project Initialization Commands</section>
+        <snippet>Step-by-step commands for anchor init bmad-zmart and creating 6 program directories using mkdir pattern.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Complete Project Structure</section>
+        <snippet>Defines expected directory layout for all 6 programs with Cargo.toml and src/lib.rs structure for each program.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>BMAD-Zmart Architecture</title>
+        <section>Testing Strategy</section>
+        <snippet>Anchor programs require >90% test coverage. Test files in tests/ directory, one per program.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>BMAD-Zmart Epics</title>
+        <section>Epic 1: Foundation &amp; Infrastructure / Story 1.1</section>
+        <snippet>Defines the 6 acceptance criteria for workspace initialization including anchor init, directory creation, configuration, compilation, devnet setup, and wallet funding.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>programs/program-registry/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>program_registry</symbol>
+        <lines>1-50</lines>
+        <reason>Central registry program for dynamic address lookup. Foundation for multi-program architecture.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/parameter-storage/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>parameter_storage</symbol>
+        <lines>N/A</lines>
+        <reason>Global configuration storage program. Manages system-wide parameters.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/core-markets/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>core_markets</symbol>
+        <lines>N/A</lines>
+        <reason>Market creation and betting engine. Core business logic for prediction markets.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/market-resolution/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>market_resolution</symbol>
+        <lines>N/A</lines>
+        <reason>Market settlement and resolution logic. Handles payout calculations.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/proposal-system/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>proposal_system</symbol>
+        <lines>N/A</lines>
+        <reason>Governance proposal system. Enables community voting on market resolutions.</reason>
+      </artifact>
+      <artifact>
+        <path>programs/bond-manager/src/lib.rs</path>
+        <kind>program</kind>
+        <symbol>bond_manager</symbol>
+        <lines>N/A</lines>
+        <reason>Collateral and bond management. Handles market creator bonds and participant stakes.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/program-registry.ts</path>
+        <kind>test</kind>
+        <symbol>program-registry tests</symbol>
+        <lines>N/A</lines>
+        <reason>Test suite for program registry functionality. Validates initialization and registration.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/e2e-full-lifecycle.ts</path>
+        <kind>test</kind>
+        <symbol>E2E lifecycle tests</symbol>
+        <lines>N/A</lines>
+        <reason>End-to-end tests covering complete market lifecycle from creation to resolution.</reason>
+      </artifact>
+      <artifact>
+        <path>Anchor.toml</path>
+        <kind>config</kind>
+        <symbol>workspace configuration</symbol>
+        <lines>N/A</lines>
+        <reason>Anchor workspace configuration. Defines all 6 programs and deployment clusters.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="@coral-xyz/anchor" version="^0.32.1" />
+        <dependency name="chai" version="^4.3.4" dev="true" />
+        <dependency name="mocha" version="^9.0.3" dev="true" />
+        <dependency name="ts-mocha" version="^10.0.0" dev="true" />
+        <dependency name="@types/bn.js" version="^5.1.0" dev="true" />
+        <dependency name="@types/chai" version="^4.3.0" dev="true" />
+        <dependency name="@types/mocha" version="^9.0.0" dev="true" />
+        <dependency name="typescript" version="^5.7.3" dev="true" />
+        <dependency name="prettier" version="^2.6.2" dev="true" />
+      </node>
+      <rust>
+        <dependency name="anchor-lang" version="0.32.1" />
+      </rust>
+      <framework name="Anchor Framework" version="0.32.1" ecosystem="Solana" />
+      <framework name="Solana CLI" version="2.1.15" ecosystem="Solana" />
+      <framework name="Rust" version="1.85.0" ecosystem="Rust" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-Program Workspace Pattern: Each program must be independent with its own Cargo.toml and lib.rs</constraint>
+    <constraint>Registry Pattern: Programs interact via ProgramRegistry for dynamic address lookup, no hardcoded addresses</constraint>
+    <constraint>Version Requirements: Anchor 0.32.1, Solana CLI 2.1.15, Rust 1.85.0 (strict compatibility)</constraint>
+    <constraint>Test Coverage: Minimum 90% coverage required for all Anchor programs (security-critical)</constraint>
+    <constraint>Program Structure: Each program requires src/lib.rs, src/state.rs, src/errors.rs, src/instructions/ directories</constraint>
+    <constraint>Deployment: Must support both localnet and devnet clusters with proper configuration in Anchor.toml</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>ProgramRegistry::initialize_registry</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn initialize_registry(ctx: Context&lt;InitializeRegistry&gt;) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>ProgramRegistry::register_program</name>
+      <kind>Anchor instruction</kind>
+      <signature>pub fn register_program(ctx: Context&lt;RegisterProgram&gt;, name: String, program_id: Pubkey, version: String) -&gt; Result&lt;()&gt;</signature>
+      <path>programs/program-registry/src/lib.rs</path>
+    </interface>
+    <interface>
+      <name>Anchor Workspace</name>
+      <kind>Build system</kind>
+      <signature>anchor build - Compiles all 6 programs in workspace</signature>
+      <path>Anchor.toml</path>
+    </interface>
+    <interface>
+      <name>Anchor Deployment</name>
+      <kind>Deployment system</kind>
+      <signature>anchor deploy - Deploys all programs to configured cluster</signature>
+      <path>Anchor.toml</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Anchor programs require minimum 90% test coverage due to security-critical nature. Test framework uses Mocha/Chai with TypeScript (ts-mocha). Each program should have corresponding test file in tests/ directory. Tests validate initialization, state transitions, error handling, and cross-program integration. Anchor's testing framework provides local validator for deterministic testing environment.
+    </standards>
+    <locations>
+      <location>tests/*.ts - Main test files for each program</location>
+      <location>tests/program-registry.ts - Registry initialization and registration tests</location>
+      <location>tests/e2e-full-lifecycle.ts - End-to-end market lifecycle tests</location>
+      <location>tests/bulletproof-*.spec.ts - Comprehensive integration tests</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test anchor init command execution and verify Anchor.toml creation</idea>
+      <idea ac="2">Verify all 6 program directories exist with correct structure (Cargo.toml + src/lib.rs)</idea>
+      <idea ac="3">Validate Anchor.toml contains all 6 programs in localnet and devnet sections</idea>
+      <idea ac="4">Test anchor build compiles successfully without errors for all programs</idea>
+      <idea ac="4">Test anchor deploy to localnet succeeds for all 6 programs</idea>
+      <idea ac="4">Verify program IDs are generated and stored correctly</idea>
+      <idea ac="5">Test solana config get shows devnet URL</idea>
+      <idea ac="5">Verify wallet keypair file exists after solana-keygen new</idea>
+      <idea ac="6">Test solana balance shows > 2 SOL after airdrop</idea>
+      <idea ac="6">Verify wallet can sign and submit transactions on devnet</idea>
+    </ideas>
+  </tests>
+</story-context>
