@@ -108,3 +108,6 @@ verify_jwt = false  # Public endpoint for vote submission
 
 [functions.aggregate-votes]
 verify_jwt = false  # Triggered by cron job or admin
+
+[functions.submit-proposal-vote]
+verify_jwt = false  # Public endpoint for proposal vote submission
