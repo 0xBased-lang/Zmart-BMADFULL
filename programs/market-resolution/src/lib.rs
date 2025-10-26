@@ -202,6 +202,62 @@ pub mod market_resolution {
 
         Ok(())
     }
+
+    /// Post aggregated vote result (Snapshot-style voting - Story 2.3)
+    ///
+    /// Epic 2 Snapshot-style voting:
+    /// - Users vote off-chain (gas-free) with signed messages
+    /// - Platform aggregates votes in PostgreSQL
+    /// - This instruction posts final aggregated result on-chain
+    /// - Includes Merkle root for cryptographic verification
+    pub fn post_vote_result(
+        ctx: Context<PostVoteResult>,
+        data: PostVoteResultData,
+    ) -> Result<()> {
+        let vote_result = &mut ctx.accounts.vote_result;
+        let params = &ctx.accounts.global_parameters;
+        let clock = Clock::get()?;
+
+        // Validate admin authority (platform posts aggregated results)
+        require!(
+            ctx.accounts.authority.key() == params.authority,
+            ResolutionError::Unauthorized
+        );
+
+        // Initialize VoteResult account
+        vote_result.market_id = data.market_id;
+        vote_result.outcome = data.outcome.clone();
+        vote_result.yes_vote_weight = data.yes_vote_weight;
+        vote_result.no_vote_weight = data.no_vote_weight;
+        vote_result.total_votes_count = data.total_votes_count;
+        vote_result.merkle_root = data.merkle_root;
+        vote_result.posted_at = clock.unix_timestamp;
+        vote_result.posted_by = ctx.accounts.authority.key();
+        vote_result.dispute_window_end = clock.unix_timestamp + params.dispute_window_seconds;
+        vote_result.bump = ctx.bumps.vote_result;
+
+        emit!(VoteResultPostedEvent {
+            market_id: vote_result.market_id,
+            outcome: vote_result.outcome.clone(),
+            yes_vote_weight: vote_result.yes_vote_weight,
+            no_vote_weight: vote_result.no_vote_weight,
+            total_votes_count: vote_result.total_votes_count,
+            merkle_root: vote_result.merkle_root,
+            dispute_window_end: vote_result.dispute_window_end,
+            timestamp: clock.unix_timestamp,
+        });
+
+        msg!(
+            "Vote result posted for market {}: {:?} (YES:{} NO:{} Total:{})",
+            vote_result.market_id,
+            vote_result.outcome,
+            vote_result.yes_vote_weight,
+            vote_result.no_vote_weight,
+            vote_result.total_votes_count
+        );
+
+        Ok(())
+    }
 }
 
 // ==============================================================================
@@ -251,6 +307,53 @@ pub struct ResolutionState {
     pub dispute_window_ends_at: i64,
     pub finalized_at: Option<i64>,
     pub bump: u8,
+}
+
+/// Vote result from Snapshot-style off-chain voting (Story 2.3)
+///
+/// Stores aggregated vote result posted on-chain after off-chain voting.
+/// Includes Merkle root for cryptographic verification.
+#[account]
+pub struct VoteResult {
+    pub market_id: u64,           // Reference to market
+    pub outcome: VoteChoice,       // Final outcome (YES/NO/TIE)
+    pub yes_vote_weight: u64,      // Total YES vote weight
+    pub no_vote_weight: u64,       // Total NO vote weight
+    pub total_votes_count: u32,    // Number of unique voters
+    pub merkle_root: [u8; 32],     // Merkle root of all votes
+    pub posted_at: i64,            // Timestamp when result posted
+    pub posted_by: Pubkey,         // Platform admin who posted
+    pub dispute_window_end: i64,   // When disputes close (48h)
+    pub bump: u8,                  // PDA bump seed
+}
+
+impl VoteResult {
+    pub const LEN: usize = 8 + // discriminator
+        8 + // market_id
+        1 + // outcome (enum)
+        8 + // yes_vote_weight
+        8 + // no_vote_weight
+        4 + // total_votes_count
+        32 + // merkle_root
+        8 + // posted_at
+        32 + // posted_by
+        8 + // dispute_window_end
+        1; // bump
+}
+
+// ==============================================================================
+// Instruction Data Structures
+// ==============================================================================
+
+/// Data for post_vote_result instruction (Story 2.3)
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct PostVoteResultData {
+    pub market_id: u64,
+    pub outcome: VoteChoice,
+    pub yes_vote_weight: u64,
+    pub no_vote_weight: u64,
+    pub total_votes_count: u32,
+    pub merkle_root: [u8; 32],
 }
 
 // ==============================================================================
@@ -360,6 +463,37 @@ pub struct AdminOverrideResolution<'info> {
     pub parameter_storage_program: AccountInfo<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(data: PostVoteResultData)]
+pub struct PostVoteResult<'info> {
+    /// VoteResult account (PDA)
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + VoteResult::LEN,
+        seeds = [b"vote-result", data.market_id.to_le_bytes().as_ref()],
+        bump
+    )]
+    pub vote_result: Account<'info, VoteResult>,
+
+    /// Global parameters from ParameterStorage
+    #[account(
+        seeds = [b"global-parameters"],
+        bump,
+        seeds::program = parameter_storage_program.key()
+    )]
+    pub global_parameters: Account<'info, GlobalParameters>,
+
+    /// Platform admin authority (posts aggregated results)
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+
+    /// CHECK: ParameterStorage program ID
+    pub parameter_storage_program: AccountInfo<'info>,
+}
+
 // ==============================================================================
 // External Account Structures (from ParameterStorage)
 // ==============================================================================
@@ -423,6 +557,18 @@ pub struct AdminOverrideEvent {
     pub market_id: u64,
     pub admin: Pubkey,
     pub outcome: VoteChoice,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct VoteResultPostedEvent {
+    pub market_id: u64,
+    pub outcome: VoteChoice,
+    pub yes_vote_weight: u64,
+    pub no_vote_weight: u64,
+    pub total_votes_count: u32,
+    pub merkle_root: [u8; 32],
+    pub dispute_window_end: i64,
     pub timestamp: i64,
 }
 

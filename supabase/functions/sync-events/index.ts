@@ -176,6 +176,54 @@ async function handleVoteSubmitted(data: any, ctx: EventContext) {
   await logEvent(ctx, "vote_submitted", true);
 }
 
+async function handleVoteResultPosted(data: any, ctx: EventContext) {
+  console.log(`[VoteResultPosted] signature=${ctx.signature}`);
+
+  // Update market status to DISPUTE_WINDOW
+  const { error: marketError } = await supabase
+    .from("markets")
+    .update({
+      status: "DISPUTE_WINDOW",
+      dispute_window_end: new Date(data.disputeWindowEnd * 1000).toISOString(),
+    })
+    .eq("market_id", data.marketId.toString());
+
+  if (marketError) throw marketError;
+
+  // Insert vote result record
+  const { error: resultError } = await supabase.from("vote_results").insert({
+    market_id: data.marketId.toString(),
+    outcome: outcomeEnumToString(data.outcome),
+    yes_vote_weight: data.yesVoteWeight.toString(),
+    no_vote_weight: data.noVoteWeight.toString(),
+    total_votes_count: data.totalVotesCount,
+    merkle_root: bytesToHex(data.merkleRoot),
+    posted_at: new Date(data.timestamp * 1000).toISOString(),
+    dispute_window_end: new Date(data.disputeWindowEnd * 1000).toISOString(),
+    transaction_signature: ctx.signature,
+  });
+
+  if (resultError) throw resultError;
+
+  await logEvent(ctx, "vote_result_posted", true);
+}
+
+// Helper: Convert VoteChoice enum to string
+function outcomeEnumToString(outcome: any): string {
+  // VoteChoice enum: Yes=0, No=1, Cancel=2
+  if (outcome === 0 || outcome.Yes !== undefined) return "YES";
+  if (outcome === 1 || outcome.No !== undefined) return "NO";
+  if (outcome === 2 || outcome.Cancel !== undefined) return "TIE";
+  return "NO"; // Default
+}
+
+// Helper: Convert byte array to hex string
+function bytesToHex(bytes: number[] | Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 // ProposalSystem Event Handlers
 async function handleProposalCreated(data: any, ctx: EventContext) {
   console.log(`[ProposalCreated] signature=${ctx.signature}`);
@@ -290,6 +338,7 @@ const EVENT_HANDLERS: Record<string, (data: any, ctx: EventContext) => Promise<v
 
   // MarketResolution
   "VoteSubmitted": handleVoteSubmitted,
+  "VoteResultPosted": handleVoteResultPosted, // Story 2.3
 
   // ProposalSystem
   "ProposalCreated": handleProposalCreated,
