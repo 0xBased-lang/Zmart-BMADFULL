@@ -8,10 +8,12 @@ interface MarketCardProps {
 }
 
 export function MarketCard({ market }: MarketCardProps) {
-  // Calculate odds
-  const totalPool = market.yes_pool + market.no_pool
-  const yesOdds = totalPool > 0 ? ((market.yes_pool / totalPool) * 100).toFixed(1) : '50.0'
-  const noOdds = totalPool > 0 ? ((market.no_pool / totalPool) * 100).toFixed(1) : '50.0'
+  // Calculate odds with null safety
+  const yesPool = market.yes_pool || 0
+  const noPool = market.no_pool || 0
+  const totalPool = yesPool + noPool
+  const yesOdds = totalPool > 0 ? ((yesPool / totalPool) * 100).toFixed(1) : '50.0'
+  const noOdds = totalPool > 0 ? ((noPool / totalPool) * 100).toFixed(1) : '50.0'
 
   // Format date
   const endDate = new Date(market.end_time).toLocaleDateString('en-US', {
@@ -60,7 +62,7 @@ export function MarketCard({ market }: MarketCardProps) {
       {/* Metadata Footer */}
       <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
         <span className="font-medium">
-          ${market.total_volume.toFixed(2)}
+          ${(market.total_volume || 0).toFixed(2)}
         </span>
         <span>Ends {endDate}</span>
       </div>

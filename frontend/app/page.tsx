@@ -36,7 +36,7 @@ export default function Home() {
     // Sort
     switch (sortBy) {
       case 'trending':
-        filtered.sort((a, b) => b.total_volume - a.total_volume)
+        filtered.sort((a, b) => (b.total_volume || 0) - (a.total_volume || 0))
         break
       case 'ending-soon':
         filtered.sort(
@@ -56,7 +56,7 @@ export default function Home() {
   }, [markets, searchQuery, category, sortBy])
 
   // Calculate stats
-  const totalVolume = markets.reduce((sum, market) => sum + market.total_volume, 0)
+  const totalVolume = markets.reduce((sum, market) => sum + (market.total_volume || 0), 0)
 
   return (
     <div className="space-y-8">

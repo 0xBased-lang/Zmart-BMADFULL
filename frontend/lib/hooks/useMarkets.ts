@@ -2,24 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { Market } from '@/lib/types/database'
 
-export interface Market {
-  id: string
-  program_market_id: string
-  question: string
-  description: string | null
-  category: string | null
-  creator_wallet: string
-  end_time: string
-  resolution_time: string | null
-  status: 'active' | 'locked' | 'resolved' | 'cancelled'
-  winning_outcome: 'yes' | 'no' | null
-  yes_pool: number
-  no_pool: number
-  total_volume: number
-  created_at: string
-  updated_at: string
-}
+// Re-export Market type from database for convenience
+export type { Market } from '@/lib/types/database'
 
 interface UseMarketsReturn {
   markets: Market[]
@@ -69,7 +55,13 @@ export function useMarkets(): UseMarketsReturn {
 
       if (fetchError) throw fetchError
 
-      setMarkets(data as Market[] || [])
+      // Map data to include market_id from program_market_id if needed
+      const mappedData = (data || []).map((item: any) => ({
+        ...item,
+        market_id: item.market_id || parseInt(item.program_market_id || item.id || '0')
+      }))
+
+      setMarkets(mappedData as Market[])
     } catch (e) {
       console.error('Failed to fetch markets:', e)
       setError(e as Error)
@@ -120,7 +112,13 @@ export function useMarket(marketId: string | null) {
 
         if (fetchError) throw fetchError
 
-        setMarket(data as Market)
+        // Map data to include market_id from program_market_id if needed
+        const mappedData = data ? {
+          ...data,
+          market_id: data.market_id || parseInt(data.program_market_id || data.id || '0')
+        } : null
+
+        setMarket(mappedData as Market)
       } catch (e) {
         console.error('Failed to fetch market:', e)
         setError(e as Error)

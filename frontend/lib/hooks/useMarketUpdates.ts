@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Market } from './useMarkets'
+import type { Market } from '@/lib/types/database'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 interface UseMarketUpdatesReturn {
