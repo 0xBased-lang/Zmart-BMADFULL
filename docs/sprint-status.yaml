@@ -72,7 +72,7 @@ development_status:
   epic-3: backlog
   3-1-initialize-next-js-application-with-solana-wallet-adapter: done
   3-2-implement-supabase-client-and-real-time-subscriptions: done
-  3-3-build-homepage-with-market-discovery: backlog
+  3-3-build-homepage-with-market-discovery: done
   3-4-build-market-detail-page-with-betting-interface: backlog
   3-5-build-user-dashboard-my-bets: backlog
   3-6-build-proposal-creation-flow: backlog
