@@ -1,0 +1,294 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>7</storyId>
+    <title>Build Voting Interface for Market Resolutions</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.7.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>voter</asA>
+    <iWant>to vote on market resolutions with my wallet signature</iWant>
+    <soThat>I can help determine outcomes without spending gas</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <name>Create Voting Route and Page Structure</name>
+        <subtasks>
+          <subtask>Create /frontend/app/vote/page.tsx route</subtask>
+          <subtask>Create VotingInterface client component</subtask>
+          <subtask>Fetch markets with status = 'VOTING' from Supabase</subtask>
+          <subtask>Implement market list layout with grid/card design</subtask>
+          <subtask>Add loading states and error handling</subtask>
+          <subtask>Add empty state: "No markets currently in voting period"</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="2,9">
+        <name>Build Market Card Component</name>
+        <subtasks>
+          <subtask>Create VotingMarketCard component with market details</subtask>
+          <subtask>Display market title and category</subtask>
+          <subtask>Display resolution criteria (truncated with "Read more")</subtask>
+          <subtask>Display voting period countdown timer</subtask>
+          <subtask>Display current vote tally (YES %, NO %)</subtask>
+          <subtask>Display total votes cast</subtask>
+          <subtask>Display participation percentage</subtask>
+          <subtask>Implement real-time countdown using date-fns</subtask>
+          <subtask>Subscribe to vote tally updates via Supabase real-time</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="3">
+        <name>Implement Evidence Review Panel</name>
+        <subtasks>
+          <subtask>Create collapsible "Review Evidence" section</subtask>
+          <subtask>Display community comments from database</subtask>
+          <subtask>Display evidence links (if provided during proposal)</subtask>
+          <subtask>Add sorting options (newest, most helpful)</subtask>
+          <subtask>Implement panel animation (Framer Motion)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="4,5">
+        <name>Create Vote Buttons and Signature Flow</name>
+        <subtasks>
+          <subtask>Create large YES/NO vote buttons</subtask>
+          <subtask>Build vote message: { market_id, vote_choice, timestamp, nonce }</subtask>
+          <subtask>Use wallet.signMessage() from Wallet Adapter</subtask>
+          <subtask>Display signing modal with clear message content</subtask>
+          <subtask>Handle wallet errors (not connected, signature rejected)</subtask>
+          <subtask>Add visual feedback during signing process</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="6">
+        <name>Submit Vote to Backend API</name>
+        <subtasks>
+          <subtask>Create /frontend/app/api/submit-vote/route.ts API route</subtask>
+          <subtask>API validates signature using Supabase Edge Function</subtask>
+          <subtask>Call Supabase Edge Function /verify-vote-signature to verify Ed25519 signature</subtask>
+          <subtask>Store vote in votes table: market_id, voter_wallet, vote_choice, signature, vote_weight, timestamp</subtask>
+          <subtask>Return success/error response to frontend</subtask>
+          <subtask>Handle duplicate vote prevention</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="7,8">
+        <name>Display Vote Confirmation and Weight</name>
+        <subtasks>
+          <subtask>Show success toast with vote choice</subtask>
+          <subtask>Display user's vote weight (1 in democratic mode, activity_points in weighted mode)</subtask>
+          <subtask>Show updated vote tally immediately</subtask>
+          <subtask>Add visual indicator that user has voted</subtask>
+          <subtask>Disable vote buttons after voting</subtask>
+        </subtasks>
+      </task>
+      <task id="7" ac="10">
+        <name>Testing and Integration</name>
+        <subtasks>
+          <subtask>Test full voting flow: Connect wallet → Sign → Submit → Verify → Store → Update UI</subtask>
+          <subtask>Test edge cases: wallet not connected, signature rejection, duplicate vote, network errors</subtask>
+          <subtask>Verify real-time vote tally updates</subtask>
+          <subtask>Test responsive design (mobile/desktop)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Voting route /vote lists all markets in VOTING status</criterion>
+    <criterion id="2">Each market card shows: title, resolution criteria, voting period countdown, current vote tally (YES %, NO %)</criterion>
+    <criterion id="3">"Review Evidence" button expands panel with community comments and evidence links</criterion>
+    <criterion id="4">Vote buttons: large YES and NO buttons</criterion>
+    <criterion id="5">Clicking vote button triggers wallet signature request (message signing, NOT transaction)</criterion>
+    <criterion id="6">Signature submitted to backend API (/api/submit-vote) for verification and storage</criterion>
+    <criterion id="7">Vote confirmation shown with user's vote choice and weight</criterion>
+    <criterion id="8">User's vote weight displayed (1 in democratic mode, activity_points in weighted mode)</criterion>
+    <criterion id="9">Participation counter: "1,247 users voted (62% participation)"</criterion>
+    <criterion id="10">Successfully submits gas-free vote and updates UI</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Pattern 2: Snapshot-Style Gas-Free Voting</section>
+        <snippet>Frontend signs message (no transaction). Backend verifies Ed25519 signature. Store off-chain in PostgreSQL. Aggregate and post on-chain. Enables community voting without gas fees.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Backend Layer - TweetNaCl</section>
+        <snippet>TweetNaCl Latest - Ed25519 signature verification. Used for validating off-chain vote signatures from wallet message signing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>ADR-002: Supabase Over Custom Backend</section>
+        <snippet>Decision: Use Supabase for database + Edge Functions + real-time. Rationale: Reduces infrastructure burden, managed PostgreSQL, built-in real-time subscriptions for live vote tallies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3 - Frontend & UX</title>
+        <section>Story 3.7: Build Voting Interface for Market Resolutions</section>
+        <snippet>As a voter, I want to vote on market resolutions with my wallet signature, so that I can help determine outcomes without spending gas. Prerequisites: Story 3.1 (wallet signatures), Story 3.2 (database), Epic 2 Story 2.1-2.2 (vote submission).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/lib/supabase.ts</path>
+        <kind>client</kind>
+        <symbol>supabase</symbol>
+        <lines>12-21</lines>
+        <reason>Supabase client singleton with real-time configuration (eventsPerSecond: 10). Use for querying markets and subscribing to vote tally updates.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/supabase.ts</path>
+        <kind>schema</kind>
+        <symbol>resolution_votes</symbol>
+        <lines>72-84</lines>
+        <reason>Database table for storing votes: market_id, voter_wallet, vote ('yes'|'no'|'invalid'), weight, signature. Use for vote submissions and tallying.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/WalletProvider.tsx</path>
+        <kind>component</kind>
+        <symbol>WalletProviderWrapper</symbol>
+        <lines>16-35</lines>
+        <reason>Wallet adapter setup with Phantom and Solflare. Provides wallet.signMessage() capability for Snapshot-style voting. Already configured for devnet.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/types/database.ts</path>
+        <kind>types</kind>
+        <symbol>Market</symbol>
+        <lines>3-25</lines>
+        <reason>Market type definition including status field. Filter markets with status='locked' or 'voting' for voting interface. Includes question, description, end_time fields.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/types/database.ts</path>
+        <kind>types</kind>
+        <symbol>Vote</symbol>
+        <lines>50-57</lines>
+        <reason>Vote type definition for proposal voting. Note: Resolution votes use resolution_votes table with similar structure (voter_wallet, vote_side, vote_power).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useMarketUpdates.ts</path>
+        <kind>hook</kind>
+        <symbol>useMarketUpdates</symbol>
+        <lines>1-7516</lines>
+        <reason>Example hook pattern for Supabase real-time subscriptions. Shows how to subscribe to table changes and handle optimistic updates. Adapt pattern for vote tally subscriptions.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useProposalSubmit.ts</path>
+        <kind>hook</kind>
+        <symbol>useProposalSubmit</symbol>
+        <lines>1-4632</lines>
+        <reason>Recent hook for wallet-based submission flow. Shows pattern for wallet.signMessage(), error handling, toast notifications. Adapt for vote submission.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/MarketCard.tsx</path>
+        <kind>component</kind>
+        <symbol>MarketCard</symbol>
+        <lines>1-2381</lines>
+        <reason>Existing market card component with consistent styling. Use as reference for VotingMarketCard design to maintain UI consistency across app.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="@solana/wallet-adapter-react" version="^0.15.39">Provides useWallet hook for wallet.signMessage() - core to Snapshot voting</package>
+        <package name="@solana/wallet-adapter-react-ui" version="^0.9.39">WalletMultiButton component for wallet connection UI</package>
+        <package name="@supabase/supabase-js" version="^2.76.1">Supabase client for database queries and real-time subscriptions</package>
+        <package name="date-fns" version="^4.1.0">Date formatting and countdown timer calculations</package>
+        <package name="react-hook-form" version="^7.65.0">Optional: Form handling if needed for evidence filtering</package>
+        <package name="react-hot-toast" version="^2.6.0">Toast notifications for vote confirmation and errors</package>
+        <package name="zod" version="^3.25.76">Runtime validation for vote message structure</package>
+      </frontend>
+      <testing>
+        <package name="@playwright/test" version="^1.56.1">E2E testing for voting flow</package>
+      </testing>
+      <backend>
+        <note>Supabase Edge Functions already implemented in Epic 2</note>
+        <function name="verify-vote-signature">Story 2.1 - Ed25519 signature verification using TweetNaCl</function>
+        <function name="submit-vote">Story 2.2 - Vote storage and validation</function>
+      </backend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pattern">MUST use Snapshot-style voting: wallet.signMessage() for message signing, NOT wallet.signTransaction(). Zero gas fees for users.</constraint>
+    <constraint type="security">Backend MUST verify Ed25519 signatures using Supabase Edge Function before storing votes. Never trust client-side signatures.</constraint>
+    <constraint type="database">One vote per user per market enforced by UNIQUE(market_id, voter_wallet) constraint in resolution_votes table.</constraint>
+    <constraint type="realtime">Vote tallies MUST update in real-time using Supabase real-time subscriptions. Subscribe to resolution_votes table changes.</constraint>
+    <constraint type="ui">Vote buttons MUST be disabled after voting. Show clear visual indicator of user's vote choice.</constraint>
+    <constraint type="error-handling">Handle wallet errors gracefully: not connected, signature rejected, network failures. Show user-friendly error messages via react-hot-toast.</constraint>
+    <constraint type="vote-weight">Support two modes: democratic (weight=1) and activity-based (weight=user.activity_points). Display weight to user.</constraint>
+    <constraint type="message-format">Vote message structure: { market_id: string, vote_choice: 'YES'|'NO', timestamp: number, nonce: number }. Must match backend verification logic.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useWallet().signMessage</name>
+      <kind>Wallet Adapter Method</kind>
+      <signature>async signMessage(message: Uint8Array): Promise&lt;Uint8Array&gt;</signature>
+      <path>@solana/wallet-adapter-react</path>
+      <notes>Core method for Snapshot voting. Signs message without creating transaction. Returns Ed25519 signature.</notes>
+    </interface>
+    <interface>
+      <name>supabase.from('resolution_votes')</name>
+      <kind>Supabase Query</kind>
+      <signature>supabase.from('resolution_votes').select('*').eq('market_id', id)</signature>
+      <path>frontend/lib/supabase.ts</path>
+      <notes>Query vote tallies for a market. Use for displaying current YES/NO percentages.</notes>
+    </interface>
+    <interface>
+      <name>supabase.channel().on('postgres_changes')</name>
+      <kind>Supabase Real-time</kind>
+      <signature>supabase.channel('votes').on('postgres_changes', { event: '*', schema: 'public', table: 'resolution_votes' }, callback)</signature>
+      <path>frontend/lib/supabase.ts</path>
+      <notes>Subscribe to vote table changes for real-time tally updates. Throttled to 10 events/second.</notes>
+    </interface>
+    <interface>
+      <name>/api/submit-vote</name>
+      <kind>Next.js API Route</kind>
+      <signature>POST /api/submit-vote { market_id, vote_choice, signature, voter_wallet }</signature>
+      <path>frontend/app/api/submit-vote/route.ts</path>
+      <notes>API route to create. Proxies to Supabase Edge Function for signature verification and vote storage.</notes>
+    </interface>
+    <interface>
+      <name>Supabase Edge Function: verify-vote-signature</name>
+      <kind>Edge Function</kind>
+      <signature>POST { message, signature, publicKey } → { valid: boolean }</signature>
+      <path>supabase/functions/verify-vote-signature</path>
+      <notes>Implemented in Epic 2 Story 2.1. Verifies Ed25519 signature using TweetNaCl.</notes>
+    </interface>
+    <interface>
+      <name>Supabase Edge Function: submit-vote</name>
+      <kind>Edge Function</kind>
+      <signature>POST { market_id, voter_wallet, vote_choice, signature, vote_weight } → { success, vote_id }</signature>
+      <path>supabase/functions/submit-vote</path>
+      <notes>Implemented in Epic 2 Story 2.2. Calls verify-vote-signature, then inserts into resolution_votes table with duplicate prevention.</notes>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Playwright for E2E tests (already configured). Test framework: @playwright/test ^1.56.1. Test structure: frontend/e2e/*.spec.ts. Follow existing test patterns from Story 3.6 (proposal-creation.spec.ts). Include unit tests for vote message formatting and validation using Zod schemas.
+    </standards>
+    <locations>
+      <location>frontend/e2e/voting.spec.ts</location>
+      <location>frontend/__tests__/lib/vote-utils.test.ts</location>
+      <location>frontend/__tests__/components/VoteButtons.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">E2E: Navigate to /vote, verify markets with status='VOTING' are listed, check vote tally displays</idea>
+      <idea ac="3">E2E: Click "Review Evidence" button, verify panel expands with community comments</idea>
+      <idea ac="4,5">E2E: Click YES vote button, verify wallet signature request modal appears, sign message, verify signature submitted</idea>
+      <idea ac="6">Integration: Mock API route, submit vote, verify Edge Function called with correct parameters</idea>
+      <idea ac="7,8">E2E: After voting, verify success toast shows, user's vote weight displays, vote buttons disabled</idea>
+      <idea ac="9">E2E: Verify participation counter updates after vote submission</idea>
+      <idea ac="10">E2E: Full flow test - connect wallet → select market → vote → verify UI updates with new tally</idea>
+      <idea>Unit: Test vote message formatting matches backend expectation { market_id, vote_choice, timestamp, nonce }</idea>
+      <idea>Unit: Test vote weight calculation (democratic vs activity-based)</idea>
+      <idea>E2E: Test error cases - wallet not connected, signature rejection, duplicate vote attempt, network error</idea>
+      <idea>Integration: Test real-time subscription to resolution_votes table, verify tally updates when votes inserted</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,289 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>6</storyId>
+    <title>Build Proposal Creation Flow</title>
+    <status>Ready</status>
+    <generatedAt>2025-10-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.6.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>market creator</asA>
+    <iWant>propose new markets through a multi-step form</iWant>
+    <soThat>I can contribute interesting predictions to the platform</soThat>
+    <tasks>
+### Task 1: Create Proposal Route and Page Structure (AC: 1, 2)
+- Create `/frontend/app/propose/page.tsx` route
+- Create `ProposalWizard` client component with step navigation
+- Implement step indicator UI (1/4, 2/4, etc.)
+- Create Step 1 component: Title input + Category selector
+- Add navigation buttons (Next/Back)
+- Implement form state management (React Hook Form or Zustand)
+
+### Task 2: Build Resolution Criteria Form (AC: 3)
+- Create Step 2 component with textarea for resolution criteria
+- Add markdown preview for resolution criteria
+- Implement evidence requirements input (optional links)
+- Add date picker for end date (react-datepicker or similar)
+- Validate end date is in future
+
+### Task 3: Implement Bond Selection (AC: 4)
+- Create Step 3 component with bond amount slider
+- Display tier visualization (fee percentages)
+- Show bond amount in SOL/ZMart
+- Calculate and display creator fee based on tier
+- Add informational tooltips explaining bond mechanics
+
+### Task 4: Create Proposal Preview (AC: 5)
+- Create Step 4 preview component
+- Display all entered information (read-only)
+- Calculate and display fee breakdown
+- Add "Edit" links to go back to specific steps
+- Style for clarity and emphasis on costs
+
+### Task 5: Implement Form Validation (AC: 6)
+- Title length validation (10-200 characters)
+- End date validation (future date, max 2 years)
+- Bond amount validation (min 50 ZMart)
+- Show validation errors inline
+- Prevent navigation to next step if current invalid
+- Display validation summary on preview step
+
+### Task 6: Integrate ProposalSystem Transaction (AC: 7)
+- Create `useProposalSubmit` hook
+- Build transaction for `create_proposal` instruction
+- Calculate bond amount and proposal tax
+- Get wallet signature
+- Submit transaction to Solana
+- Handle transaction errors gracefully
+- Show loading state during submission
+
+### Task 7: Create Success State (AC: 8)
+- Create success page/modal
+- Display proposal ID from transaction
+- Calculate and display voting period countdown
+- Add "View Proposal" link
+- Add "Create Another" button
+- Sync proposal to database via event listener
+
+### Task 8: Testing and Validation (AC: 9)
+- Test complete flow on devnet
+- Verify transaction success
+- Validate all form fields
+- Test edge cases
+- Verify wallet integration
+- Test responsive design
+- Validate accessibility (keyboard navigation)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Proposal route `/propose` with multi-step form wizard
+2. **Step 1:** Market title and category selection
+3. **Step 2:** Resolution criteria (textarea, markdown support), evidence requirements, end date picker
+4. **Step 3:** Bond amount selection (slider with tier visualization: 100 ZMart = 0.5% fee, 500 ZMart = 2% fee)
+5. **Step 4:** Preview showing fee breakdown (proposal tax 1% non-refundable + bond refundable)
+6. **Validation:** title length (10-200 chars), end date (future, max 2 years out), bond amount (min 50 ZMart)
+7. **Submit Action:** "Submit Proposal" button triggers ProposalSystem transaction with bond deposit
+8. **Success State:** Success page shows proposal ID and voting period countdown
+9. **Devnet Testing:** Successfully creates proposal on devnet
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/STORY-1.7-COMPLETE.md</path>
+        <title>ProposalSystem Program Implementation</title>
+        <section>Acceptance Criteria Verification</section>
+        <snippet>ProposalSystem successfully implemented with create_proposal instruction that enforces bond requirements (minimum from ParameterStorage), collects 1% non-refundable proposal tax, creates proposal account via PDA, and deposits bond to BondManager escrow. Bond tiers: Low (1-99 SOL → 0.5% creator fee), Medium (100-499 SOL → 1.0% creator fee), High (500+ SOL → 2.0% creator fee). The create_proposal instruction requires bond_amount parameter and automatically calculates 1% proposal tax.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Frontend Architecture - Project Structure</title>
+        <section>Complete Project Structure - Frontend</section>
+        <snippet>Frontend structure: app/propose/page.tsx for proposal creation route, components/voting/ for related UI, hooks/ for data fetching (useMarkets.ts, useProgram.ts, useWallet.ts), lib/anchor/ for program utils and IDL imports, lib/supabase/ for database client and types. Transaction helpers located in lib/anchor/utils.ts. Uses Zustand stores for state management, Tailwind for styling, React Hook Form recommended for forms.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-3.4-COMPLETE.md</path>
+        <title>Market Detail Page - Betting Interface Patterns</title>
+        <section>Implementation Summary</section>
+        <snippet>Story 3.4 established patterns for Solana transaction integration: wallet integration with balance checking, transaction confirmation modal, fee breakdown preview display, amount input validation, real-time updates with useLiveOdds hook, error handling with exponential backoff retry, loading states with shimmer animations, and 404 handling for invalid IDs. Uses --ultrathink approach with deep error handling and edge case management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Bond Mechanics and Validation Rules</title>
+        <section>ProposalSystem Technical Details</section>
+        <snippet>Bond validation: Minimum 50 ZMart bond required. Proposal tax: 1% of bond (non-refundable). Title validation: 10-200 characters. End date validation: Must be future date, maximum 2 years from creation. Bond refund rules: 100% if approved, 50% if rejected, 0% if cancelled. Creator fee tiers determine market fee percentage based on bond amount.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/lib/solana/betting.ts</path>
+        <kind>transaction-helper</kind>
+        <symbol>placeBet</symbol>
+        <lines>1-200</lines>
+        <reason>Established pattern for Solana transaction building: AnchorProvider setup, program initialization, PDA derivation, transaction creation with proper accounts and instruction data, error handling with try-catch, and transaction signing workflow. Use this as template for proposal transaction builder.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useMarkets.ts</path>
+        <kind>data-hook</kind>
+        <symbol>useMarkets</symbol>
+        <lines>1-100</lines>
+        <reason>Pattern for Supabase data fetching hooks with loading states, error handling, and real-time updates. Reuse pattern for proposal data synchronization after transaction submission.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useMarketUpdates.ts</path>
+        <kind>realtime-hook</kind>
+        <symbol>useMarketUpdates</symbol>
+        <lines>1-150</lines>
+        <reason>Supabase real-time subscription pattern for live data updates. Apply to proposals table for immediate UI feedback after proposal creation.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/markets/[id]/components/BettingPanel.tsx</path>
+        <kind>component</kind>
+        <symbol>BettingPanel</symbol>
+        <lines>1-300</lines>
+        <reason>Complete example of form with amount input, validation, fee breakdown display, wallet integration, transaction submission, loading states, and error handling. Use as reference for proposal form structure.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/WalletProvider.tsx</path>
+        <kind>provider</kind>
+        <symbol>WalletProvider</symbol>
+        <lines>1-80</lines>
+        <reason>Solana Wallet Adapter configuration. Required context provider for wallet connection, already configured in app layout.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/solana/idl/core_markets.json</path>
+        <kind>idl</kind>
+        <symbol>CoreMarketsIDL</symbol>
+        <lines>all</lines>
+        <reason>Example IDL usage pattern. Need to add proposal_system.json from target/idl/ to frontend/lib/solana/idl/ for ProposalSystem program integration.</reason>
+      </artifact>
+      <artifact>
+        <path>target/idl/proposal_system.json</path>
+        <kind>idl</kind>
+        <symbol>ProposalSystemIDL</symbol>
+        <lines>all</lines>
+        <reason>ProposalSystem program IDL defining create_proposal instruction interface. Must be copied to frontend/lib/solana/idl/ for Anchor program instantiation.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="16.0.0">App Router framework</package>
+        <package name="react" version="19.2.0">UI library</package>
+        <package name="react-dom" version="19.2.0">React DOM renderer</package>
+        <package name="@solana/web3.js" version="^1.98.4">Solana blockchain SDK</package>
+        <package name="@project-serum/anchor" version="^0.26.0">Anchor framework for Solana programs</package>
+        <package name="@solana/wallet-adapter-react" version="^0.15.39">Wallet adapter React hooks</package>
+        <package name="@solana/wallet-adapter-react-ui" version="^0.9.39">Wallet adapter UI components</package>
+        <package name="@solana/wallet-adapter-wallets" version="^0.19.37">Wallet implementations</package>
+        <package name="@supabase/supabase-js" version="^2.76.1">Supabase client SDK</package>
+        <package name="date-fns" version="^4.1.0">Date formatting utilities</package>
+        <package name="react-hot-toast" version="^2.6.0">Toast notifications</package>
+        <package name="typescript" version="^5" dev="true">TypeScript compiler</package>
+        <package name="tailwindcss" version="^4" dev="true">Utility-first CSS framework</package>
+        <package name="eslint" version="^9" dev="true">Linting tool</package>
+      </node>
+      <notes>
+        <note>React Hook Form not yet installed - needs to be added for form management</note>
+        <note>Consider adding zod for schema validation with React Hook Form</note>
+        <note>Consider adding react-datepicker for end date selection</note>
+        <note>Consider adding @headlessui/react for accessible UI components (dropdowns, modals)</note>
+      </notes>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Follow Next.js 15 App Router conventions: server components by default, use 'use client' directive for interactive components</constraint>
+    <constraint>Use TypeScript strict mode with comprehensive type safety for all props, state, and function signatures</constraint>
+    <constraint>Apply Tailwind CSS utility-first styling following existing project patterns (no custom CSS files)</constraint>
+    <constraint>Implement React Hook Form for multi-step form management with validation schema</constraint>
+    <constraint>Use Anchor framework for Solana program interaction via AnchorProvider and Program instances</constraint>
+    <constraint>All amounts in lamports internally, display in SOL/ZMart to user with proper conversion (1 SOL = 1e9 lamports)</constraint>
+    <constraint>Copy proposal_system.json IDL from target/idl/ to frontend/lib/solana/idl/ before implementation</constraint>
+    <constraint>ProposalSystem program ID: 5XH5i8dypiB4Wwa7TkmU6dnk9SyUGqE92GiQMHypPekL (from IDL address field)</constraint>
+    <constraint>Validation rules: title 10-200 chars, end date future + max 2 years, bond minimum 50 ZMart</constraint>
+    <constraint>Fee calculation: 1% proposal tax (non-refundable) + bond tier determines creator fee (0.5-2%)</constraint>
+    <constraint>Error handling: comprehensive try-catch with user-friendly messages, exponential backoff for retries</constraint>
+    <constraint>Accessibility: keyboard navigation, ARIA labels, semantic HTML, focus management in multi-step wizard</constraint>
+    <constraint>Loading states: shimmer animations for skeleton screens, disable buttons during transactions</constraint>
+    <constraint>Success state: optimistic UI update, then confirm via Supabase real-time subscription to proposals table</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>create_proposal</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>
+        Instruction: create_proposal
+        Accounts:
+          - proposal: Proposal (writable, PDA: ["proposal", proposal_id])
+          - global_parameters: GlobalParameters (PDA from ParameterStorage)
+          - creator: Signer (writable, proposal creator wallet)
+          - bond_escrow: BondEscrow (writable, from BondManager)
+          - bond_manager_program: BondManager Program ID
+          - system_program: System Program
+        Args:
+          - proposal_id: u64 (unique identifier, increment from last proposal)
+          - title: String (10-200 characters)
+          - description: String (resolution criteria)
+          - bond_amount: u64 (in lamports, minimum 50 ZMart)
+          - end_timestamp: i64 (Unix timestamp, future date, max 2 years)
+        Returns: void (transaction signature on success)
+      </signature>
+      <path>programs/proposal-system/src/instructions/create_proposal.rs</path>
+    </interface>
+    <interface>
+      <name>proposals table</name>
+      <kind>Supabase Database Table</kind>
+      <signature>
+        Table: proposals
+        Columns:
+          - id: uuid (primary key)
+          - proposal_id: bigint (on-chain ID)
+          - title: text
+          - description: text
+          - creator: text (wallet address)
+          - bond_amount: bigint
+          - bond_tier: text (Low/Medium/High)
+          - status: text (Pending/Approved/Rejected)
+          - yes_votes: bigint
+          - no_votes: bigint
+          - created_at: timestamp
+          - voting_ends_at: timestamp
+          - proposal_tax_paid: bigint
+          - market_id: bigint (nullable, set when approved)
+        RLS: Public read, authenticated write
+      </signature>
+      <path>supabase/migrations/001_initial_schema.sql</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Testing Strategy for Story 3.6:
+      - Unit Tests: Use Vitest for testing validation logic, form state management, fee calculations, and utility functions. Test React components with React Testing Library for user interactions and state changes.
+      - Integration Tests: Test Solana transaction building with mock Anchor program, test Supabase integration with test database, verify form wizard navigation and state persistence between steps.
+      - E2E Tests: Use Playwright (as established in project architecture) for end-to-end testing of complete proposal creation flow on devnet, including wallet connection, form submission, transaction signing, and success state verification.
+      - Pattern: Follow Story 3.4 testing patterns with comprehensive error handling tests, edge case validation (boundary values for title length, date ranges, bond amounts), and accessibility compliance checks (keyboard navigation, screen reader support).
+    </standards>
+    <locations>
+      - Unit tests: Create frontend/__tests__/proposal/ directory
+      - Component tests: frontend/__tests__/components/proposal/
+      - Integration tests: frontend/__tests__/integration/proposal-creation.test.ts
+      - E2E tests: frontend/e2e/proposal-creation.spec.ts (Playwright)
+      - Test utilities: frontend/__tests__/utils/ for mock data and helpers
+    </locations>
+    <ideas>
+      <test ac="AC1" idea="Test route rendering, loading state, and error boundary for /propose route"/>
+      <test ac="AC2" idea="Test Step 1 title input validation (10-200 chars), category selection, and navigation to Step 2"/>
+      <test ac="AC3" idea="Test Step 2 resolution criteria textarea, markdown preview rendering, date picker validation (future date, max 2 years), and evidence requirements input"/>
+      <test ac="AC4" idea="Test Step 3 bond slider interaction, tier visualization display, fee calculation (0.5%, 1%, 2% based on bond amount), and bond amount validation (minimum 50 ZMart)"/>
+      <test ac="AC5" idea="Test Step 4 preview display of all form data, fee breakdown calculation (1% proposal tax + creator fee), total cost display, and edit navigation back to previous steps"/>
+      <test ac="AC6" idea="Test form validation: title length enforcement, end date future validation, end date max 2 years validation, bond minimum validation, prevent step navigation if validation fails, display inline error messages"/>
+      <test ac="AC7" idea="Test ProposalSystem transaction building: mock create_proposal instruction, verify PDA derivation for proposal account, test wallet signature request, test transaction submission with success/error handling, test loading state during submission"/>
+      <test ac="AC8" idea="Test success state: display proposal ID from transaction, countdown timer for voting period, navigation links to view proposal and create another, verify optimistic UI update"/>
+      <test ac="AC9" idea="E2E test on devnet: complete flow from wallet connection through proposal submission, verify transaction on Solana explorer, confirm proposal appears in Supabase database via event listener sync, test responsive design on mobile viewport"/>
+    </ideas>
+  </tests>
+</story-context>

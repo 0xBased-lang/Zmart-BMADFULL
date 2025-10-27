@@ -1,0 +1,895 @@
+{
+  "address": "5XH5i8dypiB4Wwa7TkmU6dnk9SyUGqE92GiQMHypPekL",
+  "metadata": {
+    "name": "proposal_system",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "BMAD-Zmart Proposal System - Market creation governance and voting"
+  },
+  "docs": [
+    "BMAD-Zmart Proposal System",
+    "",
+    "Governance system for community-driven market creation.",
+    "",
+    "Architecture:",
+    "- Proposal PDA per proposal: [\"proposal\", proposal_id]",
+    "- Bond requirement with 1% non-refundable tax",
+    "- Graduated bond tiers determine creator fee percentage",
+    "- Voting with ≥60% YES threshold for approval",
+    "- Integration with BondManager for escrow",
+    "- Integration with CoreMarkets for market creation",
+    "",
+    "Security:",
+    "- Bond deposits validated via BondManager",
+    "- One vote per wallet per proposal",
+    "- Approval threshold enforcement (≥60%)",
+    "- Admin override for MVP progressive decentralization"
+  ],
+  "instructions": [
+    {
+      "name": "approve_proposal",
+      "docs": [
+        "Approve proposal and create market",
+        "",
+        "Requires ≥60% YES votes.",
+        "Creates market in CoreMarkets and deposits bond in BondManager."
+      ],
+      "discriminator": [
+        136,
+        108,
+        102,
+        85,
+        98,
+        114,
+        7,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "market_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_proposal",
+      "docs": [
+        "Create a new market proposal",
+        "",
+        "Requires bond deposit based on tier selection.",
+        "1% of bond is non-refundable (proposal tax)."
+      ],
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "proposal_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_parameters",
+          "docs": [
+            "Global parameters from ParameterStorage"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            }
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "parameter_storage_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "proposal_id",
+          "type": "u64"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "bond_tier",
+          "type": {
+            "defined": {
+              "name": "BondTier"
+            }
+          }
+        },
+        {
+          "name": "end_date",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "reject_proposal",
+      "docs": [
+        "Reject proposal and refund 50% of bond",
+        "",
+        "Called when proposal fails to meet ≥60% YES threshold."
+      ],
+      "discriminator": [
+        114,
+        162,
+        164,
+        82,
+        191,
+        11,
+        102,
+        25
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "vote_on_proposal",
+      "docs": [
+        "Vote on a proposal",
+        "",
+        "Placeholder for Epic 2's full Snapshot integration.",
+        "Currently allows one vote per wallet."
+      ],
+      "discriminator": [
+        188,
+        239,
+        13,
+        88,
+        119,
+        199,
+        251,
+        119
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vote_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108,
+                  45,
+                  118,
+                  111,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.proposal_id",
+                "account": "Proposal"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vote_choice",
+          "type": {
+            "defined": {
+              "name": "VoteChoice"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalParameters",
+      "discriminator": [
+        98,
+        215,
+        159,
+        28,
+        204,
+        22,
+        241,
+        154
+      ]
+    },
+    {
+      "name": "Proposal",
+      "discriminator": [
+        26,
+        94,
+        189,
+        187,
+        116,
+        136,
+        53,
+        33
+      ]
+    },
+    {
+      "name": "ProposalVoteRecord",
+      "discriminator": [
+        94,
+        182,
+        73,
+        62,
+        146,
+        189,
+        112,
+        176
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ProposalApprovedEvent",
+      "discriminator": [
+        238,
+        183,
+        55,
+        8,
+        87,
+        232,
+        170,
+        248
+      ]
+    },
+    {
+      "name": "ProposalCreatedEvent",
+      "discriminator": [
+        154,
+        240,
+        33,
+        66,
+        194,
+        233,
+        203,
+        209
+      ]
+    },
+    {
+      "name": "ProposalRejectedEvent",
+      "discriminator": [
+        12,
+        114,
+        155,
+        238,
+        33,
+        70,
+        99,
+        156
+      ]
+    },
+    {
+      "name": "ProposalVoteEvent",
+      "discriminator": [
+        202,
+        31,
+        14,
+        211,
+        195,
+        127,
+        32,
+        105
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidTitle",
+      "msg": "Invalid proposal title: must be 1-128 characters"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDescription",
+      "msg": "Invalid proposal description: must be 1-512 characters"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidEndDate",
+      "msg": "Invalid end date: must be in the future"
+    },
+    {
+      "code": 6003,
+      "name": "ProposalNotOpen",
+      "msg": "Proposal is not open for voting"
+    },
+    {
+      "code": 6004,
+      "name": "VotingEnded",
+      "msg": "Voting period has ended"
+    },
+    {
+      "code": 6005,
+      "name": "VotingNotEnded",
+      "msg": "Voting period has not ended yet"
+    },
+    {
+      "code": 6006,
+      "name": "ProposalAlreadyProcessed",
+      "msg": "Proposal already processed"
+    },
+    {
+      "code": 6007,
+      "name": "NoVotes",
+      "msg": "No votes cast on proposal"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientApproval",
+      "msg": "Insufficient approval: requires ≥60% YES votes"
+    },
+    {
+      "code": 6009,
+      "name": "ProposalNotRejected",
+      "msg": "Proposal not rejected: has ≥60% YES votes"
+    }
+  ],
+  "types": [
+    {
+      "name": "BondTier",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Tier1"
+          },
+          {
+            "name": "Tier2"
+          },
+          {
+            "name": "Tier3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "creation_bond_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "creator_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_market_size_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "min_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "dispute_window_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "bond_tier_1_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_2_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_3_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "update_cooldown_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_change_bps",
+            "type": "u16"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "cooldown_until",
+            "type": "i64"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Proposal",
+      "docs": [
+        "Market proposal account"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "bond_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier",
+            "type": {
+              "defined": {
+                "name": "BondTier"
+              }
+            }
+          },
+          {
+            "name": "proposal_tax",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ProposalStatus"
+              }
+            }
+          },
+          {
+            "name": "yes_votes",
+            "type": "u32"
+          },
+          {
+            "name": "no_votes",
+            "type": "u32"
+          },
+          {
+            "name": "total_voters",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "end_date",
+            "type": "i64"
+          },
+          {
+            "name": "processed_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "market_id",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalApprovedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "yes_votes",
+            "type": "u32"
+          },
+          {
+            "name": "no_votes",
+            "type": "u32"
+          },
+          {
+            "name": "yes_percentage",
+            "type": "u16"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "bond_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier",
+            "type": {
+              "defined": {
+                "name": "BondTier"
+              }
+            }
+          },
+          {
+            "name": "proposal_tax",
+            "type": "u64"
+          },
+          {
+            "name": "end_date",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalRejectedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "refund_amount",
+            "type": "u64"
+          },
+          {
+            "name": "yes_votes",
+            "type": "u32"
+          },
+          {
+            "name": "no_votes",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Approved"
+          },
+          {
+            "name": "Rejected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalVoteEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "vote_choice",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalVoteRecord",
+      "docs": [
+        "Vote record per voter per proposal"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposal_id",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "vote_choice",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteChoice",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Yes"
+          },
+          {
+            "name": "No"
+          }
+        ]
+      }
+    }
+  ]
+}
