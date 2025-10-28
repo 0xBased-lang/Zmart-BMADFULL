@@ -1,0 +1,348 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>10</storyId>
+    <title>Build Admin Dashboard</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-28</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.10.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>platform admin</asA>
+    <iWant>a dashboard to manage parameters, review disputes, and monitor metrics</iWant>
+    <soThat>I can operate the platform effectively</soThat>
+    <tasks>
+      <task id="1" ac="1">Admin Route and Authentication
+        - Create /admin route in Next.js App Router
+        - Implement wallet-based admin authentication (check wallet address against env var)
+        - Add redirect to homepage if non-admin wallet attempts access
+        - Display admin wallet address in header
+        - Test authentication with admin and non-admin wallets
+      </task>
+      <task id="2" ac="2,3">Parameter Management UI
+        - Create ParameterManagement component
+        - Fetch all GlobalParameters from ParameterStorage program
+        - Display parameters in organized sections (fees, limits, durations, thresholds)
+        - Add edit button per parameter with inline editing
+        - Implement update_parameter transaction with safety validation display
+        - Show cooldown timer and max change % warnings
+        - Add transaction confirmation and error handling
+        - Test parameter updates with valid and invalid changes
+      </task>
+      <task id="3" ac="4">Feature Toggles Panel
+        - Create FeatureToggles component
+        - Fetch GlobalFeatureToggles from ParameterStorage program
+        - Display toggles as on/off switches with visual indicators (green/red)
+        - Implement update_toggle transaction
+        - Add confirmation dialog for critical feature toggles
+        - Test toggle updates and UI state sync
+        - Verify toggle changes reflected immediately in UI
+      </task>
+      <task id="4" ac="5">Disputed Markets Queue
+        - Create DisputedMarkets component
+        - Query database for markets with status = DISPUTE_WINDOW
+        - Display market details: title, end date, vote outcome, dispute window remaining
+        - Show all dispute submissions (flaggers, reasons, evidence links)
+        - Add sorting and filtering (by dispute window expiration)
+        - Implement real-time updates (Supabase subscriptions)
+        - Test with markets in different dispute states
+      </task>
+      <task id="5" ac="6">Resolution Override
+        - Add "Override Resolution" button to each disputed market card
+        - Create override modal with outcome selection (YES/NO/CANCELLED)
+        - Require admin reason input (min 10 chars)
+        - Implement admin_override_resolution transaction from MarketResolution program
+        - Display transaction confirmation with new outcome
+        - Update UI to reflect resolved status
+        - Test override flow end-to-end
+      </task>
+      <task id="6" ac="7">Platform Metrics Dashboard
+        - Create MetricsDashboard component with stats cards
+        - Query database for: total markets, active users, 24h volume, dispute rate
+        - Display metrics in large, prominent cards
+        - Add trend indicators (up/down arrows, % change)
+        - Implement auto-refresh (every 30 seconds)
+        - Test metrics calculation accuracy
+      </task>
+      <task id="7" ac="8">Integration Testing
+        - E2E test: Admin wallet accesses dashboard successfully
+        - E2E test: Non-admin wallet gets redirected
+        - E2E test: Update parameter and verify on-chain
+        - E2E test: Toggle feature and verify state change
+        - E2E test: Override dispute and verify resolution
+        - E2E test: Metrics display correctly and update
+        - Manual testing: Full admin workflow validation
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Admin Authentication: Admin route /admin with wallet-based authentication (only configured admin wallet can access)</criterion>
+    <criterion id="2">Parameter Management Panel: Displays all GlobalParameters from ParameterStorage with current values and edit buttons</criterion>
+    <criterion id="3">Parameter Updates: Parameter edit triggers update_parameter transaction with safety validations (cooldown, max change %)</criterion>
+    <criterion id="4">Feature Toggles Panel: On/off switches for all GlobalFeatureToggles with visual status indicators</criterion>
+    <criterion id="5">Disputed Markets Queue: Lists all markets in DISPUTE_WINDOW status with dispute details (flaggers, reasons, evidence)</criterion>
+    <criterion id="6">Resolution Override: "Override Resolution" button per disputed market triggers admin override transaction</criterion>
+    <criterion id="7">Platform Metrics Dashboard: Real-time metrics display (total markets, active users, 24h volume, dispute rate)</criterion>
+    <criterion id="8">Functional Validation: Successfully updates parameters and resolves disputes from UI with transaction confirmations</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Admin Dashboard - Progressive Decentralization Controls</section>
+        <snippet>Admin dashboard provides parameter management interface and dispute resolution queue. Progressive decentralization safeguard allowing admin intervention during MVP phase before full community control.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Admin Dashboard (Story 3.10)</section>
+        <snippet>Admin route /admin with wallet authentication. Parameter management, feature toggles, disputed markets queue, resolution override, and platform metrics dashboard. Responsive 3-column layout on desktop.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-1.3.md</path>
+        <title>Story 1.3 - Implement ParameterStorage</title>
+        <section>GlobalParameters and GlobalFeatureToggles Account Structures</section>
+        <snippet>On-chain parameter storage with safety constraints: cooldown period (24h), max change % (10%), admin-only access. GlobalParameters includes fees, limits, durations. GlobalFeatureToggles includes emergency_pause master kill switch.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-2.7.md</path>
+        <title>Story 2.7 - Implement Admin Override for Disputed Markets</title>
+        <section>Admin Override Flow and Database Queries</section>
+        <snippet>Admin reviews markets in UNDER_REVIEW status. admin-override-resolution Edge Function processes override requests with required reason. Market status transitions from UNDER_REVIEW → RESOLVED. Admin whitelist enforcement for authorization.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.1.md</path>
+        <title>Story 3.1 - Initialize Next.js with Wallet Adapter</title>
+        <section>Wallet Authentication Pattern</section>
+        <snippet>Wallet public key = user identity. @solana/wallet-adapter-react integration with Phantom and Solflare support. No email/password authentication.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.2.md</path>
+        <title>Story 3.2 - Implement Supabase Client</title>
+        <section>Database Query and Real-time Patterns</section>
+        <snippet>Custom hooks pattern for database queries (useMarkets, useBets, useVotes). Real-time subscriptions via Supabase for live updates. Error handling for network failures.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/lib/supabase.ts</path>
+        <kind>library</kind>
+        <symbol>createClient</symbol>
+        <lines>N/A</lines>
+        <reason>Supabase client initialization pattern for database queries. Will be used for fetching disputed markets and platform metrics.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useMarkets.ts</path>
+        <kind>hook</kind>
+        <symbol>useMarkets</symbol>
+        <lines>N/A</lines>
+        <reason>Example of custom hook pattern for database queries. Reference for implementing useDisputedMarkets and usePlatformMetrics.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useUserProfile.ts</path>
+        <kind>hook</kind>
+        <symbol>useUserProfile</symbol>
+        <lines>N/A</lines>
+        <reason>Example of user-specific data fetching pattern. Reference for admin wallet validation logic.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useLeaderboardData.ts</path>
+        <kind>hook</kind>
+        <symbol>useLeaderboardData</symbol>
+        <lines>N/A</lines>
+        <reason>Example of aggregated metrics query pattern. Reference for platform metrics dashboard implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/WalletProvider.tsx</path>
+        <kind>component</kind>
+        <symbol>WalletProvider</symbol>
+        <lines>N/A</lines>
+        <reason>Wallet adapter configuration component. Will be used for admin wallet authentication.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/types/database.ts</path>
+        <kind>types</kind>
+        <symbol>Database types</symbol>
+        <lines>N/A</lines>
+        <reason>Supabase generated types for type-safe database queries. Will need to reference for markets, disputes tables.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <dependency name="next" version="16.0.0">Next.js 16 App Router for /admin route</dependency>
+        <dependency name="react" version="19.2.0">React 19 for component development</dependency>
+        <dependency name="@solana/wallet-adapter-react" version="^0.15.39">Wallet authentication for admin access</dependency>
+        <dependency name="@solana/web3.js" version="^1.98.4">Solana transactions for parameter updates</dependency>
+        <dependency name="@supabase/supabase-js" version="^2.76.1">Database queries and real-time subscriptions</dependency>
+        <dependency name="@project-serum/anchor" version="^0.26.0">Anchor program interactions for ParameterStorage</dependency>
+        <dependency name="@headlessui/react" version="^2.2.9">Accessible UI components (toggle switches, modals)</dependency>
+        <dependency name="react-hook-form" version="^7.65.0">Form handling for parameter editing</dependency>
+        <dependency name="react-hot-toast" version="^2.6.0">Transaction confirmation toasts</dependency>
+        <dependency name="date-fns" version="^4.1.0">Date formatting for dispute window countdowns</dependency>
+        <dependency name="zod" version="^3.25.76">Form validation schemas</dependency>
+      </frontend>
+      <testing>
+        <dependency name="@playwright/test" version="^1.56.1">E2E testing for admin workflows</dependency>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Admin authentication via wallet address check against NEXT_PUBLIC_ADMIN_WALLET environment variable</constraint>
+    <constraint>Parameter updates must respect ParameterStorage safety constraints: 24-hour cooldown period, max 10% change per update</constraint>
+    <constraint>Feature toggles update via update_toggle instruction, emergency_pause can only be enabled (not disabled) via standard instruction</constraint>
+    <constraint>Admin override requires reason field (minimum 10 characters) for transparency and audit trail</constraint>
+    <constraint>Disputed markets query filters markets with status = DISPUTE_WINDOW, sorted by time remaining (ASC)</constraint>
+    <constraint>Platform metrics auto-refresh every 30 seconds to show real-time data</constraint>
+    <constraint>All transaction confirmations must show clear success/error messages with retry options</constraint>
+    <constraint>Use Next.js 16 App Router patterns (no pages/ directory, use app/ directory structure)</constraint>
+    <constraint>Follow existing hook patterns in frontend/lib/hooks/ for consistency</constraint>
+    <constraint>Use Tailwind CSS for styling, match existing dark mode theme</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GlobalParameters Account</name>
+      <kind>Solana Account Structure</kind>
+      <signature>
+pub struct GlobalParameters {
+  pub authority: Pubkey,
+  pub platform_fee_bps: u16,
+  pub creator_fee_bps: u16,
+  pub min_market_duration: i64,
+  pub max_market_duration: i64,
+  pub min_bond_amount: u64,
+  pub voting_period_duration: i64,
+  pub dispute_period_duration: i64,
+  pub cooldown_period: i64,
+  pub max_change_bps: u16,
+  pub last_update: i64,
+  pub bump: u8,
+}
+      </signature>
+      <path>programs/parameter-storage/src/state.rs</path>
+    </interface>
+    <interface>
+      <name>GlobalFeatureToggles Account</name>
+      <kind>Solana Account Structure</kind>
+      <signature>
+pub struct GlobalFeatureToggles {
+  pub authority: Pubkey,
+  pub market_creation_enabled: bool,
+  pub betting_enabled: bool,
+  pub voting_enabled: bool,
+  pub proposals_enabled: bool,
+  pub emergency_pause: bool,
+  pub bump: u8,
+}
+      </signature>
+      <path>programs/parameter-storage/src/state.rs</path>
+    </interface>
+    <interface>
+      <name>update_parameter instruction</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>
+pub fn update_parameter(
+  ctx: Context&lt;UpdateParameter&gt;,
+  parameter_name: String,
+  new_value: u64
+) -&gt; Result&lt;()&gt;
+      </signature>
+      <path>programs/parameter-storage/src/instructions/update_parameter.rs</path>
+    </interface>
+    <interface>
+      <name>update_toggle instruction</name>
+      <kind>Solana Program Instruction</kind>
+      <signature>
+pub fn update_toggle(
+  ctx: Context&lt;UpdateToggle&gt;,
+  toggle_name: String,
+  enabled: bool
+) -&gt; Result&lt;()&gt;
+      </signature>
+      <path>programs/parameter-storage/src/instructions/update_toggle.rs</path>
+    </interface>
+    <interface>
+      <name>admin_override_resolution Edge Function</name>
+      <kind>Supabase Edge Function API</kind>
+      <signature>
+POST /functions/v1/admin-override-resolution
+Body: { market_id: string, new_outcome: "YES" | "NO" | "CANCELLED", reason: string }
+Headers: { Authorization: Bearer &lt;supabase-key&gt; }
+Response: { success: boolean, message: string }
+      </signature>
+      <path>supabase/functions/admin-override-resolution/index.ts</path>
+    </interface>
+    <interface>
+      <name>Disputed Markets Query</name>
+      <kind>Database Query</kind>
+      <signature>
+SELECT m.*,
+       array_agg(d.*) as disputes,
+       (m.dispute_window_start + interval '48 hours' - now()) as time_remaining
+FROM markets m
+LEFT JOIN disputes d ON d.market_id = m.id
+WHERE m.status = 'DISPUTE_WINDOW'
+GROUP BY m.id
+ORDER BY time_remaining ASC;
+      </signature>
+      <path>Database query for DisputedMarkets component</path>
+    </interface>
+    <interface>
+      <name>Platform Metrics Queries</name>
+      <kind>Database Aggregations</kind>
+      <signature>
+-- Total markets
+SELECT COUNT(*) FROM markets;
+
+-- Active users (last 30 days)
+SELECT COUNT(DISTINCT user_wallet) FROM (
+  SELECT user_wallet FROM bets WHERE created_at &gt; now() - interval '30 days'
+  UNION
+  SELECT voter_wallet FROM votes WHERE timestamp &gt; now() - interval '30 days'
+) as active_users;
+
+-- 24h volume
+SELECT COALESCE(SUM(amount), 0) FROM bets WHERE created_at &gt; now() - interval '24 hours';
+
+-- Dispute rate
+SELECT (COUNT(*) FILTER (WHERE status = 'DISPUTE_WINDOW') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE status IN ('RESOLVED', 'DISPUTE_WINDOW')), 0)) as dispute_rate
+FROM markets;
+      </signature>
+      <path>Database queries for MetricsDashboard component</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Story 3.10 follows Epic 3 testing patterns: E2E tests using Playwright for full admin workflows. Tests validate admin authentication, parameter updates with on-chain verification, toggle state changes, dispute override flow, and metrics accuracy. Manual testing supplements automated tests for UX validation. Lighthouse accessibility score ≥95 target. Test files located in frontend/e2e/*.spec.ts following Story 3.14 standards.
+    </standards>
+    <locations>
+      <location>frontend/e2e/</location>
+      <location>frontend/e2e/admin-authentication.spec.ts</location>
+      <location>frontend/e2e/parameter-management.spec.ts</location>
+      <location>frontend/e2e/feature-toggles.spec.ts</location>
+      <location>frontend/e2e/disputed-markets.spec.ts</location>
+      <location>frontend/e2e/platform-metrics.spec.ts</location>
+    </locations>
+    <ideas>
+      <test ac="1">E2E: Admin wallet successfully accesses /admin route, non-admin wallet redirected to homepage</test>
+      <test ac="2">E2E: Parameter Management panel displays all GlobalParameters with current values from ParameterStorage</test>
+      <test ac="3">E2E: Update platform_fee_bps from 250 to 275 (10% increase), verify transaction success and on-chain state change</test>
+      <test ac="3">E2E: Attempt to update platform_fee_bps from 250 to 500 (100% increase), verify transaction fails with max_change_bps validation error</test>
+      <test ac="3">E2E: Attempt to update parameter within cooldown period, verify transaction fails with cooldown error</test>
+      <test ac="4">E2E: Toggle betting_enabled from true to false, verify immediate UI update and ParameterStorage state change</test>
+      <test ac="5">E2E: Disputed markets queue displays all markets with status DISPUTE_WINDOW, sorted by time remaining ASC</test>
+      <test ac="6">E2E: Admin overrides disputed market from NO to YES with reason "Evidence was misinterpreted", verify market status transitions to RESOLVED</test>
+      <test ac="7">E2E: Platform metrics display correct counts: total markets, active users, 24h volume, dispute rate</test>
+      <test ac="7">E2E: Metrics auto-refresh after 30 seconds, verify updated values displayed</test>
+      <test ac="8">Manual: Full admin workflow - authenticate → update parameter → toggle feature → override dispute → verify metrics</test>
+    </ideas>
+  </tests>
+</story-context>

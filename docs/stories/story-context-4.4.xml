@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <epic-id>4</epic-id>
+    <story-id>4</story-id>
+    <story-key>4-4-implement-load-testing-and-performance-benchmarking</story-key>
+    <title>Implement Load Testing and Performance Benchmarking</title>
+    <status>drafted</status>
+    <generated-date>2025-10-28</generated-date>
+  </metadata>
+
+  <story-definition>
+    <as-a>platform operator</as-a>
+    <i-want>to validate the system performs well under load</i-want>
+    <so-that>we can handle 1,000+ concurrent users</so-that>
+
+    <acceptance-criteria>
+      <criterion id="1">Load testing suite using k6 or Artillery</criterion>
+      <criterion id="2">Database load test: 1,000+ concurrent queries, verify &lt;100ms response times</criterion>
+      <criterion id="3">Transaction throughput test: simulate 100 bets/minute, measure success rate (target &gt;99%)</criterion>
+      <criterion id="4">Real-time subscription test: 500+ concurrent WebSocket connections, measure update latency</criterion>
+      <criterion id="5">Event listener stress test: 1,000 events/minute, verify sync accuracy and latency</criterion>
+      <criterion id="6">Vote aggregation test: aggregate 10,000 votes, measure processing time (target &lt;10s)</criterion>
+      <criterion id="7">Performance benchmarks documented with baseline metrics</criterion>
+      <criterion id="8">Bottlenecks identified and optimized (indexing, caching, query optimization)</criterion>
+    </acceptance-criteria>
+
+    <technical-approach>
+      <approach>k6-based load testing suite with performance benchmarking and optimization</approach>
+      <rationale>
+        - k6 provides modern, scriptable load testing with JavaScript API
+        - Better Solana/Web3 support compared to Artillery
+        - Built-in metrics visualization and threshold validation
+        - Can run distributed load tests for scaling requirements
+        - Comprehensive testing of database, blockchain, WebSocket, and event processing layers
+      </rationale>
+    </technical-approach>
+
+    <dependencies>
+      <dependency type="story">Story 4.1-4.3 - Test infrastructure foundation</dependency>
+      <dependency type="technical">k6 load testing tool</dependency>
+      <dependency type="technical">Supabase PostgreSQL database</dependency>
+      <dependency type="technical">Solana RPC endpoints (devnet/mainnet-beta)</dependency>
+      <dependency type="technical">WebSocket server for real-time subscriptions</dependency>
+      <dependency type="technical">Event listener infrastructure</dependency>
+    </dependencies>
+  </story-definition>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4 - Testing, Hardening &amp; Launch</title>
+        <section>Story 4.4</section>
+        <snippet>Comprehensive testing of entire platform, internal security audit, performance optimization, and mainnet deployment. Load testing validates system can handle 1,000+ concurrent users with performance benchmarks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Performance Requirements</section>
+        <snippet>System must handle 1,000+ concurrent users with database queries &lt;100ms, transaction success rate &gt;99%, and real-time updates with minimal latency.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Technology Stack &amp; Performance</section>
+        <snippet>Hybrid modular architecture with Solana programs, Supabase backend, and Next.js frontend. Performance targets: 1,000+ concurrent users, &lt;100ms database queries, 99%+ transaction success.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>tests/integration/config.ts</path>
+        <kind>test-config</kind>
+        <symbol>TIMEOUTS, ECONOMIC_CONSTANTS, TEST_DATA</symbol>
+        <lines>1-200</lines>
+        <reason>Existing test configuration with timeout settings and test data generators - can be extended for load tests</reason>
+      </artifact>
+      <artifact>
+        <path>tests/bulletproof-comprehensive.spec.ts</path>
+        <kind>integration-test</kind>
+        <symbol>Bulletproof Test Suite</symbol>
+        <lines>1-500</lines>
+        <reason>Comprehensive test suite with transaction testing patterns - reference for load test scenarios</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/market-creation.ts</path>
+        <kind>integration-test</kind>
+        <symbol>Market Creation Workflow Tests</symbol>
+        <lines>1-350</lines>
+        <reason>Market creation workflow tests - scenarios to stress test under load</reason>
+      </artifact>
+      <artifact>
+        <path>tests/integration/betting-payouts.ts</path>
+        <kind>integration-test</kind>
+        <symbol>Betting and Payouts Tests</symbol>
+        <lines>1-400</lines>
+        <reason>Betting workflow tests - high-frequency transaction scenarios for throughput testing</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/sync-events/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>syncEvents</symbol>
+        <lines>1-200</lines>
+        <reason>Event listener implementation - target for event processing stress tests</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/aggregate-votes/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>aggregateVotes</symbol>
+        <lines>1-300</lines>
+        <reason>Vote aggregation logic - target for aggregation performance testing (10,000 votes)</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_leaderboard_views_and_indexes.sql</path>
+        <kind>database-schema</kind>
+        <symbol>Leaderboard indexes</symbol>
+        <lines>1-100</lines>
+        <reason>Database indexing examples - reference for optimization strategies</reason>
+      </artifact>
+      <artifact>
+        <path>package.json</path>
+        <kind>config</kind>
+        <symbol>Test scripts</symbol>
+        <lines>1-24</lines>
+        <reason>Existing test infrastructure - add load test scripts here</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="@coral-xyz/anchor" version="^0.32.1" />
+        <package name="chai" version="^4.3.4" dev="true" />
+        <package name="mocha" version="^9.0.3" dev="true" />
+        <package name="ts-mocha" version="^10.0.0" dev="true" />
+        <package name="typescript" version="^5.7.3" dev="true" />
+        <package name="nyc" version="^15.1.0" dev="true" />
+      </node>
+      <required-new>
+        <package name="k6" ecosystem="external" note="Load testing tool - install via brew or download" />
+        <package name="grafana-k6" ecosystem="node" note="Optional: k6 Node.js integration for scripting" dev="true" />
+      </required-new>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>k6 Load Test Script API</name>
+      <kind>testing-framework</kind>
+      <signature>
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        export let options = { vus: 100, duration: '5m' };
+        export default function() { /* test logic */ }
+      </signature>
+      <path>New - to be created in tests/load/</path>
+    </interface>
+    <interface>
+      <name>Supabase Client API</name>
+      <kind>database-client</kind>
+      <signature>
+        supabase.from('markets').select('*').limit(100)
+        supabase.from('bets').insert([{...}])
+      </signature>
+      <path>Used by load tests for database performance testing</path>
+    </interface>
+    <interface>
+      <name>Solana Web3.js Transaction API</name>
+      <kind>blockchain-client</kind>
+      <signature>
+        connection.sendTransaction(transaction, [signer])
+        connection.confirmTransaction(signature)
+      </signature>
+      <path>Used by load tests for transaction throughput testing</path>
+    </interface>
+    <interface>
+      <name>WebSocket Client API</name>
+      <kind>realtime-client</kind>
+      <signature>
+        const ws = new WebSocket(url);
+        ws.on('message', handler);
+      </signature>
+      <path>Used by load tests for real-time subscription testing</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Load tests must not impact production environment - use dedicated staging/devnet</constraint>
+    <constraint>Performance targets are mandatory: database &lt;100ms, transactions &gt;99% success, WebSocket &lt;200ms latency</constraint>
+    <constraint>All load tests must be automated and repeatable for continuous performance monitoring</constraint>
+    <constraint>Performance benchmarks must be documented with graphs and baseline metrics</constraint>
+    <constraint>Optimization must not compromise existing test coverage or functionality</constraint>
+    <constraint>Load test infrastructure must support both local and CI/CD execution</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Load tests will use k6 for scripting and execution. Tests organized by component (database, blockchain, realtime, eventlistener). Each test includes: scenario definition, virtual user count, duration, performance thresholds, and metrics collection. Results visualized with k6 dashboard and Grafana. Performance baselines established before optimization.
+    </standards>
+
+    <locations>
+      - tests/load/ (new directory for k6 load tests)
+      - tests/load/database/ (Supabase query load tests)
+      - tests/load/blockchain/ (Solana transaction throughput tests)
+      - tests/load/realtime/ (WebSocket subscription tests)
+      - tests/load/eventlistener/ (Event processing stress tests)
+      - tests/load/utils/ (Test data generators and metrics helpers)
+    </locations>
+
+    <ideas>
+      <idea ac="1">Create k6 installation and setup script with sample load test</idea>
+      <idea ac="2">Database load test: 1,000 concurrent market listing queries with &lt;100ms threshold</idea>
+      <idea ac="2">Database load test: Concurrent bet insertions with throughput measurement</idea>
+      <idea ac="3">Blockchain throughput test: 100 bet transactions/minute with &gt;99% success rate</idea>
+      <idea ac="3">Blockchain throughput test: Concurrent market creation with confirmation time tracking</idea>
+      <idea ac="4">WebSocket load test: 500 concurrent connections with latency measurement</idea>
+      <idea ac="4">WebSocket load test: Subscription scalability with client add/remove</idea>
+      <idea ac="5">Event listener stress test: 1,000 events/minute with sync accuracy validation</idea>
+      <idea ac="5">Event listener stress test: Backlog recovery with consistency checks</idea>
+      <idea ac="6">Vote aggregation test: 10,000 votes processing with &lt;10s threshold</idea>
+      <idea ac="7">Performance report generation: Graphs, metrics, baselines documented</idea>
+      <idea ac="8">Bottleneck analysis: Query profiling, index creation, caching implementation</idea>
+    </ideas>
+  </tests>
+
+  <implementation-guidance>
+    <phase name="Setup">
+      <step>Install k6 load testing tool (brew install k6 or download from k6.io)</step>
+      <step>Create tests/load/ directory structure with subdirectories for each component</step>
+      <step>Set up k6 configuration with performance thresholds and metrics</step>
+      <step>Create test data generation scripts for markets, bets, votes</step>
+      <step>Configure staging environment (Supabase staging DB, Solana devnet)</step>
+    </phase>
+
+    <phase name="Database Load Tests">
+      <step>Write k6 script for 1,000+ concurrent market listing queries</step>
+      <step>Write k6 script for concurrent bet insertions (INSERT load)</step>
+      <step>Write k6 script for complex JOIN queries (user dashboard)</step>
+      <step>Run tests and measure response times (target &lt;100ms)</step>
+      <step>Identify slow queries using Supabase performance insights</step>
+      <step>Create indexes for slow queries and re-run tests</step>
+    </phase>
+
+    <phase name="Blockchain Throughput Tests">
+      <step>Write k6 script to simulate 100 bets/minute on Solana devnet</step>
+      <step>Measure transaction success rate (target &gt;99%)</step>
+      <step>Test concurrent market creation transactions</step>
+      <step>Test vote submission throughput under load</step>
+      <step>Measure transaction confirmation times</step>
+      <step>Document RPC endpoint performance and limitations</step>
+    </phase>
+
+    <phase name="WebSocket and Real-Time Tests">
+      <step>Write k6 script for 500+ concurrent WebSocket connections</step>
+      <step>Measure real-time update latency (market odds changes)</step>
+      <step>Test subscription scalability (add/remove clients dynamically)</step>
+      <step>Verify message delivery reliability under load</step>
+      <step>Test reconnection handling and backlog processing</step>
+      <step>Document WebSocket server performance limits</step>
+    </phase>
+
+    <phase name="Event Listener Stress Tests">
+      <step>Simulate 1,000 Solana events/minute to event listener</step>
+      <step>Measure event processing latency (target &lt;1s)</step>
+      <step>Verify sync accuracy (events → database consistency)</step>
+      <step>Test event queue handling under backlog conditions</step>
+      <step>Measure database write throughput during event processing</step>
+      <step>Identify and fix event processing bottlenecks</step>
+    </phase>
+
+    <phase name="Vote Aggregation Tests">
+      <step>Create test scenario with 10,000 votes for proposal resolution</step>
+      <step>Measure vote aggregation processing time (target &lt;10s)</step>
+      <step>Test vote aggregation for market resolution (similar load)</step>
+      <step>Optimize aggregation algorithms if target not met</step>
+      <step>Test concurrent vote submissions during aggregation</step>
+      <step>Document vote processing limits and optimization results</step>
+    </phase>
+
+    <phase name="Performance Documentation">
+      <step>Run full load test suite on staging environment</step>
+      <step>Generate performance benchmark report with graphs</step>
+      <step>Document baseline metrics for all components</step>
+      <step>Set up continuous performance monitoring with Grafana</step>
+      <step>Define performance SLAs and alerting thresholds</step>
+    </phase>
+
+    <phase name="Optimization">
+      <step>Analyze load test results to identify bottlenecks</step>
+      <step>Database: Add missing indexes, optimize slow queries</step>
+      <step>Caching: Implement Redis or in-memory cache where beneficial</step>
+      <step>Event Listener: Implement batch processing and parallel workers</step>
+      <step>Frontend: Lazy loading, code splitting, asset optimization</step>
+      <step>Re-run load tests to verify optimizations achieved targets</step>
+      <step>Document all performance improvements and results</step>
+    </phase>
+  </implementation-guidance>
+
+  <risks>
+    <risk id="1">
+      <description>Load tests may impact production if not properly isolated</description>
+      <mitigation>Use dedicated staging environment and Solana devnet, never test against production</mitigation>
+    </risk>
+    <risk id="2">
+      <description>Performance targets may not be achievable without infrastructure scaling</description>
+      <mitigation>Document infrastructure limitations and recommended scaling strategies (database replicas, caching layer)</mitigation>
+    </risk>
+    <risk id="3">
+      <description>RPC endpoint rate limits may prevent transaction throughput testing</description>
+      <mitigation>Use multiple RPC endpoints, implement request throttling, document rate limit impacts</mitigation>
+    </risk>
+    <risk id="4">
+      <description>k6 learning curve may slow initial implementation</description>
+      <mitigation>Start with simple load tests, reference k6 documentation and examples, build complexity incrementally</mitigation>
+    </risk>
+  </risks>
+
+  <success-metrics>
+    <metric>All 8 acceptance criteria met with documented evidence</metric>
+    <metric>Database queries: &lt;100ms response time at 95th percentile for 1,000+ concurrent queries</metric>
+    <metric>Transaction throughput: 100+ bets/minute with &gt;99% success rate</metric>
+    <metric>WebSocket: 500+ concurrent connections with &lt;200ms update latency</metric>
+    <metric>Event processing: 1,000 events/minute with 100% sync accuracy</metric>
+    <metric>Vote aggregation: 10,000 votes processed in &lt;10 seconds</metric>
+    <metric>Performance report completed with baselines, graphs, and optimization recommendations</metric>
+    <metric>At least 3 identified bottlenecks optimized with measurable improvement</metric>
+  </success-metrics>
+
+  <references>
+    <reference type="doc">docs/epics.md - Story 4.4 acceptance criteria</reference>
+    <reference type="doc">docs/PRD.md - Performance requirements</reference>
+    <reference type="doc">docs/architecture.md - System architecture and scalability</reference>
+    <reference type="code">tests/integration/config.ts - Existing test configuration</reference>
+    <reference type="code">tests/bulletproof-comprehensive.spec.ts - Transaction test patterns</reference>
+    <reference type="code">supabase/functions/sync-events/index.ts - Event listener implementation</reference>
+    <reference type="code">supabase/functions/aggregate-votes/index.ts - Vote aggregation logic</reference>
+    <reference type="external">https://k6.io/docs/ - k6 load testing documentation</reference>
+    <reference type="external">https://supabase.com/docs/guides/platform/performance - Supabase performance guide</reference>
+  </references>
+</story-context>

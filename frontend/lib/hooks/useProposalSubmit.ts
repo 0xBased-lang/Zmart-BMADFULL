@@ -81,8 +81,10 @@ export function useProposalSubmit() {
         programId
       );
 
-      // Devnet program addresses from Anchor.toml
-      const parameterStorageProgram = new PublicKey('J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD');
+      // Parameter Storage program address (from environment)
+      const parameterStorageProgram = new PublicKey(
+        process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+      );
 
       // Derive GlobalParameters PDA from ParameterStorage
       const [globalParameters] = PublicKey.findProgramAddressSync(

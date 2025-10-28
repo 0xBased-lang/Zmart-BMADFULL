@@ -16,7 +16,7 @@
  */
 
 import * as anchor from "@coral-xyz/anchor";
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 import { CoreMarkets } from "../target/types/core_markets";
@@ -147,7 +147,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
 
         const title = "Will BTC reach $100k by end of 2025?";
         const description = "Market resolves YES if Bitcoin reaches $100,000 USD on any major exchange before December 31, 2025 23:59:59 UTC.";
-        const resolutionTime = new BN(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60); // 1 year from now
+        const resolutionTime = new anchor.BN(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60); // 1 year from now
 
         await coreMarketsProgram.methods
           .createMarket(title, description, resolutionTime)
@@ -185,7 +185,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         // Create title at maximum allowed length (256 characters)
         const maxTitle = "A".repeat(256);
         const description = "Testing maximum title length boundary condition.";
-        const resolutionTime = new BN(Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
+        const resolutionTime = new anchor.BN(Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
 
         await coreMarketsProgram.methods
           .createMarket(maxTitle, description, resolutionTime)
@@ -216,7 +216,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         // Test special characters, emojis, unicode
         const specialTitle = "Will 🚀 SpaceX land on Mars? (2025-2030) $$$";
         const description = "Testing special characters: !@#$%^&*()_+-=[]{}|;':\",./<>?";
-        const resolutionTime = new BN(Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
+        const resolutionTime = new anchor.BN(Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60);
 
         await coreMarketsProgram.methods
           .createMarket(specialTitle, description, resolutionTime)
@@ -245,7 +245,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const market = Keypair.generate();
 
         // Set resolution time to 1 minute from now (minimum practical)
-        const minResolutionTime = new BN(Math.floor(Date.now() / 1000) + 60);
+        const minResolutionTime = new anchor.BN(Math.floor(Date.now() / 1000) + 60);
 
         await coreMarketsProgram.methods
           .createMarket("Quick Market Test", "Resolves in 1 minute", minResolutionTime)
@@ -274,7 +274,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const market = Keypair.generate();
 
         // Set resolution time to 10 years from now
-        const farFutureTime = new BN(Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60);
+        const farFutureTime = new anchor.BN(Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60);
 
         await coreMarketsProgram.methods
           .createMarket("2035 Prediction", "Long-term future market", farFutureTime)
@@ -300,7 +300,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const market = Keypair.generate();
 
         // Set resolution time in the past (should fail)
-        const pastTime = new BN(Math.floor(Date.now() / 1000) - 86400); // 1 day ago
+        const pastTime = new anchor.BN(Math.floor(Date.now() / 1000) - 86400); // 1 day ago
 
         await coreMarketsProgram.methods
           .createMarket("Past Market", "Should fail", pastTime)
@@ -328,7 +328,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const market = Keypair.generate();
 
         await coreMarketsProgram.methods
-          .createMarket("", "Empty title test", new BN(Math.floor(Date.now() / 1000) + 86400))
+          .createMarket("", "Empty title test", new anchor.BN(Math.floor(Date.now() / 1000) + 86400))
           .accounts({
             market: market.publicKey,
             creator: authority.publicKey,
@@ -357,7 +357,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.1 - Place Valid YES Bet (Baseline)", async () => {
       const start = Date.now();
       try {
-        const betAmount = new BN(10 * LAMPORTS_PER_USDC); // 10 USDC
+        const betAmount = new anchor.BN(10 * LAMPORTS_PER_USDC); // 10 USDC
 
         // Get market state before bet
         const marketBefore = await coreMarketsProgram.account.market.fetch(testMarket1.publicKey);
@@ -395,7 +395,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.2 - Place Valid NO Bet (Baseline)", async () => {
       const start = Date.now();
       try {
-        const betAmount = new BN(10 * LAMPORTS_PER_USDC); // 10 USDC
+        const betAmount = new anchor.BN(10 * LAMPORTS_PER_USDC); // 10 USDC
 
         const marketBefore = await coreMarketsProgram.account.market.fetch(testMarket1.publicKey);
         const noPoolBefore = marketBefore.noPool.toNumber();
@@ -429,7 +429,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.3 - Minimum Bet Amount", async () => {
       const start = Date.now();
       try {
-        const minBet = new BN(MIN_BET_AMOUNT); // 1 USDC minimum
+        const minBet = new anchor.BN(MIN_BET_AMOUNT); // 1 USDC minimum
 
         await coreMarketsProgram.methods
           .placeBet(true, minBet)
@@ -450,7 +450,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.4 - Below Minimum Bet (Should Fail)", async () => {
       const start = Date.now();
       try {
-        const belowMin = new BN(MIN_BET_AMOUNT - 1);
+        const belowMin = new anchor.BN(MIN_BET_AMOUNT - 1);
 
         await coreMarketsProgram.methods
           .placeBet(true, belowMin)
@@ -473,7 +473,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
       const start = Date.now();
       try {
         await coreMarketsProgram.methods
-          .placeBet(true, new BN(0))
+          .placeBet(true, new anchor.BN(0))
           .accounts({
             market: testMarket1.publicKey,
             bettor: authority.publicKey,
@@ -492,7 +492,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.6 - Large Bet Amount", async () => {
       const start = Date.now();
       try {
-        const largeBet = new BN(100 * LAMPORTS_PER_USDC); // 100 USDC
+        const largeBet = new anchor.BN(100 * LAMPORTS_PER_USDC); // 100 USDC
 
         const marketBefore = await coreMarketsProgram.account.market.fetch(testMarket1.publicKey);
 
@@ -520,7 +520,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
     it("2.7 - Multiple Consecutive Bets", async () => {
       const start = Date.now();
       try {
-        const betAmount = new BN(5 * LAMPORTS_PER_USDC);
+        const betAmount = new anchor.BN(5 * LAMPORTS_PER_USDC);
 
         for (let i = 0; i < 5; i++) {
           await coreMarketsProgram.methods
@@ -612,7 +612,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const testMarket = Keypair.generate();
 
         await coreMarketsProgram.methods
-          .createMarket("Probability Test Market", "Testing probability impact", new BN(Math.floor(Date.now() / 1000) + 86400))
+          .createMarket("Probability Test Market", "Testing probability impact", new anchor.BN(Math.floor(Date.now() / 1000) + 86400))
           .accounts({
             market: testMarket.publicKey,
             creator: authority.publicKey,
@@ -623,7 +623,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .rpc();
 
         // Place large YES bet
-        const largeBet = new BN(1000 * LAMPORTS_PER_USDC);
+        const largeBet = new anchor.BN(1000 * LAMPORTS_PER_USDC);
 
         await coreMarketsProgram.methods
           .placeBet(true, largeBet)
@@ -695,7 +695,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .createMarket(
             "Resolution Test Market - YES",
             "This market will resolve to YES",
-            new BN(Math.floor(Date.now() / 1000) + 60) // 1 minute
+            new anchor.BN(Math.floor(Date.now() / 1000) + 60) // 1 minute
           )
           .accounts({
             market: testMarket2.publicKey,
@@ -708,7 +708,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
 
         // Place some bets
         await coreMarketsProgram.methods
-          .placeBet(true, new BN(50 * LAMPORTS_PER_USDC))
+          .placeBet(true, new anchor.BN(50 * LAMPORTS_PER_USDC))
           .accounts({
             market: testMarket2.publicKey,
             bettor: authority.publicKey,
@@ -717,7 +717,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .rpc();
 
         await coreMarketsProgram.methods
-          .placeBet(false, new BN(30 * LAMPORTS_PER_USDC))
+          .placeBet(false, new anchor.BN(30 * LAMPORTS_PER_USDC))
           .accounts({
             market: testMarket2.publicKey,
             bettor: authority.publicKey,
@@ -771,7 +771,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
       const start = Date.now();
       try {
         await coreMarketsProgram.methods
-          .placeBet(true, new BN(10 * LAMPORTS_PER_USDC))
+          .placeBet(true, new anchor.BN(10 * LAMPORTS_PER_USDC))
           .accounts({
             market: testMarket2.publicKey,
             bettor: authority.publicKey,
@@ -796,7 +796,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .createMarket(
             "Resolution Test Market - NO",
             "This market will resolve to NO",
-            new BN(Math.floor(Date.now() / 1000) + 60)
+            new anchor.BN(Math.floor(Date.now() / 1000) + 60)
           )
           .accounts({
             market: testMarket3.publicKey,
@@ -808,7 +808,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .rpc();
 
         await coreMarketsProgram.methods
-          .placeBet(true, new BN(20 * LAMPORTS_PER_USDC))
+          .placeBet(true, new anchor.BN(20 * LAMPORTS_PER_USDC))
           .accounts({
             market: testMarket3.publicKey,
             bettor: authority.publicKey,
@@ -817,7 +817,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
           .rpc();
 
         await coreMarketsProgram.methods
-          .placeBet(false, new BN(40 * LAMPORTS_PER_USDC))
+          .placeBet(false, new anchor.BN(40 * LAMPORTS_PER_USDC))
           .accounts({
             market: testMarket3.publicKey,
             bettor: authority.publicKey,
@@ -1002,7 +1002,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         const fakeMarket = Keypair.generate();
 
         await coreMarketsProgram.methods
-          .placeBet(true, new BN(10 * LAMPORTS_PER_USDC))
+          .placeBet(true, new anchor.BN(10 * LAMPORTS_PER_USDC))
           .accounts({
             market: fakeMarket.publicKey, // Doesn't exist
             bettor: authority.publicKey,
@@ -1022,7 +1022,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
       const start = Date.now();
       try {
         // Attempt multiple concurrent bets
-        const betAmount = new BN(5 * LAMPORTS_PER_USDC);
+        const betAmount = new anchor.BN(5 * LAMPORTS_PER_USDC);
 
         const betPromises = Array(3).fill(null).map(() =>
           coreMarketsProgram.methods
@@ -1053,7 +1053,7 @@ describe("🔬 Bulletproof Comprehensive Test Suite", () => {
         // Attempt invalid operation (should fail)
         try {
           await coreMarketsProgram.methods
-            .placeBet(true, new BN(0))
+            .placeBet(true, new anchor.BN(0))
             .accounts({
               market: testMarket1.publicKey,
               bettor: authority.publicKey,

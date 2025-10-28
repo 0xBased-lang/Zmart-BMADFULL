@@ -79,21 +79,21 @@ development_status:
   3-7-build-voting-interface-for-market-resolutions: done
   3-8-build-voting-interface-for-proposals: done
   3-9-build-leaderboards-and-user-profiles: done
-  3-10-build-admin-dashboard: backlog
-  3-11-implement-comments-and-discussion-system: backlog
-  3-12-implement-responsive-mobile-design-pwa: backlog
+  3-10-build-admin-dashboard: done
+  3-11-implement-comments-and-discussion-system: done
+  3-12-implement-responsive-mobile-design-pwa: done
   3-13-implement-accessibility-wcag-2-1-aa: backlog
   3-14-end-to-end-frontend-integration-test-and-performance-optimization: backlog
   epic-3-retrospective: optional
 
   # Epic 4: Testing, Hardening & Launch (12 stories)
   epic-4: backlog
-  4-1-implement-comprehensive-unit-tests-for-solana-programs: backlog
-  4-2-implement-integration-tests-for-multi-program-workflows: backlog
-  4-3-implement-frontend-e2e-tests-with-playwright: backlog
-  4-4-implement-load-testing-and-performance-benchmarking: backlog
-  4-5-conduct-internal-security-audit-with-anchor-tools: backlog
-  4-6-fix-identified-bugs-and-security-issues: backlog
+  4-1-implement-comprehensive-unit-tests-for-solana-programs: done
+  4-2-implement-integration-tests-for-multi-program-workflows: done
+  4-3-implement-frontend-e2e-tests-with-playwright: done
+  4-4-implement-load-testing-and-performance-benchmarking: framework-complete
+  4-5-conduct-internal-security-audit-with-anchor-tools: done
+  4-6-fix-identified-bugs-and-security-issues: in-progress
   4-7-deploy-all-programs-to-mainnet: backlog
   4-8-set-up-production-database-and-event-listener: backlog
   4-9-deploy-frontend-to-vercel-production: backlog

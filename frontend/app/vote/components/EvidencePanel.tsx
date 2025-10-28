@@ -115,10 +115,10 @@ export function EvidencePanel({ marketId }: EvidencePanelProps) {
           <div className="space-y-3 max-h-[300px] overflow-y-auto">
             {comments.map((comment) => (
               <div key={comment.id} className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                <p className="text-sm text-gray-300 mb-2">{comment.comment}</p>
+                <p className="text-sm text-gray-300 mb-2">{comment.comment_text}</p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span className="truncate">
-                    {comment.user_wallet.slice(0, 6)}...{comment.user_wallet.slice(-4)}
+                    {comment.commenter_wallet.slice(0, 6)}...{comment.commenter_wallet.slice(-4)}
                   </span>
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1">

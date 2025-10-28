@@ -1,0 +1,304 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>12</storyId>
+    <title>Implement Responsive Mobile Design (PWA)</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-28</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.12.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a mobile user</asA>
+    <iWant>the app to work smoothly on my phone and be installable</iWant>
+    <soThat>I can bet and vote from anywhere</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <name>Responsive CSS Refactoring</name>
+        <subtasks>
+          - Audit all pages (3.1-3.11) for mobile viewport issues
+          - Apply Tailwind responsive breakpoints (sm:, md:, lg:)
+          - Fix layout issues on 320px-768px viewports
+          - Test responsive grid layouts on all pages
+          - Ensure proper text wrapping and overflow handling
+        </subtasks>
+      </task>
+      <task id="2" ac="2">
+        <name>Mobile Navigation Implementation</name>
+        <subtasks>
+          - Create hamburger menu component (three-line icon)
+          - Implement slide-out/overlay navigation drawer
+          - Update Header component with mobile navigation toggle
+          - Add navigation links (Dashboard, Propose, Vote, Leaderboard, Admin)
+          - Test navigation on mobile devices
+        </subtasks>
+      </task>
+      <task id="3" ac="3">
+        <name>Touch Target Optimization</name>
+        <subtasks>
+          - Audit all interactive elements (buttons, links, inputs)
+          - Ensure ≥44px minimum tap target size
+          - Add adequate spacing between interactive elements (8px+)
+          - Test touch interactions on mobile devices
+          - Apply touch-friendly styling (larger hit areas)
+        </subtasks>
+      </task>
+      <task id="4" ac="4,5,6">
+        <name>PWA Configuration</name>
+        <subtasks>
+          - Create manifest.json with app metadata
+          - Generate app icons (192x192, 512x512 PNG)
+          - Configure service worker for offline capability
+          - Register service worker in Next.js App Router
+          - Test install prompt on Chrome Mobile/Safari iOS
+          - Verify offline functionality (cached pages)
+        </subtasks>
+      </task>
+      <task id="5" ac="7">
+        <name>Cross-Device Testing</name>
+        <subtasks>
+          - Test installation on iOS (Safari)
+          - Test installation on Android (Chrome)
+          - Verify standalone app behavior (no browser chrome)
+          - Test landscape and portrait orientations
+          - Validate touch gestures (swipe, tap, scroll)
+        </subtasks>
+      </task>
+      <task id="6" ac="8">
+        <name>Performance Optimization</name>
+        <subtasks>
+          - Run Lighthouse mobile audit
+          - Optimize images (Next.js Image component, WebP format)
+          - Implement code splitting and lazy loading
+          - Minimize bundle size (remove unused dependencies)
+          - Achieve Lighthouse mobile score ≥90
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">All pages responsive and functional on 320px+ width screens</criterion>
+    <criterion id="2">Mobile navigation: hamburger menu for header links</criterion>
+    <criterion id="3">Touch-friendly: buttons ≥44px tap targets, adequate spacing</criterion>
+    <criterion id="4">PWA manifest.json configured with app name, icons, theme colors</criterion>
+    <criterion id="5">Service worker registered for offline capability</criterion>
+    <criterion id="6">Install prompt appears on mobile browsers</criterion>
+    <criterion id="7">Successfully installs as PWA on iOS and Android</criterion>
+    <criterion id="8">Performance: Lighthouse mobile score ≥90</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR005: Usability & Accessibility</section>
+        <snippet>Frontend shall be responsive and functional on desktop and mobile browsers. UI shall achieve WCAG 2.1 AA compliance. Platform shall support Progressive Web App (PWA) standards for mobile installation. Page load shall complete in &lt;3 seconds on 3G connection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>UX Principles - Platform & Screens</section>
+        <snippet>Target Platforms: Responsive web application (desktop + mobile browsers), PWA for mobile installation. Design Constraints: Mobile-first approach, functional on 320px+ width, Sub-3-second page load on 3G, WCAG 2.1 AA compliance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Frontend Layer - Technology Stack</section>
+        <snippet>Next.js 15 with App Router, Tailwind CSS utility-first styling, Headless UI for accessible components. Mobile-first responsive design with breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Performance Considerations</section>
+        <snippet>Next.js 15 Turbopack builds, code splitting via dynamic imports, image optimization via Next.js Image, real-time subscriptions (avoid polling). Targets: Frontend page load &lt;3s on 3G, &lt;100ms UI interactions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 3.12: Implement Responsive Mobile Design (PWA)</section>
+        <snippet>All pages responsive on 320px+ screens, hamburger menu navigation, touch-friendly targets ≥44px, PWA manifest and service worker, install prompt on mobile browsers, Lighthouse mobile score ≥90.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>1-50</lines>
+        <reason>Root layout where PWA manifest link and service worker registration must be added. Currently contains HTML structure, metadata, and WalletProvider/Header integration.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/Header.tsx</path>
+        <kind>component</kind>
+        <symbol>Header</symbol>
+        <lines>1-100</lines>
+        <reason>Main navigation component that needs mobile hamburger menu added. Currently has desktop navigation links (Markets, Dashboard, Leaderboard, Propose, Vote, Admin) and WalletMultiButton.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>HomePage</symbol>
+        <lines>all</lines>
+        <reason>Homepage with market grid layout (Story 3.3) - needs responsive breakpoints for 1/2/3 column layouts on mobile/tablet/desktop.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/markets/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>MarketDetailPage</symbol>
+        <lines>all</lines>
+        <reason>Market detail page (Story 3.4) - betting panel and comments section need mobile-optimized layouts.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/dashboard/page.tsx</path>
+        <kind>page</kind>
+        <symbol>DashboardPage</symbol>
+        <lines>all</lines>
+        <reason>User dashboard (Story 3.5) - bet cards and stats grid need responsive treatment for mobile viewports.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/propose/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ProposePage</symbol>
+        <lines>all</lines>
+        <reason>Proposal creation (Story 3.6) - multi-step form needs mobile-friendly layout and touch targets.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/page.tsx</path>
+        <kind>page</kind>
+        <symbol>VotePage</symbol>
+        <lines>all</lines>
+        <reason>Resolution voting (Story 3.7) - evidence panels need mobile stacking layout.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/proposals/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ProposalsPage</symbol>
+        <lines>all</lines>
+        <reason>Proposal voting (Story 3.8) - proposal cards need responsive grid for mobile.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/leaderboard/page.tsx</path>
+        <kind>page</kind>
+        <symbol>LeaderboardPage</symbol>
+        <lines>all</lines>
+        <reason>Leaderboards (Story 3.9) - tables need to convert to list view on mobile viewports.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/admin/page.tsx</path>
+        <kind>page</kind>
+        <symbol>AdminPage</symbol>
+        <lines>all</lines>
+        <reason>Admin dashboard (Story 3.10) - dashboard panels need mobile stacking layout.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/globals.css</path>
+        <kind>styles</kind>
+        <symbol>global styles</symbol>
+        <lines>all</lines>
+        <reason>Global CSS where Tailwind is imported and custom styles defined. May need mobile-specific adjustments.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/next.config.ts</path>
+        <kind>config</kind>
+        <symbol>nextConfig</symbol>
+        <lines>all</lines>
+        <reason>Next.js configuration where PWA plugin (next-pwa) can be optionally configured for service worker generation.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="16.0.0">App Router framework with built-in image optimization and code splitting</package>
+        <package name="react" version="19.2.0">UI library</package>
+        <package name="tailwindcss" version="^4">Utility-first CSS framework with mobile-first responsive breakpoints</package>
+        <package name="@tailwindcss/postcss" version="^4">PostCSS plugin for Tailwind 4</package>
+        <package name="@headlessui/react" version="^2.2.9">Accessible UI components (for mobile navigation drawer)</package>
+        <package name="@types/node" version="^20">TypeScript types</package>
+        <package name="@types/react" version="^19">TypeScript types</package>
+      </node>
+      <optional>
+        <package name="next-pwa">Next.js PWA plugin for automatic service worker generation and manifest handling (can be added if needed, not currently in package.json)</package>
+      </optional>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Mobile-first approach: Start with 320px base styles, progressively enhance with sm (640px), md (768px), lg (1024px), xl (1280px) breakpoints using Tailwind responsive utilities</constraint>
+    <constraint>Touch targets: All interactive elements (buttons, links, inputs) must be ≥44px tap target size with ≥8px spacing between elements</constraint>
+    <constraint>PWA manifest requirements: name, short_name, start_url, display: standalone, theme_color, background_color, icons (192x192, 512x512)</constraint>
+    <constraint>Service worker strategy: Cache-first for static assets, network-first for API calls (Supabase, Solana RPC), offline fallback page</constraint>
+    <constraint>Service worker registration: Must be client-side in Next.js App Router (use 'use client' directive in component)</constraint>
+    <constraint>Performance targets: Lighthouse mobile score ≥90, page load &lt;3s on 3G, &lt;1s on WiFi</constraint>
+    <constraint>Image optimization: Use Next.js Image component everywhere, WebP format, proper width/height attributes</constraint>
+    <constraint>Code splitting: Dynamic imports for non-critical components, lazy loading for heavy components</constraint>
+    <constraint>Bundle size: Analyze with 'npm run build', remove unused dependencies, tree-shaking via Next.js</constraint>
+    <constraint>Cross-device testing: Test on iOS Safari, Android Chrome, verify standalone app behavior, test portrait/landscape orientations</constraint>
+    <constraint>Existing pages to refactor: Homepage (3.3), Market Detail (3.4), Dashboard (3.5), Propose (3.6), Vote (3.7), Proposals (3.8), Leaderboard (3.9), Admin (3.10), Comments (3.11)</constraint>
+    <constraint>Next.js 15 compatibility: All PWA features must work with App Router, manifest served from public/ directory</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MobileNav</name>
+      <kind>React component</kind>
+      <signature>function MobileNav(): JSX.Element</signature>
+      <path>frontend/app/components/layout/MobileNav.tsx</path>
+      <description>New hamburger menu component with slide-out drawer. State: isOpen (boolean), Icon: MenuIcon from Heroicons, Drawer: fixed overlay with navigation links matching desktop Header, includes WalletMultiButton</description>
+    </interface>
+    <interface>
+      <name>PWA Manifest</name>
+      <kind>JSON file</kind>
+      <signature>manifest.json</signature>
+      <path>frontend/public/manifest.json</path>
+      <description>PWA configuration with name: "BMAD-Zmart Prediction Markets", short_name: "BMAD-Zmart", display: "standalone", theme_color: "#3b82f6", background_color: "#0f172a", icons: [192x192, 512x512]</description>
+    </interface>
+    <interface>
+      <name>Service Worker</name>
+      <kind>JavaScript file</kind>
+      <signature>sw.js</signature>
+      <path>frontend/public/sw.js</path>
+      <description>Service worker implementing cache-first strategy for static assets, network-first for API calls, offline fallback page. Can be generated by next-pwa plugin or written manually.</description>
+    </interface>
+    <interface>
+      <name>Service Worker Registration</name>
+      <kind>React hook</kind>
+      <signature>useEffect hook in layout.tsx</signature>
+      <path>frontend/app/layout.tsx</path>
+      <description>Client-side service worker registration: if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js') }</description>
+    </interface>
+    <interface>
+      <name>Header (modified)</name>
+      <kind>React component</kind>
+      <signature>function Header(): JSX.Element</signature>
+      <path>frontend/app/components/Header.tsx</path>
+      <description>Add mobile nav toggle button (visible &lt;768px with md:hidden), hide desktop navigation on mobile, integrate MobileNav component</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Playwright for E2E tests (Epic 4, Story 4.3). Mobile testing strategy: Viewport emulation (320px, 375px, 768px, 1024px), touch event simulation, orientation testing (portrait/landscape). Performance testing: Lighthouse CLI for automated mobile score checks. Cross-browser testing: Chrome Mobile, Safari iOS, Firefox Mobile. PWA testing: Installation flow, standalone mode verification, offline functionality validation.
+    </standards>
+    <locations>
+      frontend/e2e/mobile-responsive.spec.ts - Playwright mobile viewport tests
+      frontend/e2e/pwa-install.spec.ts - PWA installation tests
+    </locations>
+    <ideas>
+      <test ac="1">Test all 9 pages (Stories 3.1-3.11) render correctly at 320px, 375px, 768px, 1024px viewports without horizontal scroll</test>
+      <test ac="1">Verify grid layouts adapt correctly: 1 column mobile, 2 columns tablet, 3 columns desktop</test>
+      <test ac="2">Test hamburger menu opens/closes, contains all navigation links, includes wallet connect button</test>
+      <test ac="2">Verify desktop navigation hidden on &lt;768px, mobile navigation shown</test>
+      <test ac="3">Measure tap target sizes for all buttons, links, inputs - verify ≥44px</test>
+      <test ac="3">Verify adequate spacing (≥8px) between interactive elements</test>
+      <test ac="4">Verify manifest.json accessible at /manifest.json with correct metadata</test>
+      <test ac="4,5">Verify service worker registers successfully in browser DevTools</test>
+      <test ac="6">Test install prompt appears on supported browsers (Chrome Mobile, Safari iOS)</test>
+      <test ac="7">Install app on iOS and Android, verify standalone mode (no browser chrome)</test>
+      <test ac="7">Test app launches in standalone mode after installation</test>
+      <test ac="8">Run Lighthouse mobile audit, verify Performance ≥90, Accessibility ≥95, Best Practices ≥95, SEO ≥90</test>
+      <test ac="8">Test page load time &lt;3s on simulated 3G network throttling</test>
+    </ideas>
+  </tests>
+</story-context>

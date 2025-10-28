@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <epic-id>4</epic-id>
+    <story-id>2</story-id>
+    <story-key>4-2-implement-integration-tests-for-multi-program-workflows</story-key>
+    <title>Implement Integration Tests for Multi-Program Workflows</title>
+    <status>drafted</status>
+    <generated-date>2025-10-28</generated-date>
+  </metadata>
+
+  <story-definition>
+    <as-a>developer</as-a>
+    <i-want>to test complete workflows that span multiple programs</i-want>
+    <so-that>I'm confident the modular architecture works cohesively</so-that>
+
+    <acceptance-criteria>
+      <criterion id="1">Integration test framework configured for multi-program scenarios</criterion>
+      <criterion id="2">Tests cover proposal submission → voting → market creation flow</criterion>
+      <criterion id="3">Tests cover market lifecycle: creation → betting → resolution → payout flow</criterion>
+      <criterion id="4">Tests cover dispute handling across programs</criterion>
+      <criterion id="5">Tests validate state consistency across program boundaries</criterion>
+      <criterion id="6">Tests run in CI/CD pipeline</criterion>
+      <criterion id="7">Documentation for writing integration tests</criterion>
+    </acceptance-criteria>
+
+    <technical-approach>
+      <approach>Multi-program integration test framework using Anchor Test Suite</approach>
+      <rationale>
+        - Anchor provides built-in support for multi-program testing
+        - Can simulate full user workflows across all programs
+        - Validates program interactions and state consistency
+        - Catches integration issues that unit tests miss
+      </rationale>
+    </technical-approach>
+
+    <dependencies>
+      <dependency type="story">Story 4.1 - Comprehensive unit tests foundation</dependency>
+      <dependency type="technical">All programs must be deployable</dependency>
+      <dependency type="technical">Anchor test framework configured</dependency>
+    </dependencies>
+  </story-definition>
+
+  <architecture-context>
+    <tech-stack>
+      <item>Solana blockchain platform</item>
+      <item>Anchor framework for program development</item>
+      <item>TypeScript/Mocha/Chai for testing</item>
+      <item>Solana test validator for local testing</item>
+    </tech-stack>
+
+    <program-modules>
+      <module name="proposal_system" path="programs/proposal-system">
+        <responsibility>Proposal submission and voting</responsibility>
+        <key-accounts>Proposal, ProposalVote</key-accounts>
+      </module>
+      <module name="core_markets" path="programs/core-markets">
+        <responsibility>Market creation and management</responsibility>
+        <key-accounts>Market, MarketState</key-accounts>
+      </module>
+      <module name="betting_engine" path="programs/betting-engine">
+        <responsibility>Bet placement and tracking</responsibility>
+        <key-accounts>Bet, BetPool</key-accounts>
+      </module>
+      <module name="market_resolution" path="programs/market-resolution">
+        <responsibility>Market outcome resolution</responsibility>
+        <key-accounts>Resolution, Outcome</key-accounts>
+      </module>
+      <module name="dispute_system" path="programs/dispute-system">
+        <responsibility>Dispute handling and evidence</responsibility>
+        <key-accounts>Dispute, Evidence</key-accounts>
+      </module>
+      <module name="payout_distribution" path="programs/payout-distribution">
+        <responsibility>Winnings distribution</responsibility>
+        <key-accounts>Payout, Claim</key-accounts>
+      </module>
+    </program-modules>
+
+    <integration-patterns>
+      <pattern name="Cross-Program Invocation (CPI)">
+        <description>Programs invoke each other using CPIs for coordinated workflows</description>
+        <example>proposal_system → core_markets (create market from approved proposal)</example>
+      </pattern>
+      <pattern name="Shared Account State">
+        <description>Programs read/write shared account state with proper ownership</description>
+        <example>betting_engine reads market state, market_resolution updates it</example>
+      </pattern>
+      <pattern name="Event Emission">
+        <description>Programs emit events for off-chain indexing and monitoring</description>
+        <example>All programs emit lifecycle events for frontend consumption</example>
+      </pattern>
+    </integration-patterns>
+
+    <critical-workflows>
+      <workflow name="Proposal-to-Market">
+        <steps>
+          <step>User submits proposal via proposal_system</step>
+          <step>Community votes on proposal</step>
+          <step>Proposal reaches approval threshold</step>
+          <step>proposal_system CPIs to core_markets to create market</step>
+          <step>Market becomes active and accepts bets</step>
+        </steps>
+      </workflow>
+      <workflow name="Market-Lifecycle">
+        <steps>
+          <step>Market created in core_markets</step>
+          <step>Users place bets via betting_engine</step>
+          <step>Market closes when resolution time reached</step>
+          <step>Outcome determined via market_resolution</step>
+          <step>Winnings distributed via payout_distribution</step>
+        </steps>
+      </workflow>
+      <workflow name="Dispute-Resolution">
+        <steps>
+          <step>Market resolved with outcome</step>
+          <step>User disputes via dispute_system</step>
+          <step>Evidence submitted and reviewed</step>
+          <step>Dispute resolved (upheld or rejected)</step>
+          <step>If upheld, market_resolution updates outcome</step>
+          <step>payout_distribution recalculates winnings</step>
+        </steps>
+      </workflow>
+    </critical-workflows>
+  </architecture-context>
+
+  <existing-test-patterns>
+    <test-file path="tests/bulletproof-comprehensive.spec.ts">
+      <description>Comprehensive end-to-end test covering full platform lifecycle</description>
+      <key-patterns>
+        <pattern>Multi-program setup with all program instances</pattern>
+        <pattern>User wallet creation and funding</pattern>
+        <pattern>Sequential workflow validation</pattern>
+        <pattern>State consistency checks across programs</pattern>
+      </key-patterns>
+    </test-file>
+    <test-file path="tests/e2e-full-lifecycle.ts">
+      <description>Full lifecycle test from proposal to payout</description>
+      <key-patterns>
+        <pattern>Proposal submission and voting flow</pattern>
+        <pattern>Market creation from approved proposal</pattern>
+        <pattern>Betting and resolution workflow</pattern>
+        <pattern>Payout claim validation</pattern>
+      </key-patterns>
+    </test-file>
+    <test-file path="tests/core-markets.ts">
+      <description>Core markets program test suite</description>
+      <key-patterns>
+        <pattern>Market creation and configuration</pattern>
+        <pattern>Market state transitions</pattern>
+        <pattern>Cross-program account validation</pattern>
+      </key-patterns>
+    </test-file>
+  </existing-test-patterns>
+
+  <implementation-guidance>
+    <test-structure>
+      <principle>Organize tests by workflow, not by program</principle>
+      <example>
+        - tests/integration/proposal-to-market.spec.ts
+        - tests/integration/market-lifecycle.spec.ts
+        - tests/integration/dispute-resolution.spec.ts
+      </example>
+    </test-structure>
+
+    <setup-requirements>
+      <requirement>Initialize all programs in beforeAll hook</requirement>
+      <requirement>Create and fund test wallets for different user roles</requirement>
+      <requirement>Set up shared state accounts (parameter storage, bond manager)</requirement>
+      <requirement>Configure test validator with required compute units</requirement>
+    </setup-requirements>
+
+    <validation-strategy>
+      <check type="state-consistency">Verify account state after each operation</check>
+      <check type="balance-tracking">Track SOL/token balances throughout workflow</check>
+      <check type="event-emission">Validate expected events were emitted</check>
+      <check type="error-handling">Test failure scenarios and rollbacks</check>
+      <check type="timing">Validate time-based transitions (market close, resolution)</check>
+    </validation-strategy>
+
+    <test-data-management>
+      <strategy>Generate realistic test data for proposals and markets</strategy>
+      <strategy>Use consistent test fixtures for reproducibility</strategy>
+      <strategy>Clean up accounts between tests to prevent interference</strategy>
+      <strategy>Parameterize tests for different scenarios (token types, bet amounts)</strategy>
+    </test-data-management>
+  </implementation-guidance>
+
+  <risks-and-mitigations>
+    <risk id="1">
+      <description>Test flakiness due to blockchain timing</description>
+      <mitigation>Use proper async/await patterns, add retry logic for timing-sensitive operations</mitigation>
+    </risk>
+    <risk id="2">
+      <description>State pollution between tests</description>
+      <mitigation>Create unique PDAs per test, implement thorough cleanup in afterEach</mitigation>
+    </risk>
+    <risk id="3">
+      <description>Compute unit limits in complex workflows</description>
+      <mitigation>Configure test validator with increased compute limits, optimize program calls</mitigation>
+    </risk>
+    <risk id="4">
+      <description>Test suite execution time</description>
+      <mitigation>Run tests in parallel where possible, use test.only for development</mitigation>
+    </risk>
+  </risks-and-mitigations>
+
+  <success-metrics>
+    <metric>All critical workflows covered by integration tests</metric>
+    <metric>Tests catch cross-program integration issues</metric>
+    <metric>Test suite runs in under 5 minutes</metric>
+    <metric>No flaky tests in CI/CD pipeline</metric>
+    <metric>Clear documentation enables team to write new integration tests</metric>
+  </success-metrics>
+
+  <references>
+    <reference type="code">tests/bulletproof-comprehensive.spec.ts</reference>
+    <reference type="code">tests/e2e-full-lifecycle.ts</reference>
+    <reference type="code">tests/core-markets.ts</reference>
+    <reference type="code">programs/*/src/lib.rs</reference>
+    <reference type="doc">docs/architecture.md</reference>
+    <reference type="doc">docs/epics.md - Epic 4</reference>
+    <reference type="external">https://www.anchor-lang.com/docs/testing</reference>
+  </references>
+</story-context>

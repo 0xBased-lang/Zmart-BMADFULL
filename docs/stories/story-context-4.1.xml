@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context xmlns="http://bmad.dev/story-context" version="1.0">
+
+  <metadata>
+    <story-id>4.1</story-id>
+    <epic-id>4</epic-id>
+    <epic-title>Testing, Hardening & Launch</epic-title>
+    <story-title>Implement Comprehensive Unit Tests for Solana Programs</story-title>
+    <generated-date>2025-10-28</generated-date>
+    <generated-by>BMAD Story Context Workflow v6.0.0</generated-by>
+    <user>ULULU</user>
+  </metadata>
+
+  <!-- CRITICAL CONTEXT FOR AI AGENT -->
+  <critical-info>
+    <primary-objective>
+      Implement comprehensive unit tests for all 6 Solana Anchor programs with >80% test coverage on critical paths.
+      Tests must validate betting, odds calculation, fee distribution, governance, bond management, and parameter storage.
+    </primary-objective>
+
+    <acceptance-criteria>
+      <criterion id="AC1">Anchor test suite expanded for all 6 programs</criterion>
+      <criterion id="AC2">CoreMarkets tests: betting, odds calculation, fee distribution, edge cases (dust, rounding)</criterion>
+      <criterion id="AC3">MarketResolution tests: voting, aggregation, dispute window, admin override</criterion>
+      <criterion id="AC4">ProposalSystem tests: creation, approval, rejection, bond refunds</criterion>
+      <criterion id="AC5">BondManager tests: deposit, refund scenarios, creator fee claims</criterion>
+      <criterion id="AC6">ParameterStorage tests: parameter updates, safety constraints, toggle management</criterion>
+      <criterion id="AC7">ProgramRegistry tests: registration, lookup, version tracking</criterion>
+      <criterion id="AC8">Test coverage measured: &gt;80% line coverage on critical functions</criterion>
+      <criterion id="AC9">All tests passing on localnet</criterion>
+    </acceptance-criteria>
+
+    <dependencies>
+      <dependency>
+        <story>Epic 1 (Stories 1.1-1.7)</story>
+        <requirement>All 6 Solana programs implemented and deployed to devnet</requirement>
+        <status>COMPLETED</status>
+      </dependency>
+      <dependency>
+        <story>Epic 2 (Stories 2.1-2.12)</story>
+        <requirement>Governance features (voting, disputes, admin override) functional</requirement>
+        <status>COMPLETED</status>
+      </dependency>
+      <dependency>
+        <story>Story 1.12</story>
+        <requirement>Programs deployed to devnet with test accounts</requirement>
+        <status>COMPLETED</status>
+      </dependency>
+    </dependencies>
+
+    <key-constraints>
+      <constraint>Test coverage must reach &gt;80% on all critical paths (betting, payouts, resolution)</constraint>
+      <constraint>Tests must run on localnet using Solana Test Validator</constraint>
+      <constraint>All tests must pass before story marked complete</constraint>
+      <constraint>Use Anchor test framework with TypeScript/Mocha/Chai</constraint>
+      <constraint>Test execution target: &lt;5 minutes for full test suite</constraint>
+    </key-constraints>
+  </critical-info>
+
+  <!-- ARCHITECTURAL CONTEXT -->
+  <architecture>
+    <section>Testing Strategy</section>
+    <testing-standards>
+      <coverage-targets>
+        <target component="Anchor programs" percentage="90%" criticality="security critical"/>
+        <target component="Critical paths (betting, payouts, resolution)" percentage="100%"/>
+        <target component="Business logic (fee calc, bond refunds)" percentage="90%"/>
+        <target component="Edge cases (dust, rounding, limits)" percentage="80%"/>
+        <target component="Admin functions (parameter updates, overrides)" percentage="70%"/>
+      </coverage-targets>
+
+      <test-framework>
+        <tool>Anchor Test Framework</tool>
+        <language>TypeScript</language>
+        <test-runner>Mocha + Chai</test-runner>
+        <environment>Solana Test Validator (localnet)</environment>
+      </test-framework>
+
+      <test-structure>
+        <location>/tests/*.ts</location>
+        <pattern>Mocha describe/it blocks</pattern>
+        <helpers>/tests/utils/</helpers>
+        <setup>before() hooks for account setup</setup>
+        <execution>anchor test</execution>
+      </test-structure>
+    </testing-standards>
+
+    <section>Key Test Scenarios (from architecture.md)</section>
+    <test-scenarios>
+      <scenario>
+        <name>Full market lifecycle</name>
+        <flow>bet → vote → payout</flow>
+        <programs>CoreMarkets, MarketResolution</programs>
+      </scenario>
+      <scenario>
+        <name>Governance flow</name>
+        <flow>propose → vote → approve</flow>
+        <programs>ProposalSystem, BondManager</programs>
+      </scenario>
+      <scenario>
+        <name>Fee distribution</name>
+        <focus>All BPS calculations</focus>
+        <programs>CoreMarkets, ParameterStorage</programs>
+      </scenario>
+      <scenario>
+        <name>State machine transitions</name>
+        <focus>Dispute window (48-hour)</focus>
+        <programs>MarketResolution</programs>
+      </scenario>
+    </test-scenarios>
+
+    <section>Anchor Configuration</section>
+    <anchor-config>
+      <file>/Anchor.toml</file>
+      <package-manager>yarn</package-manager>
+      <test-script>yarn run ts-mocha -p ./tsconfig.json -t 1000000 "tests/**/*.ts"</test-script>
+      <cluster>devnet</cluster>
+      <wallet>~/.config/solana/id.json</wallet>
+
+      <programs>
+        <program name="program_registry" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS" devnet="2ysaGgXXKK7fTjKp59nVyivP7yoUpf9QHJqQHAuavchP"/>
+        <program name="parameter_storage" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnT" devnet="J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD"/>
+        <program name="core_markets" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnU" devnet="6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV"/>
+        <program name="market_resolution" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnV" devnet="Hcxxt6W1HmKQmnUvqpgzNEqVG611Yzt2i4DUvwvkLRf2"/>
+        <program name="proposal_system" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnW" devnet="5XH5i8dypiB4Wwa7TkmU6dnk9SyUGqE92GiQMHypPekL"/>
+        <program name="bond_manager" localnet="Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnX" devnet="8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx"/>
+      </programs>
+    </anchor-config>
+  </architecture>
+
+  <!-- PROJECT STRUCTURE -->
+  <project-structure>
+    <section>Solana Programs</section>
+    <programs-directory>
+      <location>/programs/</location>
+      <programs>
+        <program>
+          <name>program-registry</name>
+          <path>/programs/program-registry/</path>
+          <source>/programs/program-registry/src/lib.rs</source>
+          <idl>/target/types/program_registry.ts</idl>
+          <purpose>Register and track program addresses by name</purpose>
+          <test-file>/tests/program-registry.ts</test-file>
+          <test-status>EXISTS (comprehensive coverage)</test-status>
+        </program>
+        <program>
+          <name>parameter-storage</name>
+          <path>/programs/parameter-storage/</path>
+          <source>/programs/parameter-storage/src/lib.rs</source>
+          <idl>/target/types/parameter_storage.ts</idl>
+          <purpose>Global parameters, feature toggles, cooldown management</purpose>
+          <test-file>/tests/parameter-storage.ts</test-file>
+          <test-status>NEEDS CREATION</test-status>
+        </program>
+        <program>
+          <name>core-markets</name>
+          <path>/programs/core-markets/</path>
+          <source>/programs/core-markets/src/lib.rs</source>
+          <idl>/target/types/core_markets.ts</idl>
+          <purpose>Betting mechanics, odds calculation, fee distribution</purpose>
+          <test-file>/tests/core-markets.ts</test-file>
+          <test-status>PARTIAL (bulletproof tests exist but not comprehensive)</test-status>
+        </program>
+        <program>
+          <name>market-resolution</name>
+          <path>/programs/market-resolution/</path>
+          <source>/programs/market-resolution/src/lib.rs</source>
+          <idl>/target/types/market_resolution.ts</idl>
+          <purpose>Voting, outcome determination, dispute window</purpose>
+          <test-file>/tests/market-resolution.ts</test-file>
+          <test-status>NEEDS CREATION</test-status>
+        </program>
+        <program>
+          <name>proposal-system</name>
+          <path>/programs/proposal-system/</path>
+          <source>/programs/proposal-system/src/lib.rs</source>
+          <idl>/target/types/proposal_system.ts</idl>
+          <purpose>Proposal creation, voting, approval, bond management</purpose>
+          <test-file>/tests/proposal-system.ts</test-file>
+          <test-status>PARTIAL (integration test exists)</test-status>
+        </program>
+        <program>
+          <name>bond-manager</name>
+          <path>/programs/bond-manager/</path>
+          <source>/programs/bond-manager/src/lib.rs</source>
+          <idl>/target/types/bond_manager.ts</idl>
+          <purpose>Bond deposits, refunds, creator fee claims</purpose>
+          <test-file>/tests/bond-manager.ts</test-file>
+          <test-status>NEEDS CREATION</test-status>
+        </program>
+      </programs>
+    </programs-directory>
+
+    <section>Existing Test Files</section>
+    <existing-tests>
+      <test-file>
+        <path>/tests/program-registry.ts</path>
+        <status>Comprehensive (325 lines)</status>
+        <coverage>
+          <initialization>✓ Registry initialization</initialization>
+          <registration>✓ Multiple program registration</registration>
+          <lookup>✓ Program address lookup</lookup>
+          <updates>✓ Version updates</updates>
+          <edge-cases>✓ Invalid inputs, unauthorized access, max lengths</edge-cases>
+        </coverage>
+        <use-as-template>YES - Excellent example of Anchor test patterns</use-as-template>
+      </test-file>
+
+      <test-file>
+        <path>/tests/core-markets-epic4-bulletproof.ts</path>
+        <status>Partial (150+ lines, focuses on resolution & payouts)</status>
+        <coverage>
+          <resolution>✓ Market resolution</resolution>
+          <payouts>✓ Payout claims</payouts>
+          <edge-cases>✓ Division by zero, rounding, overflow</edge-cases>
+          <missing>Betting tests, fee distribution tests, odds calculation tests</missing>
+        </coverage>
+        <use-as-template>YES - Shows helper functions pattern</use-as-template>
+      </test-file>
+
+      <test-file>
+        <path>/tests/proposal-creation-integration.ts</path>
+        <status>Integration test (partial coverage)</status>
+        <coverage>
+          <proposal-creation>✓ Basic proposal creation flow</proposal-creation>
+          <missing>Bond refunds, graduated scaling, market creation from proposals</missing>
+        </coverage>
+      </test-file>
+
+      <test-file>
+        <path>/tests/e2e-full-lifecycle.ts</path>
+        <status>E2E test (end-to-end flow)</status>
+        <note>Not unit tests - defers to Story 4.3 (E2E tests)</note>
+      </test-file>
+    </existing-tests>
+  </project-structure>
+
+  <!-- TEST IMPLEMENTATION PATTERNS -->
+  <implementation-patterns>
+    <section>Anchor Test Pattern (from program-registry.ts)</section>
+    <test-structure>
+      <import-pattern>
+```typescript
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { ProgramName } from "../target/types/program_name";
+import { expect } from "chai";
+```
+      </import-pattern>
+
+      <setup-pattern>
+```typescript
+describe("program-name", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.ProgramName as Program&lt;ProgramName&gt;;
+  const authority = provider.wallet as anchor.Wallet;
+
+  let pdaAccount: anchor.web3.PublicKey;
+  let bump: number;
+
+  before(async () => {
+    // Derive PDAs, fund test accounts
+    [pdaAccount, bump] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("seed")],
+      program.programId
+    );
+  });
+
+  describe("instruction_name", () => {
+    it("Should perform action successfully", async () => {
+      // Arrange: Setup test data
+      // Act: Execute instruction
+      const tx = await program.methods
+        .instructionName(params)
+        .accounts({ ... })
+        .rpc();
+
+      // Assert: Verify results
+      const account = await program.account.accountType.fetch(pdaAccount);
+      expect(account.field).to.equal(expected);
+    });
+  });
+});
+```
+      </setup-pattern>
+
+      <helper-functions>
+```typescript
+// Helper: Create and fund test account
+async function createAndFundAccount(lamports: number): Promise&lt;Keypair&gt; {
+  const keypair = Keypair.generate();
+  const airdropSignature = await provider.connection.requestAirdrop(
+    keypair.publicKey,
+    lamports
+  );
+  await provider.connection.confirmTransaction(airdropSignature);
+  return keypair;
+}
+
+// Helper: Get current timestamp
+function getCurrentTimestamp(): number {
+  return Math.floor(Date.now() / 1000);
+}
+
+// Helper: Wait for specific timestamp
+async function waitUntilTimestamp(targetTimestamp: number): Promise&lt;void&gt; {
+  const now = getCurrentTimestamp();
+  if (targetTimestamp &gt; now) {
+    const waitMs = (targetTimestamp - now) * 1000 + 1000;
+    await new Promise(resolve =&gt; setTimeout(resolve, waitMs));
+  }
+}
+```
+      </helper-functions>
+
+      <error-testing-pattern>
+```typescript
+it("Should fail with invalid input", async () => {
+  try {
+    await program.methods
+      .instructionName(invalidParams)
+      .accounts({ ... })
+      .rpc();
+
+    expect.fail("Should have thrown an error");
+  } catch (error: any) {
+    expect(error.error.errorCode.code).to.equal("ExpectedErrorCode");
+  }
+});
+```
+      </error-testing-pattern>
+    </test-structure>
+
+    <section>Critical Test Scenarios by Program</section>
+    <program-test-scenarios>
+      <program name="CoreMarkets">
+        <scenario>
+          <test>Market creation with valid parameters</test>
+          <verify>Market initialized with correct state</verify>
+        </scenario>
+        <scenario>
+          <test>Bet placement (YES/NO sides)</test>
+          <verify>Pools updated correctly</verify>
+        </scenario>
+        <scenario>
+          <test>Odds calculation: YES% = yes_pool / (yes_pool + no_pool)</test>
+          <verify>Accurate to 2 decimal places</verify>
+        </scenario>
+        <scenario>
+          <test>Fee distribution (BPS-based)</test>
+          <verify>Platform, team, burn, creator fees split correctly</verify>
+        </scenario>
+        <scenario>
+          <test>Edge case: Dust amounts</test>
+          <verify>No panic, handles &lt;0.001 SOL</verify>
+        </scenario>
+        <scenario>
+          <test>Edge case: Rounding errors</test>
+          <verify>Bounded to acceptable range (&lt;0.001 SOL)</verify>
+        </scenario>
+        <scenario>
+          <test>Minimum bet enforcement</test>
+          <verify>Rejects bets below min from ParameterStorage</verify>
+        </scenario>
+        <scenario>
+          <test>Maximum bet enforcement</test>
+          <verify>Rejects bets above max from ParameterStorage</verify>
+        </scenario>
+        <scenario>
+          <test>Market status validation</test>
+          <verify>Only ACTIVE markets accept bets</verify>
+        </scenario>
+      </program>
+
+      <program name="MarketResolution">
+        <scenario>
+          <test>Vote submission and recording</test>
+          <verify>Votes stored with correct weight</verify>
+        </scenario>
+        <scenario>
+          <test>Vote aggregation logic</test>
+          <verify>Democratic vs activity-based weight calculation</verify>
+        </scenario>
+        <scenario>
+          <test>Outcome determination (YES/NO/CANCELLED)</test>
+          <verify>Majority vote wins</verify>
+        </scenario>
+        <scenario>
+          <test>48-hour dispute window enforcement</test>
+          <verify>Cannot finalize before dispute window expires</verify>
+        </scenario>
+        <scenario>
+          <test>Admin override capability</test>
+          <verify>Admin can override disputed markets</verify>
+        </scenario>
+        <scenario>
+          <test>Market status update to RESOLVED</test>
+          <verify>Status transitions correctly</verify>
+        </scenario>
+      </program>
+
+      <program name="ProposalSystem">
+        <scenario>
+          <test>Proposal creation with bond requirement</test>
+          <verify>Bond transferred to escrow</verify>
+        </scenario>
+        <scenario>
+          <test>1% non-refundable proposal tax collection</test>
+          <verify>Tax collected correctly</verify>
+        </scenario>
+        <scenario>
+          <test>Proposal voting</test>
+          <verify>Votes recorded and tallied</verify>
+        </scenario>
+        <scenario>
+          <test>Proposal approval (≥60% YES votes)</test>
+          <verify>Approved when threshold met</verify>
+        </scenario>
+        <scenario>
+          <test>Proposal rejection and 50% bond refund</test>
+          <verify>50% returned, 50% forfeited</verify>
+        </scenario>
+        <scenario>
+          <test>Graduated bond scaling and creator fee tier</test>
+          <verify>Higher bond = higher creator fee tier</verify>
+        </scenario>
+        <scenario>
+          <test>Market creation from approved proposals</test>
+          <verify>Market created with correct parameters</verify>
+        </scenario>
+      </program>
+
+      <program name="BondManager">
+        <scenario>
+          <test>Bond deposit to escrow PDA</test>
+          <verify>Funds transferred securely</verify>
+        </scenario>
+        <scenario>
+          <test>Graduated bond refund logic</test>
+          <verify>Full on success, partial on rejection</verify>
+        </scenario>
+        <scenario>
+          <test>Creator fee claims</test>
+          <verify>Creators can claim fees after resolution</verify>
+        </scenario>
+        <scenario>
+          <test>PDA derivation security</test>
+          <verify>PDAs derived correctly with correct seeds</verify>
+        </scenario>
+        <scenario>
+          <test>Escrow account validation</test>
+          <verify>Only authorized can withdraw</verify>
+        </scenario>
+      </program>
+
+      <program name="ParameterStorage">
+        <scenario>
+          <test>Global parameters initialization</test>
+          <verify>Default values set correctly</verify>
+        </scenario>
+        <scenario>
+          <test>Parameter update with admin access control</test>
+          <verify>Only admin can update</verify>
+        </scenario>
+        <scenario>
+          <test>Cooldown enforcement</test>
+          <verify>Cannot update within cooldown period</verify>
+        </scenario>
+        <scenario>
+          <test>Max change % validation</test>
+          <verify>Rejects changes exceeding max %</verify>
+        </scenario>
+        <scenario>
+          <test>Feature toggle management</test>
+          <verify>Toggles enable/disable features correctly</verify>
+        </scenario>
+        <scenario>
+          <test>Parameter update events emission</test>
+          <verify>Events emitted with correct data</verify>
+        </scenario>
+      </program>
+
+      <program name="ProgramRegistry">
+        <scenario>
+          <test>Program registration with admin access</test>
+          <verify>Only admin can register programs</verify>
+        </scenario>
+        <scenario>
+          <test>Program address lookup by name</test>
+          <verify>Returns correct address</verify>
+        </scenario>
+        <scenario>
+          <test>Version tracking</test>
+          <verify>Version history maintained</verify>
+        </scenario>
+        <scenario>
+          <test>Registry account security</test>
+          <verify>Unauthorized cannot modify</verify>
+        </scenario>
+      </program>
+    </program-test-scenarios>
+  </implementation-patterns>
+
+  <!-- PERFORMANCE & QUALITY REQUIREMENTS -->
+  <performance-requirements>
+    <execution-time>
+      <target>&lt;5 minutes for full test suite</target>
+      <optimization>Use parallel test execution where possible</optimization>
+      <optimization>Skip deployment in iterative testing (--skip-deploy)</optimization>
+      <optimization>Cache test accounts between runs</optimization>
+    </execution-time>
+
+    <reliability>
+      <requirement>Use deterministic test data</requirement>
+      <requirement>Avoid time-based flakiness</requirement>
+      <requirement>Reset state between tests</requirement>
+      <requirement>Handle transaction timeouts gracefully</requirement>
+    </reliability>
+
+    <coverage-validation>
+      <tool>anchor test --coverage (if available)</tool>
+      <manual>Document uncovered edge cases</manual>
+      <reporting>Generate coverage report</reporting>
+    </coverage-validation>
+  </performance-requirements>
+
+  <!-- WORKFLOW INTEGRATION -->
+  <workflow-integration>
+    <test-execution>
+      <command-all>anchor test</command-all>
+      <command-specific>anchor test --skip-deploy --tests programs/core-markets</command-specific>
+      <command-coverage>anchor test --coverage</command-coverage>
+      <command-localnet>anchor test --provider.cluster localnet</command-localnet>
+    </test-execution>
+
+    <development-workflow>
+      <step>1. Write test cases following existing patterns (program-registry.ts)</step>
+      <step>2. Implement tests for one program at a time</step>
+      <step>3. Run tests locally: anchor test --skip-deploy</step>
+      <step>4. Fix failures and iterate</step>
+      <step>5. Measure coverage</step>
+      <step>6. Document uncovered edge cases</step>
+      <step>7. Verify all tests passing: anchor test</step>
+      <step>8. Mark story complete with coverage report</step>
+    </development-workflow>
+  </workflow-integration>
+
+  <!-- REFERENCES & LINKS -->
+  <references>
+    <source>
+      <file>/docs/epics.md</file>
+      <section>Epic 4, Story 4.1 (lines 845-848)</section>
+      <description>Original story acceptance criteria and user story</description>
+    </source>
+    <source>
+      <file>/docs/architecture.md</file>
+      <section>Testing Strategy (lines 657-678)</section>
+      <description>Overall testing approach and coverage targets</description>
+    </source>
+    <source>
+      <file>/Anchor.toml</file>
+      <description>Anchor project configuration and test script</description>
+    </source>
+    <source>
+      <file>/tests/program-registry.ts</file>
+      <description>Comprehensive test example to use as template</description>
+    </source>
+    <source>
+      <file>/tests/core-markets-epic4-bulletproof.ts</file>
+      <description>Helper functions and edge case testing patterns</description>
+    </source>
+    <source>
+      <file>/target/types/*.ts</file>
+      <description>Generated TypeScript IDL files for all programs</description>
+    </source>
+    <source>
+      <file>/programs/*/src/lib.rs</file>
+      <description>Program source code with instruction definitions</description>
+    </source>
+    <source>
+      <epic>Epic 1 (Foundation)</epic>
+      <description>All Solana programs implemented (Stories 1.1-1.7)</description>
+    </source>
+    <source>
+      <epic>Epic 2 (Governance)</epic>
+      <description>Voting, disputes, admin override (Stories 2.1-2.12)</description>
+    </source>
+  </references>
+
+  <!-- RISKS & MITIGATIONS -->
+  <risks-and-mitigations>
+    <risk>
+      <description>Test coverage measurement tools may not be available for Anchor</description>
+      <mitigation>Manually document coverage by tracking tested vs untested instructions</mitigation>
+      <mitigation>Use TypeScript code coverage tools as fallback</mitigation>
+    </risk>
+    <risk>
+      <description>Localnet Solana Test Validator may be slow</description>
+      <mitigation>Use --skip-deploy flag for iterative testing</mitigation>
+      <mitigation>Optimize test setup to reuse accounts where possible</mitigation>
+    </risk>
+    <risk>
+      <description>Cross-program invocations (CPI) may be difficult to test</description>
+      <mitigation>Test programs in isolation first</mitigation>
+      <mitigation>Use integration tests for CPI flows (defer to Story 4.2)</mitigation>
+    </risk>
+    <risk>
+      <description>Edge cases may reveal program bugs</description>
+      <mitigation>Document bugs as discovered</mitigation>
+      <mitigation>Create follow-up story (4.6) to fix identified issues</mitigation>
+    </risk>
+  </risks-and-mitigations>
+
+  <!-- AGENT GUIDANCE -->
+  <agent-guidance>
+    <approach>
+      <step>1. Start with ProgramRegistry tests (already comprehensive - use as template)</step>
+      <step>2. Create ParameterStorage tests (foundational - needed by other programs)</step>
+      <step>3. Create CoreMarkets tests (core betting logic - highest priority)</step>
+      <step>4. Create MarketResolution tests (voting and resolution logic)</step>
+      <step>5. Create ProposalSystem tests (governance logic)</step>
+      <step>6. Create BondManager tests (bond and refund logic)</step>
+      <step>7. Run full test suite and measure coverage</step>
+      <step>8. Document uncovered edge cases and generate coverage report</step>
+    </approach>
+
+    <naming-conventions>
+      <test-file>Use kebab-case: {program-name}.ts (e.g., core-markets.ts)</test-file>
+      <describe-block>Use program name: describe("core-markets", ...)</describe-block>
+      <nested-describe>Use instruction name: describe("place_bet", ...)</nested-describe>
+      <it-block>Use clear test descriptions: it("Should calculate odds correctly", ...)</it-block>
+    </naming-conventions>
+
+    <test-organization>
+      <pattern>Group tests by instruction (describe blocks)</pattern>
+      <pattern>Within each instruction, test: happy path, edge cases, error cases</pattern>
+      <pattern>Use before() for setup, afterEach() for cleanup if needed</pattern>
+      <pattern>Include helper functions at top of file or in utils/</pattern>
+    </test-organization>
+
+    <success-criteria>
+      <criterion>All 6 programs have comprehensive test files</criterion>
+      <criterion>All tests passing locally (anchor test)</criterion>
+      <criterion>&gt;80% line coverage on critical functions (measured or documented)</criterion>
+      <criterion>Edge cases documented (dust, rounding, limits, authorization)</criterion>
+      <criterion>Coverage report generated and included in story completion notes</criterion>
+    </success-criteria>
+  </agent-guidance>
+
+</story-context>

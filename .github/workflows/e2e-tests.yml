@@ -1,0 +1,214 @@
+# E2E Tests CI/CD Pipeline
+# Story 4.3 - Frontend E2E Tests with Playwright
+#
+# Automated end-to-end testing workflow that runs on:
+# - Push to main/develop branches
+# - Pull requests
+# - Manual workflow dispatch
+#
+# Tests run against devnet Solana network with mocked wallets
+
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/e2e-tests.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'frontend/**'
+  workflow_dispatch: # Allow manual trigger
+
+# Ensure only one workflow runs at a time for the same branch
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ================================
+  # E2E Test Execution
+  # ================================
+  e2e-tests:
+    name: E2E Tests (Chromium, Firefox, WebKit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run tests on multiple browsers in parallel
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Step 4: Install Playwright browsers
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      # Step 5: Copy test environment configuration
+      - name: Setup test environment
+        working-directory: frontend
+        run: |
+          cp .env.test .env.local
+          echo "Test environment configured for devnet"
+
+      # Step 6: Build Next.js application
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+
+      # Step 7: Run E2E tests
+      - name: Run E2E tests (${{ matrix.browser }})
+        working-directory: frontend
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+          CI: true
+
+      # Step 8: Upload test results on failure
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ github.run_number }}
+          path: frontend/playwright-report/
+          retention-days: 30
+
+      # Step 9: Upload test artifacts (screenshots, videos)
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-${{ matrix.browser }}-${{ github.run_number }}
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          retention-days: 30
+
+  # ================================
+  # Mobile and Responsive Tests
+  # ================================
+  mobile-tests:
+    name: E2E Tests (Mobile Viewports)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test on mobile viewports
+        device: [mobile-chrome, mobile-safari, tablet]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Setup test environment
+        working-directory: frontend
+        run: cp .env.test .env.local
+
+      - name: Build application
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run mobile E2E tests (${{ matrix.device }})
+        working-directory: frontend
+        run: npx playwright test --project=${{ matrix.device }}
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.device }}-${{ github.run_number }}
+          path: frontend/playwright-report/
+          retention-days: 30
+
+  # ================================
+  # Test Results Summary
+  # ================================
+  test-summary:
+    name: Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, mobile-tests]
+    if: always()
+
+    steps:
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: test-reports/
+
+      - name: Display test summary
+        run: |
+          echo "# E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Execution Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ E2E tests finished for all browsers and viewports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Tested Configurations:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Desktop:** Chromium, Firefox, WebKit" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mobile:** Chrome (Pixel 5), Safari (iPhone 12)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tablet:** iPad Pro" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 View detailed test reports in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+
+  # ================================
+  # Notify on Test Failures
+  # ================================
+  notify-failure:
+    name: Notify on Test Failure
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, mobile-tests]
+    if: failure()
+
+    steps:
+      - name: Test failure notification
+        run: |
+          echo "::error::E2E tests failed. Check test artifacts for details."
+          echo "# ❌ E2E Tests Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "One or more E2E tests failed. Please review:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Test artifacts in workflow artifacts section" >> $GITHUB_STEP_SUMMARY
+          echo "2. Screenshots and videos of failed tests" >> $GITHUB_STEP_SUMMARY
+          echo "3. Detailed test reports" >> $GITHUB_STEP_SUMMARY

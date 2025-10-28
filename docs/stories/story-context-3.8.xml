@@ -1,0 +1,310 @@
+<story-context id="story-3.8-build-voting-interface-for-proposals" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>8</storyId>
+    <title>Build Voting Interface for Proposals</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-27</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.8.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>community member</asA>
+    <iWant>to vote on market proposals to control what gets created</iWant>
+    <soThat>I can participate in platform governance and ensure quality markets</soThat>
+    <tasks>
+      <task id="1" ac="1">Create Proposals Route with Tab Navigation</task>
+      <task id="2" ac="2,3">Build Pending Proposals Tab</task>
+      <task id="3" ac="4">Implement Proposal Vote Buttons</task>
+      <task id="4" ac="5">Create Proposal Vote API Endpoint</task>
+      <task id="5" ac="6">Display Vote Confirmation</task>
+      <task id="6" ac="7">Build Historical Tabs</task>
+      <task id="7" ac="8">Testing and Integration</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Proposals route /proposals with tabs: Pending Votes, Approved, Rejected</criterion>
+    <criterion id="2">Pending tab shows proposals in VOTING status with countdown (7 days voting period)</criterion>
+    <criterion id="3">Proposal cards display: title, creator (wallet), bond amount, resolution criteria, current vote tally (YES %, NO %)</criterion>
+    <criterion id="4">YES/NO vote buttons trigger wallet signature (same UX as resolution voting - gas-free)</criterion>
+    <criterion id="5">Vote submission via API (/api/submit-proposal-vote)</criterion>
+    <criterion id="6">Vote confirmation and weight display</criterion>
+    <criterion id="7">Approved/Rejected tabs show historical proposals with outcomes and timestamps</criterion>
+    <criterion id="8">Successfully votes on proposals gas-free using Snapshot-style signatures</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/stories/story-3.7.md</path>
+        <title>Story 3.7: Build Voting Interface for Market Resolutions</title>
+        <section>Complete Implementation</section>
+        <snippet>Gas-free voting using Snapshot-style wallet signatures. Implements VoteButtons, useVoteSubmit, useVoteTally patterns. Real-time vote tallies with Supabase subscriptions. 12 E2E tests, A+ grade (96/100). All patterns directly reusable for proposal voting.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Pattern 2: Snapshot-Style Gas-Free Voting</section>
+        <snippet>Users sign vote messages with wallet.signMessage() without creating blockchain transactions. Backend verifies Ed25519 signatures and stores votes off-chain in PostgreSQL. Zero gas fees for voters while maintaining cryptographic security.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3: Frontend & UX</title>
+        <section>Story 3.8: Build Voting Interface for Proposals</section>
+        <snippet>Community members vote on market proposals to control what gets created. Proposals route with tabs (Pending Votes, Approved, Rejected). Gas-free voting using wallet signatures. 60% YES threshold for approval.</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.4-COMPLETE.md</path>
+        <title>Story 2.4: Implement Proposal Voting via Snapshot</title>
+        <section>Backend Implementation</section>
+        <snippet>Backend proposal voting logic implemented in Epic 2. Proposal status transitions: PENDING → VOTING (7 days) → APPROVED/REJECTED. 60% YES votes required for approval. Vote weight: democratic (1) or activity-based (user.activity_points).</snippet>
+      </doc>
+      <doc>
+        <path>docs/STORY-2.5-COMPLETE.md</path>
+        <title>Story 2.5: Implement Proposal Approval/Rejection Logic</title>
+        <section>Finalization Logic</section>
+        <snippet>Supabase Edge Function finalizes proposal votes after voting period. Calculates YES percentage, applies 60% threshold. Updates proposal status to APPROVED or REJECTED. Creates market if approved, refunds bond based on outcome.</snippet>
+      </doc>
+      <doc>
+        <path>database/migrations/001_initial_schema.sql</path>
+        <title>Database Schema</title>
+        <section>proposals and proposal_votes tables</section>
+        <snippet>proposals table: id, proposal_id, creator_wallet, title, description, bond_amount, bond_tier, status (PENDING/APPROVED/REJECTED), yes_votes, no_votes, total_voters, created_at, end_date. proposal_votes table: id, proposal_id, voter_wallet, vote_choice (YES/NO), timestamp, UNIQUE constraint per user per proposal.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>frontend/app/vote/components/VoteButtons.tsx</path>
+        <kind>component</kind>
+        <symbol>VoteButtons</symbol>
+        <lines>1-115</lines>
+        <reason>PATTERN TO REUSE: Gas-free voting component with wallet signature flow. Shows wallet connect guard, signing indicators, vote confirmation. Reuse as ProposalVoteButtons with proposal_id instead of market_id.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useVoteSubmit.ts</path>
+        <kind>hook</kind>
+        <symbol>useVoteSubmit</symbol>
+        <lines>1-119</lines>
+        <reason>PATTERN TO REUSE: Vote submission hook with Snapshot-style signing. Handles wallet.signMessage(), signature encoding, API submission, error handling. Reuse as useProposalVoteSubmit with /api/submit-proposal-vote endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useVoteTally.ts</path>
+        <kind>hook</kind>
+        <symbol>useVoteTally</symbol>
+        <lines>1-95</lines>
+        <reason>PATTERN TO REUSE: Real-time vote tally hook with Supabase subscriptions. Fetches yes/no votes, subscribes to changes, calculates percentages. Reuse as useProposalVoteTally querying proposal_votes table.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/components/VoteTally.tsx</path>
+        <kind>component</kind>
+        <symbol>VoteTally</symbol>
+        <lines>1-60</lines>
+        <reason>REUSE: Vote percentage bars component. Shows YES/NO percentages with color-coded bars and vote counts. Can reuse directly for proposals.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/components/VotingCountdown.tsx</path>
+        <kind>component</kind>
+        <symbol>VotingCountdown</symbol>
+        <lines>1-40</lines>
+        <reason>REUSE: Countdown timer component using date-fns. Shows remaining time until voting ends. Can reuse directly for 7-day proposal voting period.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/components/VotingMarketCard.tsx</path>
+        <kind>component</kind>
+        <symbol>VotingMarketCard</symbol>
+        <lines>1-98</lines>
+        <reason>PATTERN TO REUSE: Card component structure for voting items. Shows title, criteria, countdown, tally, vote buttons. Adapt as ProposalCard showing proposal details, creator, bond amount.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/api/submit-vote/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>POST</symbol>
+        <lines>1-94</lines>
+        <reason>PATTERN TO REUSE: API route for vote submission. Validates input, calls Supabase Edge Function, handles errors. Adapt as /api/submit-proposal-vote calling verify-vote-signature for proposals.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/supabase.ts</path>
+        <kind>service</kind>
+        <symbol>supabase</symbol>
+        <lines>all</lines>
+        <reason>REQUIRED: Supabase client for database queries and real-time subscriptions. Query proposals table filtered by status (PENDING/APPROVED/REJECTED), subscribe to proposal_votes changes.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>all</lines>
+        <reason>REQUIRED: Root layout with WalletProvider for wallet signature capability. Provides wallet context to all proposal voting components.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="@solana/wallet-adapter-react" version="^0.15.39">Wallet context and hooks for signature requests</package>
+        <package name="@solana/wallet-adapter-react-ui" version="^0.9.39">WalletMultiButton component</package>
+        <package name="@solana/web3.js" version="^1.98.4">Solana types and utilities</package>
+        <package name="@supabase/supabase-js" version="^2.76.1">Database client and real-time subscriptions</package>
+        <package name="react-hook-form" version="^7.65.0">Form state management (if needed)</package>
+        <package name="react-hot-toast" version="^2.6.0">Toast notifications for vote confirmation</package>
+        <package name="date-fns" version="^4.1.0">Date formatting and countdown calculations</package>
+        <package name="next" version="16.0.0">Next.js 15+ App Router with React 19</package>
+        <package name="tailwindcss" version="^4">Styling framework</package>
+        <package name="typescript" version="^5">Type safety</package>
+        <package name="@playwright/test" version="^1.56.1">E2E testing framework</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="architecture">
+      <rule>Reuse voting patterns from Story 3.7 - DO NOT reinvent. Copy VoteButtons → ProposalVoteButtons, useVoteSubmit → useProposalVoteSubmit, useVoteTally → useProposalVoteTally.</rule>
+      <rule>Use Snapshot-style gas-free voting: wallet.signMessage() for signatures, NOT sendTransaction(). Zero gas fees for voters.</rule>
+      <rule>Implement tab navigation with URL state synchronization. Tabs: Pending Votes, Approved, Rejected.</rule>
+      <rule>Query proposals table filtered by status field: PENDING for pending tab (not used in voting, but shown for context), APPROVED for approved tab, REJECTED for rejected tab. Note: Only proposals with status='VOTING' should show vote buttons (though story doesn't explicitly filter for VOTING status in DB query, backend controls this transition).</rule>
+      <rule>Subscribe to proposal_votes table changes for real-time vote tally updates using Supabase real-time subscriptions.</rule>
+    </constraint>
+    <constraint category="database">
+      <rule>Query proposals table: SELECT * FROM proposals WHERE status IN ('PENDING', 'APPROVED', 'REJECTED') ORDER BY created_at DESC.</rule>
+      <rule>Query proposal_votes table: SELECT vote_choice, vote_weight FROM proposal_votes WHERE proposal_id = $1.</rule>
+      <rule>Insert vote: INSERT INTO proposal_votes (proposal_id, voter_wallet, vote_choice, vote_weight, timestamp) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (proposal_id, voter_wallet) DO NOTHING.</rule>
+      <rule>UNIQUE constraint on (proposal_id, voter_wallet) prevents duplicate votes - handle 409 Conflict error gracefully.</rule>
+    </constraint>
+    <constraint category="ui-ux">
+      <rule>Show proposal cards with: title, creator (truncated wallet), bond amount (in ZMart), bond tier badge, resolution criteria (truncated), vote tally (YES %, NO %), countdown timer.</rule>
+      <rule>Vote buttons must show wallet connection guard. Display "Connect your wallet to vote" with WalletMultiButton if not connected.</rule>
+      <rule>During signature request, show loading state: "Waiting for wallet signature..." with spinner.</rule>
+      <rule>After voting, disable buttons and show confirmation: "You voted YES/NO" with vote weight.</rule>
+      <rule>Implement responsive design: mobile-first Tailwind CSS, grid layout for proposal cards.</rule>
+    </constraint>
+    <constraint category="voting">
+      <rule>Voting period: 7 days from proposal created_at. Calculate: endDate = created_at + 7 days.</rule>
+      <rule>Vote weight: Democratic mode (default) = 1. Activity-based mode = user.activity_points (fetch from users table if needed).</rule>
+      <rule>Approval threshold: 60% YES votes required. Formula: (yesVotes / (yesVotes + noVotes)) >= 0.6.</rule>
+      <rule>Vote message format: { proposal_id: string, vote_choice: 'YES' | 'NO', timestamp: number, nonce: number }. Sign with wallet.signMessage(), encode signature as base64.</rule>
+    </constraint>
+    <constraint category="api">
+      <rule>Create /api/submit-proposal-vote Next.js API route. Validate input (proposal_id, vote_choice, signature, voter_wallet).</rule>
+      <rule>Call Supabase Edge Function /verify-vote-signature (Epic 2 Story 2.1) to verify Ed25519 signature.</rule>
+      <rule>On verification success, insert vote into proposal_votes table. Handle duplicate vote error (409 status).</rule>
+      <rule>Return success response: { success: true, vote_id: string }. Return error response: { error: string } with appropriate status code (400, 401, 409, 500).</rule>
+    </constraint>
+    <constraint category="testing">
+      <rule>Write 12+ E2E tests with Playwright covering: page load, tabs, proposal cards, vote buttons, wallet connection, signature flow, vote submission, confirmation, real-time updates, responsive design, error cases.</rule>
+      <rule>Test edge cases: wallet not connected, signature rejection, duplicate vote, network errors, tab navigation.</rule>
+      <rule>Verify real-time vote tally updates by subscribing to proposal_votes table changes.</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Supabase Edge Function: /verify-vote-signature</name>
+      <kind>REST endpoint (POST)</kind>
+      <signature>
+POST /functions/v1/verify-vote-signature
+Headers: { Authorization: Bearer [anon-key], Content-Type: application/json }
+Body: { message: object, signature: string, voter_wallet: string }
+Response: { valid: boolean, error?: string }
+      </signature>
+      <path>supabase/functions/verify-vote-signature/index.ts</path>
+      <reason>Epic 2 Story 2.1 implementation. Verifies Ed25519 signature using nacl.sign.detached.verify(). Returns { valid: true } if signature matches message and voter_wallet.</reason>
+    </interface>
+    <interface>
+      <name>proposals table query</name>
+      <kind>Supabase query</kind>
+      <signature>
+supabase
+  .from('proposals')
+  .select('id, proposal_id, creator_wallet, title, description, bond_amount, bond_tier, status, yes_votes, no_votes, total_voters, created_at, end_date')
+  .eq('status', 'PENDING' | 'APPROVED' | 'REJECTED')
+  .order('created_at', { ascending: false })
+      </signature>
+      <path>database/migrations/001_initial_schema.sql</path>
+      <reason>Query proposals filtered by status for each tab. Pending tab may show PENDING status (pre-voting), Approved shows APPROVED, Rejected shows REJECTED.</reason>
+    </interface>
+    <interface>
+      <name>proposal_votes table query</name>
+      <kind>Supabase query</kind>
+      <signature>
+supabase
+  .from('proposal_votes')
+  .select('vote_choice, vote_weight')
+  .eq('proposal_id', proposalId)
+      </signature>
+      <path>database/migrations/001_initial_schema.sql</path>
+      <reason>Fetch all votes for a proposal to calculate yes/no tallies. Sum vote_weight for each vote_choice to get weighted totals.</reason>
+    </interface>
+    <interface>
+      <name>proposal_votes real-time subscription</name>
+      <kind>Supabase real-time channel</kind>
+      <signature>
+supabase
+  .channel(`proposal-votes:${proposalId}`)
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'proposal_votes',
+    filter: `proposal_id=eq.${proposalId}`
+  }, (payload) => { refetchTally() })
+  .subscribe()
+      </signature>
+      <path>frontend/lib/hooks/useProposalVoteTally.ts</path>
+      <reason>Subscribe to proposal_votes table changes for real-time vote tally updates. Refetch tallies when INSERT/UPDATE/DELETE events occur.</reason>
+    </interface>
+    <interface>
+      <name>wallet.signMessage()</name>
+      <kind>Wallet Adapter method</kind>
+      <signature>
+const { signMessage } = useWallet()
+const message = new TextEncoder().encode(JSON.stringify(voteMessage))
+const signature: Uint8Array = await signMessage(message)
+const signatureBase64 = Buffer.from(signature).toString('base64')
+      </signature>
+      <path>@solana/wallet-adapter-react</path>
+      <reason>Sign vote message with user's wallet private key. Returns Uint8Array signature. Encode as base64 for transmission to backend.</reason>
+    </interface>
+    <interface>
+      <name>/api/submit-proposal-vote API route</name>
+      <kind>Next.js API route (POST)</kind>
+      <signature>
+POST /api/submit-proposal-vote
+Body: {
+  message: { proposal_id: string, vote_choice: 'YES' | 'NO', timestamp: number, nonce: number },
+  signature: string (base64),
+  voter_wallet: string
+}
+Response: { success: boolean, vote_id?: string, error?: string }
+      </signature>
+      <path>frontend/app/api/submit-proposal-vote/route.ts</path>
+      <reason>Submit proposal vote to backend. Validates input, verifies signature via Edge Function, stores vote in proposal_votes table. Returns success or error with appropriate status code.</reason>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      E2E testing with Playwright (@playwright/test ^1.56.1). Test files in frontend/e2e/*.spec.ts. Run with `npm run test:e2e`. Tests should cover full user flows from page load to vote confirmation. Use conditional testing to handle varying data states (empty proposals, existing proposals). Verify UI elements, interactions, real-time updates, and error handling.
+    </standards>
+    <locations>
+      <location>frontend/e2e/proposal-voting.spec.ts</location>
+    </locations>
+    <ideas>
+      <test id="1" for="AC1,AC7">Page loads with correct tabs (Pending Votes, Approved, Rejected). Tab navigation works correctly. URL state synchronizes with active tab.</test>
+      <test id="2" for="AC2">Pending tab shows proposals in PENDING/VOTING status (note: story says VOTING, but may include PENDING for context). Empty state shown if no proposals.</test>
+      <test id="3" for="AC3">Proposal cards display all required fields: title, creator (truncated wallet), bond amount, bond tier badge, resolution criteria (truncated), vote tally (YES %, NO %), countdown timer.</test>
+      <test id="4" for="AC4">Vote buttons trigger wallet signature request. Wallet not connected shows connect prompt. Connected wallet shows YES/NO buttons.</test>
+      <test id="5" for="AC5,AC6,AC8">Vote submission flow: click YES → sign message → submit to API → verify success → show confirmation with vote weight → disable buttons → update tally.</test>
+      <test id="6" for="AC6">Vote confirmation displays user's vote choice (YES/NO) and vote weight (1 in democratic mode).</test>
+      <test id="7" for="AC7">Approved tab shows proposals with status='APPROVED'. Rejected tab shows status='REJECTED'. Cards show final vote tallies and timestamps.</test>
+      <test id="8" for="AC8">Real-time vote tally updates when new votes are cast (test with Supabase subscriptions).</test>
+      <test id="9" for="all">Responsive design: mobile layout (320px-768px), tablet (768px-1024px), desktop (1024px+). Grid layout adjusts properly.</test>
+      <test id="10" for="AC4">Error case: wallet not connected → shows "Connect your wallet to vote" with WalletMultiButton.</test>
+      <test id="11" for="AC4,AC5">Error case: signature rejected → shows error toast "Signature request was rejected".</test>
+      <test id="12" for="AC5">Error case: duplicate vote attempt → API returns 409 → shows error toast "You have already voted on this proposal".</test>
+      <test id="13" for="AC5">Error case: network error during submission → shows error toast "Failed to submit vote. Please try again."</test>
+      <test id="14" for="AC2">Countdown timer updates correctly. Shows "Voting ends in X days Y hours" format. Timer ticks down every second.</test>
+      <test id="15" for="AC3">Long resolution criteria is truncated with "Read more" button. Clicking expands full text. "Show less" collapses back.</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,6 +1,7 @@
 /**
  * Proposal Success Page
  * Story 3.6 - Build Proposal Creation Flow
+ * Fixed: Story 4.3 - Added Suspense boundary for useSearchParams()
  *
  * Displays success state after proposal submission
  */
@@ -8,10 +9,10 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 
-export default function ProposalSuccessPage() {
+function ProposalSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -196,5 +197,26 @@ export default function ProposalSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense boundary
+function ProposalSuccessLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-600">Loading proposal details...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function ProposalSuccessPage() {
+  return (
+    <Suspense fallback={<ProposalSuccessLoading />}>
+      <ProposalSuccessContent />
+    </Suspense>
   );
 }

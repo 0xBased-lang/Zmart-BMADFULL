@@ -36,16 +36,37 @@ export interface UserBet {
   updated_at: string
 }
 
-export interface MarketComment {
+// Comment on market for discussion and evidence sharing
+export interface Comment {
   id: string
   market_id: number
-  user_wallet: string
-  comment: string
+  commenter_wallet: string
+  comment_text: string
   upvotes: number
   flagged: boolean
   created_at: string
   updated_at: string
 }
+
+// Comment upvote tracking (one upvote per user per comment)
+export interface CommentUpvote {
+  id: string
+  comment_id: string
+  voter_wallet: string
+  created_at: string
+}
+
+// Comment flag for moderation
+export interface CommentFlag {
+  id: string
+  comment_id: string
+  flagger_wallet: string
+  reason: string | null
+  created_at: string
+}
+
+// Legacy alias (deprecated - use Comment instead)
+export interface MarketComment extends Comment {}
 
 export interface Vote {
   id: string

@@ -1,0 +1,603 @@
+{
+  "address": "J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD",
+  "metadata": {
+    "name": "parameter_storage",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "BMAD-Zmart Parameter Storage - Global configuration and feature toggles"
+  },
+  "docs": [
+    "BMAD-Zmart Parameter Storage",
+    "",
+    "Global configuration management with safety constraints.",
+    "Provides adjustable parameters and feature toggles without redeployment.",
+    "",
+    "Safety Features:",
+    "- Admin-only access control",
+    "- 24-hour cooldown between updates",
+    "- Maximum 20% change per update",
+    "- Event emission for audit trail"
+  ],
+  "instructions": [
+    {
+      "name": "initialize_parameters",
+      "docs": [
+        "Initialize global parameters and feature toggles",
+        "",
+        "Creates both PDA accounts with secure default values.",
+        "Can only be called once per deployment."
+      ],
+      "discriminator": [
+        137,
+        153,
+        17,
+        228,
+        249,
+        106,
+        56,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "parameters",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "toggles",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  116,
+                  111,
+                  103,
+                  103,
+                  108,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_parameter",
+      "docs": [
+        "Update a numeric parameter with safety checks",
+        "",
+        "Enforces cooldown period and maximum change percentage.",
+        "Emits event for audit trail."
+      ],
+      "discriminator": [
+        99,
+        187,
+        162,
+        136,
+        162,
+        32,
+        122,
+        2
+      ],
+      "accounts": [
+        {
+          "name": "parameters",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "parameters"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "param_type",
+          "type": {
+            "defined": {
+              "name": "ParameterType"
+            }
+          }
+        },
+        {
+          "name": "new_value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_toggle",
+      "docs": [
+        "Update a feature toggle",
+        "",
+        "Immediate effect, no cooldown (for emergency response).",
+        "Emits event for audit trail."
+      ],
+      "discriminator": [
+        50,
+        26,
+        97,
+        202,
+        210,
+        204,
+        226,
+        94
+      ],
+      "accounts": [
+        {
+          "name": "toggles",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  116,
+                  111,
+                  103,
+                  103,
+                  108,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "toggles"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "toggle_type",
+          "type": {
+            "defined": {
+              "name": "ToggleType"
+            }
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalFeatureToggles",
+      "discriminator": [
+        178,
+        61,
+        59,
+        126,
+        6,
+        31,
+        234,
+        253
+      ]
+    },
+    {
+      "name": "GlobalParameters",
+      "discriminator": [
+        98,
+        215,
+        159,
+        28,
+        204,
+        22,
+        241,
+        154
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ParameterUpdatedEvent",
+      "discriminator": [
+        65,
+        3,
+        240,
+        178,
+        147,
+        207,
+        153,
+        92
+      ]
+    },
+    {
+      "name": "ToggleUpdatedEvent",
+      "discriminator": [
+        129,
+        119,
+        113,
+        119,
+        147,
+        165,
+        141,
+        138
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: Only the authority can update parameters"
+    },
+    {
+      "code": 6001,
+      "name": "CooldownNotExpired",
+      "msg": "Cooldown period has not expired yet"
+    },
+    {
+      "code": 6002,
+      "name": "ChangeExceedsLimit",
+      "msg": "Parameter change exceeds maximum allowed percentage"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidValue",
+      "msg": "Invalid parameter value"
+    }
+  ],
+  "types": [
+    {
+      "name": "GlobalFeatureToggles",
+      "docs": [
+        "Global feature toggles"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can update toggles"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "market_creation_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "betting_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "resolution_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "proposals_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "emergency_pause",
+            "type": "bool"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalParameters",
+      "docs": [
+        "Global numeric parameters"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can update parameters"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "creation_bond_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "creator_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_market_size_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "min_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "dispute_window_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "bond_tier_1_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_2_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_3_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "update_cooldown_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_change_bps",
+            "type": "u16"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "cooldown_until",
+            "type": "i64"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParameterType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "CreationBond"
+          },
+          {
+            "name": "PlatformFee"
+          },
+          {
+            "name": "CreatorFee"
+          },
+          {
+            "name": "MinBet"
+          },
+          {
+            "name": "MaxBet"
+          },
+          {
+            "name": "MaxMarketSize"
+          },
+          {
+            "name": "MinDuration"
+          },
+          {
+            "name": "MaxDuration"
+          },
+          {
+            "name": "DisputeWindow"
+          },
+          {
+            "name": "BondTier1"
+          },
+          {
+            "name": "BondTier2"
+          },
+          {
+            "name": "BondTier3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParameterUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "param_type",
+            "type": {
+              "defined": {
+                "name": "ParameterType"
+              }
+            }
+          },
+          {
+            "name": "old_value",
+            "type": "u64"
+          },
+          {
+            "name": "new_value",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ToggleType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "MarketCreation"
+          },
+          {
+            "name": "Betting"
+          },
+          {
+            "name": "Resolution"
+          },
+          {
+            "name": "Proposals"
+          },
+          {
+            "name": "EmergencyPause"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ToggleUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "toggle_type",
+            "type": {
+              "defined": {
+                "name": "ToggleType"
+              }
+            }
+          },
+          {
+            "name": "old_value",
+            "type": "bool"
+          },
+          {
+            "name": "new_value",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

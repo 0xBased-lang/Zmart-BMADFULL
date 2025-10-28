@@ -2,14 +2,17 @@ import { MarketDetailClient } from './MarketDetailClient'
 import { notFound } from 'next/navigation'
 
 interface MarketDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function MarketDetailPage({ params }: MarketDetailPageProps) {
+  // Await params (Next.js 15 requirement)
+  const { id } = await params
+
   // Validate market ID
-  const marketId = parseInt(params.id)
+  const marketId = parseInt(id)
 
   if (isNaN(marketId) || marketId < 0) {
     notFound()
@@ -21,7 +24,9 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: MarketDetailPageProps) {
-  const marketId = parseInt(params.id)
+  // Await params (Next.js 15 requirement)
+  const { id } = await params
+  const marketId = parseInt(id)
 
   if (isNaN(marketId)) {
     return {

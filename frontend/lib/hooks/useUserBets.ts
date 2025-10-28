@@ -37,7 +37,7 @@ export function useUserBets(walletAddress: string | null): UseUserBetsReturn {
 
       // Fetch bets with market data
       const { data: betsData, error: betsError } = await supabase
-        .from('user_bets')
+        .from('bets')
         .select(`
           *,
           markets (
@@ -213,7 +213,7 @@ export function useUserBets(walletAddress: string | null): UseUserBetsReturn {
         {
           event: '*',
           schema: 'public',
-          table: 'user_bets',
+          table: 'bets',
           filter: `user_wallet=eq.${walletAddress}`
         },
         () => {

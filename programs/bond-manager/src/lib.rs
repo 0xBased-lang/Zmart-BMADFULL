@@ -1,6 +1,11 @@
 use anchor_lang::prelude::*;
+use std::str::FromStr;
 
 declare_id!("8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx");
+
+/// Parameter Storage Program ID string (for cross-program validation)
+/// SECURITY FIX M-01: Validate parameter_storage_program account
+const PARAMETER_STORAGE_PROGRAM_ID_STR: &str = "J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD";
 
 /// BMAD-Zmart Bond Manager
 ///
@@ -28,6 +33,14 @@ pub mod bond_manager {
         market_id: u64,
         bond_tier: BondTier,
     ) -> Result<()> {
+        // SECURITY FIX M-01: Validate parameter_storage_program ID
+        let expected_program_id = Pubkey::from_str(PARAMETER_STORAGE_PROGRAM_ID_STR)
+            .map_err(|_| BondError::InvalidParameterStorageProgram)?;
+        require!(
+            ctx.accounts.parameter_storage_program.key() == expected_program_id,
+            BondError::InvalidParameterStorageProgram
+        );
+
         let params = &ctx.accounts.global_parameters;
         let clock = Clock::get()?;
 
@@ -94,6 +107,14 @@ pub mod bond_manager {
         ctx: Context<RefundBond>,
         refund_type: RefundType,
     ) -> Result<()> {
+        // SECURITY FIX M-01: Validate parameter_storage_program ID
+        let expected_program_id = Pubkey::from_str(PARAMETER_STORAGE_PROGRAM_ID_STR)
+            .map_err(|_| BondError::InvalidParameterStorageProgram)?;
+        require!(
+            ctx.accounts.parameter_storage_program.key() == expected_program_id,
+            BondError::InvalidParameterStorageProgram
+        );
+
         let clock = Clock::get()?;
 
         // Validate and calculate refund amount (scoped to release borrow)
@@ -459,4 +480,7 @@ pub enum BondError {
 
     #[msg("Invalid fee amount: must be greater than 0")]
     InvalidFeeAmount,
+
+    #[msg("Invalid parameter storage program: must be J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD")]
+    InvalidParameterStorageProgram,
 }

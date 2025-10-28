@@ -8,6 +8,7 @@ import { OddsDisplay } from './components/OddsDisplay'
 import { BettingPanel } from './components/BettingPanel'
 import { MarketActivity } from './components/MarketActivity'
 import { OddsChart } from './components/OddsChart'
+import { CommentsSection } from './components/CommentsSection'
 import Link from 'next/link'
 
 interface MarketDetailClientProps {
@@ -316,6 +317,11 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
               />
             )}
           </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-8">
+          <CommentsSection marketId={marketId} />
         </div>
 
         {/* Keyboard Shortcuts Help (Desktop) */}

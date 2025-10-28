@@ -1,0 +1,383 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>3</storyId>
+    <title>Implement Frontend E2E Tests with Playwright</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-28</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-4.3.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a developer</asA>
+    <iWant>automated end-to-end tests covering all user journeys</iWant>
+    <soThat>frontend changes don't break core workflows</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <name>Playwright Setup and Wallet Automation</name>
+        <subtasks>
+          - Install and configure Playwright test framework
+          - Set up test environment configuration (devnet endpoints, test wallets)
+          - Implement wallet mock/automation for Phantom/Solana wallet
+          - Create test fixtures and helper utilities
+          - Configure CI/CD pipeline for automated test runs
+        </subtasks>
+      </task>
+      <task id="2" ac="2">
+        <name>Market Discovery and Betting Flow Tests</name>
+        <subtasks>
+          - Test: Connect wallet successfully
+          - Test: Browse markets on homepage
+          - Test: Navigate to market detail page
+          - Test: Place YES/NO bet with proper wallet confirmation
+          - Test: Verify bet appears in user dashboard
+          - Test: Verify bet updates real-time odds
+        </subtasks>
+      </task>
+      <task id="3" ac="3">
+        <name>Market Creation and Proposal Voting Tests</name>
+        <subtasks>
+          - Test: Submit market proposal via propose form
+          - Test: Verify proposal appears in proposals list
+          - Test: Cast vote on proposal (signature-based)
+          - Test: Verify vote tally updates in real-time
+          - Test: Verify approved proposal creates market
+          - Test: Verify bond refund for approved proposal
+        </subtasks>
+      </task>
+      <task id="4" ac="4">
+        <name>Market Resolution and Dispute Tests</name>
+        <subtasks>
+          - Test: Cast resolution vote on ended market
+          - Test: Verify vote aggregation
+          - Test: Flag market for dispute
+          - Test: Admin reviews disputed market
+          - Test: Admin resolves market (override if needed)
+          - Test: Verify resolution status updates across UI
+        </subtasks>
+      </task>
+      <task id="5" ac="5">
+        <name>Payout Claims Tests</name>
+        <subtasks>
+          - Test: Navigate to dashboard after market resolves
+          - Test: Identify claimable payout
+          - Test: Execute claim transaction
+          - Test: Verify payout received in wallet
+          - Test: Verify bet marked as claimed in UI
+        </subtasks>
+      </task>
+      <task id="6" ac="6">
+        <name>Responsive Design Tests</name>
+        <subtasks>
+          - Test: Mobile viewport (375px width) - all pages render correctly
+          - Test: Tablet viewport (768px width) - layouts adapt properly
+          - Test: Desktop viewport (1280px width) - full features accessible
+          - Test: Touch interactions on mobile (hamburger menu, buttons)
+          - Test: Orientation changes (portrait/landscape)
+        </subtasks>
+      </task>
+      <task id="7" ac="7">
+        <name>Accessibility Tests</name>
+        <subtasks>
+          - Test: Keyboard navigation through all interactive elements
+          - Test: Tab order is logical and complete
+          - Test: Focus indicators visible on all focusable elements
+          - Test: Screen reader compatibility (ARIA labels, semantic HTML)
+          - Test: Color contrast meets WCAG 2.1 AA standards
+          - Test: Form validation errors announced to screen readers
+        </subtasks>
+      </task>
+      <task id="8" ac="8">
+        <name>Test Suite Validation and CI Integration</name>
+        <subtasks>
+          - Run all tests against devnet backend
+          - Verify 100% test pass rate
+          - Configure parallel test execution
+          - Set up test reporting and screenshots on failure
+          - Integrate with GitHub Actions CI/CD
+          - Document test execution and maintenance procedures
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Playwright test suite with wallet mocking/automation</criterion>
+    <criterion id="2">Test: User connects wallet → browses markets → places bet → transaction succeeds</criterion>
+    <criterion id="3">Test: User proposes market → votes on proposal → proposal approves → market created</criterion>
+    <criterion id="4">Test: User votes on resolution → dispute flagged → admin reviews → market resolves</criterion>
+    <criterion id="5">Test: User claims payout after winning bet</criterion>
+    <criterion id="6">Test: Mobile responsive design (viewport testing)</criterion>
+    <criterion id="7">Test: Accessibility (keyboard navigation, screen reader)</criterion>
+    <criterion id="8">All E2E tests passing against devnet backend</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.3: Implement Frontend E2E Tests with Playwright</section>
+        <snippet>Test suite with wallet mocking/automation covering all user journeys: connect wallet, bet on markets, propose markets, vote on proposals, vote on resolutions, claim payouts. Includes mobile responsive and accessibility testing. All tests must pass against devnet backend.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements - All Features</section>
+        <snippet>Comprehensive functional requirements for market creation, betting, proposal voting, resolution voting, payout claims, and community governance that must be validated through E2E tests.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Testing Strategy & Technology Stack</section>
+        <snippet>Testing framework: Playwright for E2E tests. Frontend: Next.js 15 with App Router, React 19, Tailwind CSS 4. Testing against Solana devnet with wallet adapter integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-1.12.md</path>
+        <title>Story 1.12: End-to-End Integration Test and Devnet Deployment</title>
+        <section>Devnet Deployment</section>
+        <snippet>All Solana programs deployed to devnet in Epic 1. Frontend E2E tests should connect to these deployed programs using devnet RPC endpoint (https://api.devnet.solana.com).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.12.md</path>
+        <title>Story 3.12: Implement Responsive Mobile Design (PWA)</title>
+        <section>Mobile Navigation & Responsive Design</section>
+        <snippet>Mobile hamburger navigation, responsive grids (1/2/3 columns), touch targets ≥44px, PWA manifest. All pages tested for 320px+, 768px, 1280px viewports.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/playwright.config.ts</path>
+        <kind>config</kind>
+        <symbol>playwright.config</symbol>
+        <lines>all</lines>
+        <reason>Existing Playwright configuration file. Should be updated with proper devnet configuration, test environment settings, and browser projects.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/e2e/leaderboard.spec.ts</path>
+        <kind>test</kind>
+        <symbol>Leaderboard tests</symbol>
+        <lines>all</lines>
+        <reason>Example of existing E2E test structure. Shows pattern for navigation, assertions, and tab testing. Can be used as template for other tests.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/e2e/proposal-creation.spec.ts</path>
+        <kind>test</kind>
+        <symbol>Proposal creation tests</symbol>
+        <lines>all</lines>
+        <reason>Existing test for proposal creation flow. May need to be enhanced with wallet automation and devnet integration.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/e2e/voting.spec.ts</path>
+        <kind>test</kind>
+        <symbol>Voting tests</symbol>
+        <lines>all</lines>
+        <reason>Existing test for voting functionality. Should be enhanced to test full resolution flow against devnet.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/e2e/proposal-voting.spec.ts</path>
+        <kind>test</kind>
+        <symbol>Proposal voting tests</symbol>
+        <lines>all</lines>
+        <reason>Existing test for proposal voting. Should validate signature-based voting and real-time tally updates.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>HomePage</symbol>
+        <lines>all</lines>
+        <reason>Homepage with market discovery - needs E2E testing for browsing markets and navigation to detail pages.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/markets/[id]/page.tsx</path>
+        <kind>page</kind>
+        <symbol>MarketDetailPage</symbol>
+        <lines>all</lines>
+        <reason>Market detail page with betting interface - critical for AC #2 (betting flow tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/dashboard/page.tsx</path>
+        <kind>page</kind>
+        <symbol>DashboardPage</symbol>
+        <lines>all</lines>
+        <reason>User dashboard showing active bets and claimable payouts - needed for AC #5 (payout claims tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/propose/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ProposePage</symbol>
+        <lines>all</lines>
+        <reason>Market proposal creation flow - needed for AC #3 (proposal creation tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/page.tsx</path>
+        <kind>page</kind>
+        <symbol>VotePage</symbol>
+        <lines>all</lines>
+        <reason>Resolution voting interface - needed for AC #4 (market resolution tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/proposals/page.tsx</path>
+        <kind>page</kind>
+        <symbol>ProposalsPage</symbol>
+        <lines>all</lines>
+        <reason>Proposal voting interface - needed for AC #3 (proposal voting tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/admin/page.tsx</path>
+        <kind>page</kind>
+        <symbol>AdminPage</symbol>
+        <lines>all</lines>
+        <reason>Admin dashboard for dispute resolution - needed for AC #4 (admin override tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/WalletProvider.tsx</path>
+        <kind>component</kind>
+        <symbol>WalletProviderWrapper</symbol>
+        <lines>all</lines>
+        <reason>Wallet adapter integration - needs to be mocked for E2E tests to enable automated wallet interactions.</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/components/layout/MobileNav.tsx</path>
+        <kind>component</kind>
+        <symbol>MobileNav</symbol>
+        <lines>all</lines>
+        <reason>Mobile navigation hamburger menu - needed for AC #6 (responsive design tests).</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/package.json</path>
+        <kind>config</kind>
+        <symbol>dependencies</symbol>
+        <lines>1-47</lines>
+        <reason>Contains Playwright (@playwright/test: ^1.56.1) and all frontend dependencies. Test scripts already configured (test:e2e, test:e2e:ui).</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@playwright/test" version="^1.56.1">E2E testing framework - already installed</package>
+        <package name="@solana/wallet-adapter-react" version="^0.15.39">Wallet adapter for Solana - needs mocking in tests</package>
+        <package name="@solana/wallet-adapter-wallets" version="^0.19.37">Wallet implementations - needs mocking in tests</package>
+        <package name="@solana/web3.js" version="^1.98.4">Solana JavaScript SDK - for devnet interactions</package>
+        <package name="@supabase/supabase-js" version="^2.76.1">Supabase client - for real-time subscriptions</package>
+        <package name="next" version="16.0.0">Next.js framework - App Router with React 19</package>
+        <package name="react" version="19.2.0">React library</package>
+        <package name="tailwindcss" version="^4">CSS framework - for responsive design testing</package>
+        <package name="@headlessui/react" version="^2.2.9">UI components - used in mobile nav</package>
+      </node>
+      <optional>
+        <package name="@axe-core/playwright">Accessibility testing integration (may need to add)</package>
+      </optional>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>All tests must run against Solana devnet (https://api.devnet.solana.com) - NOT localnet or mainnet</constraint>
+    <constraint>Wallet automation required: Mock window.solana object to simulate Phantom wallet connect, signing, and transaction approval</constraint>
+    <constraint>Use deterministic test wallets with known private keys for predictable testing</constraint>
+    <constraint>Test data isolation: Each test should use unique test markets or reset state between runs</constraint>
+    <constraint>Parallel execution: Configure Playwright to run tests in parallel for faster CI/CD (max 4 workers)</constraint>
+    <constraint>Retry strategy: Configure 2 retries in CI environment for flaky network-dependent tests</constraint>
+    <constraint>Screenshot/video on failure: Capture evidence for debugging failed tests</constraint>
+    <constraint>Cross-browser testing: Test on Chromium (primary), Firefox, and WebKit (Safari)</constraint>
+    <constraint>Mobile viewports: Test 375px (mobile), 768px (tablet), 1280px (desktop) as defined in Story 3.12</constraint>
+    <constraint>Touch target validation: Verify all interactive elements meet 44px minimum size (Story 3.12 requirement)</constraint>
+    <constraint>Accessibility validation: Test keyboard navigation, focus indicators, ARIA labels, screen reader compatibility (WCAG 2.1 AA)</constraint>
+    <constraint>Real-time subscription testing: Verify Supabase subscriptions update UI correctly (odds, vote tallies, comments)</constraint>
+    <constraint>Test timeout: Set reasonable timeouts (30s max) to account for blockchain transaction finality on devnet</constraint>
+    <constraint>Environment variables: Use .env.test with NEXT_PUBLIC_SOLANA_NETWORK=devnet for test runs</constraint>
+    <constraint>CI/CD integration: Tests must run in GitHub Actions with Playwright browsers pre-installed</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Playwright Test Framework</name>
+      <kind>Testing API</kind>
+      <signature>test(), expect(), page.goto(), page.locator(), page.click(), page.fill()</signature>
+      <path>node_modules/@playwright/test</path>
+      <description>Playwright testing API for browser automation and assertions</description>
+    </interface>
+    <interface>
+      <name>Wallet Mock Interface</name>
+      <kind>Mock object</kind>
+      <signature>window.solana = { isPhantom: true, connect(), signTransaction(), signAllTransactions() }</signature>
+      <path>frontend/e2e/fixtures/wallet-mock.ts (to be created)</path>
+      <description>Mock Phantom wallet interface injected via page.addInitScript() for automated wallet interactions</description>
+    </interface>
+    <interface>
+      <name>Test Data Fixtures</name>
+      <kind>Test utilities</kind>
+      <signature>createTestMarket(), createTestProposal(), getTestWallet()</signature>
+      <path>frontend/e2e/fixtures/test-data.ts (to be created)</path>
+      <description>Helper functions to create consistent test data for markets, proposals, and wallets</description>
+    </interface>
+    <interface>
+      <name>Devnet RPC Endpoint</name>
+      <kind>External API</kind>
+      <signature>https://api.devnet.solana.com</signature>
+      <path>N/A (external)</path>
+      <description>Solana devnet RPC endpoint for blockchain interactions during E2E tests</description>
+    </interface>
+    <interface>
+      <name>Supabase Real-time API</name>
+      <kind>External API</kind>
+      <signature>supabase.channel().on('postgres_changes', ...)</signature>
+      <path>frontend/lib/supabase.ts</path>
+      <description>Supabase real-time subscriptions for live odds updates, vote tallies, and comments</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Playwright 1.56.1 for E2E tests. Test structure: test.describe() blocks with test.beforeEach() setup. Assertions: expect() from @playwright/test. Wallet automation: Mock window.solana via page.addInitScript(). Test environment: Devnet Solana RPC + Supabase test database. Test data: Deterministic test wallets with known keypairs. Parallel execution: 4 workers max in CI. Retry strategy: 2 retries in CI for network flakiness. Evidence capture: Screenshots and videos on failure. Cross-browser: Chromium (primary), Firefox, WebKit. Responsive testing: 375px mobile, 768px tablet, 1280px desktop. Accessibility: Keyboard nav, focus, ARIA, screen reader testing using Playwright accessibility API and axe-core.
+    </standards>
+    <locations>
+      frontend/e2e/market-discovery-betting.spec.ts (AC #2)
+      frontend/e2e/proposal-creation-voting.spec.ts (AC #3 - update existing)
+      frontend/e2e/market-resolution-dispute.spec.ts (AC #4 - update existing voting.spec.ts)
+      frontend/e2e/payout-claims.spec.ts (AC #5)
+      frontend/e2e/responsive-design.spec.ts (AC #6)
+      frontend/e2e/accessibility.spec.ts (AC #7)
+      frontend/e2e/fixtures/wallet-mock.ts (AC #1)
+      frontend/e2e/fixtures/test-data.ts (AC #1)
+      frontend/playwright.config.ts (AC #1, #8)
+      .github/workflows/e2e-tests.yml (AC #8)
+    </locations>
+    <ideas>
+      <test ac="1">Create wallet-mock.ts fixture that injects window.solana mock via page.addInitScript() with test keypair</test>
+      <test ac="1">Create test-data.ts with helpers for consistent test markets, proposals, and wallet generation</test>
+      <test ac="1">Update playwright.config.ts with devnet environment variables and browser projects</test>
+      <test ac="2">Test: Navigate to homepage → verify markets list loads → click market card → verify navigation to detail page</test>
+      <test ac="2">Test: On market detail → click "Connect Wallet" → mock connection → verify wallet address displayed</test>
+      <test ac="2">Test: Place YES bet for 10 SOL → mock transaction approval → verify bet confirmation toast</test>
+      <test ac="2">Test: After bet → navigate to dashboard → verify bet appears in "Active Bets" tab with market name and amount</test>
+      <test ac="2">Test: After bet → return to market detail → verify odds updated correctly based on new pool ratio</test>
+      <test ac="3">Test: Navigate to Propose page → fill form (title, description, end date, category) → submit → mock tx → verify success</test>
+      <test ac="3">Test: After proposal creation → navigate to Proposals page → verify new proposal in "Pending" tab</test>
+      <test ac="3">Test: Click "Vote" on proposal → mock signature → verify vote cast confirmation</test>
+      <test ac="3">Test: Verify vote tally updates in real-time using Supabase subscription</test>
+      <test ac="3">Test: When proposal reaches quorum → verify status changes to "Approved" → market created on homepage</test>
+      <test ac="4">Test: Navigate to Vote page → see ended markets → cast YES vote → mock signature → verify confirmation</test>
+      <test ac="4">Test: Flag market for dispute → fill dispute reason → submit → verify dispute badge appears</test>
+      <test ac="4">Test: As admin → navigate to Admin page → see disputed markets → click "Review" → resolve → mock tx</test>
+      <test ac="4">Test: Verify resolution status updates across UI (market detail, dashboard, vote page)</test>
+      <test ac="5">Test: After market resolves with winning bet → navigate to Dashboard → see "Claimable" tab with amount</test>
+      <test ac="5">Test: Click "Claim Payout" → mock transaction → verify success toast and payout received message</test>
+      <test ac="5">Test: Verify bet moved from "Claimable" to "Claimed" in dashboard</test>
+      <test ac="6">Test: Set viewport to 375px → verify mobile hamburger menu visible → click → verify drawer opens with links</test>
+      <test ac="6">Test: Set viewport to 768px → verify 2-column market grid → verify tablet navigation visible</test>
+      <test ac="6">Test: Set viewport to 1280px → verify 3-column market grid → verify full desktop navigation</test>
+      <test ac="6">Test: On mobile viewport → verify all buttons ≥44px tap target size using getBoundingClientRect()</test>
+      <test ac="6">Test: Rotate viewport (portrait to landscape) → verify layout adapts correctly</test>
+      <test ac="7">Test: Tab through homepage → verify focus moves through all interactive elements in logical order</test>
+      <test ac="7">Test: Verify focus indicators visible on all buttons, links, and form inputs</test>
+      <test ac="7">Test: Test keyboard shortcuts (Enter on buttons, Space on checkboxes, Arrow keys in tabs)</test>
+      <test ac="7">Test: Verify ARIA labels present on icon buttons and complex UI elements</test>
+      <test ac="7">Test: Run axe-core accessibility audit → verify no violations for WCAG 2.1 AA</test>
+      <test ac="7">Test: Verify color contrast ≥4.5:1 for text using Playwright color assertions</test>
+      <test ac="8">Test: Configure GitHub Actions workflow → install Playwright browsers → run full suite → verify all pass</test>
+      <test ac="8">Test: Verify test reports generated with screenshots for failures</test>
+      <test ac="8">Test: Verify parallel execution (4 workers) completes in <10 minutes</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,341 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>11</storyId>
+    <title>Implement Comments and Discussion System</title>
+    <status>Draft</status>
+    <generatedAt>2025-10-28</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-3.11.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user</asA>
+    <iWant>to comment on markets and discuss predictions</iWant>
+    <soThat>I can share evidence and debate with the community</soThat>
+    <tasks>
+      <task id="1" name="Database Schema and Migration">
+        <subtask>Create comments table migration with all required fields</subtask>
+        <subtask>Create comment_upvotes table for tracking upvotes</subtask>
+        <subtask>Create comment_flags table for flagged comments</subtask>
+        <subtask>Run migration on local and test database</subtask>
+      </task>
+      <task id="2" name="Comment Submission API">
+        <subtask>Create /api/submit-comment route handler with wallet signature validation</subtask>
+        <subtask>Add rate limiting (max 10 comments per hour per wallet)</subtask>
+        <subtask>Add comment length validation (max 2000 characters)</subtask>
+        <subtask>Write API tests for submission endpoint</subtask>
+      </task>
+      <task id="3" name="Comments Display Component">
+        <subtask>Create CommentsSection component with all display features</subtask>
+        <subtask>Integrate into market detail page (Story 3.4)</subtask>
+        <subtask>Add real-time updates (Supabase subscriptions)</subtask>
+        <subtask>Implement pagination or infinite scroll (if >50 comments)</subtask>
+      </task>
+      <task id="4" name="Comment Submission Form">
+        <subtask>Create comment submission form component with validation</subtask>
+        <subtask>Add wallet connection check</subtask>
+        <subtask>Test comment submission flow end-to-end</subtask>
+      </task>
+      <task id="5" name="Upvote Functionality">
+        <subtask>Create /api/upvote-comment route handler with toggle logic</subtask>
+        <subtask>Add upvote button to comment cards with optimistic UI</subtask>
+        <subtask>Create useCommentUpvote hook for upvote logic</subtask>
+        <subtask>Test upvote toggle functionality</subtask>
+      </task>
+      <task id="6" name="Comment Flagging">
+        <subtask>Create /api/flag-comment route handler</subtask>
+        <subtask>Add flag button to comment cards with confirmation</subtask>
+        <subtask>Add admin review queue (placeholder for now)</subtask>
+      </task>
+      <task id="7" name="Integration Testing">
+        <subtask>E2E test: User posts comment successfully</subtask>
+        <subtask>E2E test: Comments display in chronological order</subtask>
+        <subtask>E2E test: User upvotes comment (toggle on/off)</subtask>
+        <subtask>E2E test: Comment flagging flow</subtask>
+        <subtask>E2E test: Real-time comment updates</subtask>
+        <subtask>E2E test: Comment validation (max length, empty text)</subtask>
+        <subtask>E2E test: Wallet authentication required</subtask>
+        <subtask>Manual testing: Full comment workflow validation</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Comments Section: Comments section displayed on market detail page (Story 3.4 enhancement)</criterion>
+    <criterion id="2">Comments Database Table: comments table with fields: market_id, commenter_wallet, text, timestamp, upvotes</criterion>
+    <criterion id="3">Comment Submission API: /api/submit-comment endpoint with wallet signature authentication</criterion>
+    <criterion id="4">Comments Display: Comments shown in chronological order with truncated wallet address, timestamp, and upvote count</criterion>
+    <criterion id="5">Upvote Functionality: Upvote button with one upvote per wallet per comment restriction</criterion>
+    <criterion id="6">Comment Flagging: Flag button for inappropriate content (admin review queue)</criterion>
+    <criterion id="7">Functional Validation: Successfully posts and displays comments with all features working</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements: Content & Moderation</section>
+        <snippet>FR027: Market Comments - The system shall allow users to comment on markets for discussion and evidence sharing. FR028: Content Flagging - The system shall allow users to flag inappropriate comments. FR029: Moderation Tools - The system shall provide admin moderation tools for content review, comment removal, and user management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>User Journey 1: Bettor - Alex's Prediction Flow</section>
+        <snippet>Alex reviews current odds, checks market end date, resolution criteria, and creator reputation, then reads comments and community discussion before making a bet. Comments are integral to user research and decision-making process.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>User Journey 2: Market Creator - Jordan's Proposal Flow</section>
+        <snippet>Jordan monitors betting activity and discussion, engages in comments section, provides evidence updates. Comments enable creator engagement with community throughout market lifecycle.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Authentication Pattern</section>
+        <snippet>Wallet public key = user identity. Sign messages for off-chain actions. Transactions for on-chain actions. No email/password authentication. Ed25519 signature verification for Snapshot-style votes and off-chain interactions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Real-time Updates</section>
+        <snippet>Supabase real-time subscriptions used for live data updates. Frontend hooks like useMarketUpdates.ts implement subscriptions to avoid polling. Real-time pattern established in Epic 3 for market odds, vote tallies, and activity feeds.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Database Conventions</section>
+        <snippet>Tables: snake_case plural (e.g., markets, votes). Columns: snake_case (e.g., user_wallet, end_date). Foreign keys: {table}_id (e.g., market_id). TIMESTAMPTZ for all timestamps in UTC. PostgreSQL RLS for row-level security.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Frontend Security</section>
+        <snippet>Next.js automatic XSS escaping. Wallet adapter security best practices. Input sanitization required for user-generated content. Rate limiting on API endpoints via Edge Functions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Definitions</title>
+        <section>Epic 3: Story 3.11</section>
+        <snippet>Implement Comments and Discussion System. As a user, I want to comment on markets and discuss predictions, So that I can share evidence and debate with the community. Acceptance Criteria: Comments section on market detail page, database table with upvotes, API endpoint with wallet authentication, chronological display, upvote functionality, flagging mechanism.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.1.md</path>
+        <title>Story 3.1: Initialize Next.js with Wallet Adapter</title>
+        <section>Integration Foundation</section>
+        <snippet>Establishes Solana Wallet Adapter integration with Next.js 15 App Router. Provides WalletProvider context and wallet connection UI. Foundation for wallet signature authentication used across all user actions including comments.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.2.md</path>
+        <title>Story 3.2: Implement Supabase Client</title>
+        <section>Database and Real-time Foundation</section>
+        <snippet>Establishes Supabase client configuration for database access and real-time subscriptions. Provides patterns for creating custom hooks like useMarkets, useMarketUpdates. Foundation for comments database queries and real-time comment updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/story-3.4.md</path>
+        <title>Story 3.4: Build Market Detail Page with Betting Interface</title>
+        <section>Integration Point</section>
+        <snippet>Market detail page at /markets/[id] is the primary location for comments section integration. Page already includes market info, betting interface, and user interactions. Comments section will be added as additional component below betting interface.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>frontend/app/api/submit-vote/route.ts</path>
+        <kind>API Route</kind>
+        <symbol>POST handler</symbol>
+        <lines>1-100</lines>
+        <reason>Reference pattern for wallet signature validation, input validation, Supabase interaction, and error handling in API routes</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/hooks/useMarketUpdates.ts</path>
+        <kind>React Hook</kind>
+        <symbol>useMarketUpdates</symbol>
+        <lines>1-80</lines>
+        <reason>Reference pattern for Supabase real-time subscriptions, initial data fetch, and state management for live updates</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/supabase.ts</path>
+        <kind>Service</kind>
+        <symbol>supabase client</symbol>
+        <lines>full file</lines>
+        <reason>Supabase client configuration to be imported and used for all database operations</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/types/database.ts</path>
+        <kind>Type Definitions</kind>
+        <symbol>Database types</symbol>
+        <lines>full file</lines>
+        <reason>Existing database type definitions; new Comment types should follow same pattern and be added here</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/lib/utils/formatWallet.ts</path>
+        <kind>Utility</kind>
+        <symbol>formatWallet</symbol>
+        <lines>full file</lines>
+        <reason>Existing utility for formatting wallet addresses (first 4 + last 4 chars); reuse for comment author display</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/001_test_schema_for_story_3.9.sql</path>
+        <kind>Migration</kind>
+        <symbol>SQL schema</symbol>
+        <lines>full file</lines>
+        <reason>Reference migration pattern for creating tables, indexes, constraints, and RLS policies</reason>
+      </artifact>
+      <artifact>
+        <path>frontend/app/vote/components/VotingInterface.tsx</path>
+        <kind>Component</kind>
+        <symbol>VotingInterface</symbol>
+        <lines>full file</lines>
+        <reason>Reference component pattern for wallet-authenticated user interactions with optimistic UI updates</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="15.x">Next.js App Router for API routes and SSR</package>
+        <package name="react" version="18.x">React for UI components</package>
+        <package name="@supabase/supabase-js" version="latest">Supabase client for database and real-time subscriptions</package>
+        <package name="@solana/wallet-adapter-react" version="latest">Wallet integration for signature authentication</package>
+        <package name="react-hot-toast" version="latest">Toast notifications for success/error feedback</package>
+        <package name="tailwindcss" version="latest">Utility-first CSS framework</package>
+      </node>
+      <database>
+        <system>PostgreSQL 15.x (Supabase managed)</system>
+        <extensions>uuid-ossp, pgcrypto (for UUID generation)</extensions>
+      </database>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="authentication">Wallet signature required for all comment operations (submit, upvote, flag). No email/password authentication. Public key = user identity.</constraint>
+    <constraint category="database">Comments stored off-chain in PostgreSQL, not on Solana blockchain. Use Supabase for all database interactions.</constraint>
+    <constraint category="real-time">Real-time comment updates via Supabase subscriptions. Subscribe to comments table filtered by market_id. Avoid polling.</constraint>
+    <constraint category="security">Input sanitization required for comment text (prevent XSS). Next.js automatic escaping + manual validation for special cases.</constraint>
+    <constraint category="rate-limiting">Max 10 comments per hour per wallet. Implement in API route with timestamp checking.</constraint>
+    <constraint category="validation">Comment length: 1-2000 characters. Enforce in database schema (CHECK constraint) and frontend validation.</constraint>
+    <constraint category="naming">Follow established conventions: snake_case for database (e.g., comment_text), camelCase for TypeScript (e.g., commentText)</constraint>
+    <constraint category="ui-pattern">Comments section should integrate below betting interface on market detail page. Maintain consistent dark mode aesthetic.</constraint>
+    <constraint category="accessibility">WCAG 2.1 AA compliance required. Keyboard navigation, screen reader support, proper ARIA labels.</constraint>
+    <constraint category="testing">E2E tests with Playwright required. Cover all user workflows: submit, upvote, flag, real-time updates.</constraint>
+  </constraints>
+  <interfaces>
+    <api>
+      <endpoint>
+        <name>Submit Comment</name>
+        <kind>REST POST</kind>
+        <signature>POST /api/submit-comment { marketId: string, commentText: string, signature: string } → { success: boolean, comment: Comment }</signature>
+        <path>frontend/app/api/submit-comment/route.ts</path>
+      </endpoint>
+      <endpoint>
+        <name>Upvote Comment</name>
+        <kind>REST POST</kind>
+        <signature>POST /api/upvote-comment { commentId: string, signature: string } → { success: boolean, upvoted: boolean, upvotes: number }</signature>
+        <path>frontend/app/api/upvote-comment/route.ts</path>
+      </endpoint>
+      <endpoint>
+        <name>Flag Comment</name>
+        <kind>REST POST</kind>
+        <signature>POST /api/flag-comment { commentId: string, reason?: string, signature: string } → { success: boolean }</signature>
+        <path>frontend/app/api/flag-comment/route.ts</path>
+      </endpoint>
+    </api>
+    <database>
+      <table>
+        <name>comments</name>
+        <kind>PostgreSQL table</kind>
+        <signature>
+          CREATE TABLE comments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            market_id TEXT NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
+            commenter_wallet TEXT NOT NULL,
+            comment_text TEXT NOT NULL CHECK (length(comment_text) BETWEEN 1 AND 2000),
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW(),
+            upvotes INTEGER DEFAULT 0,
+            flagged BOOLEAN DEFAULT false
+          );
+          CREATE INDEX idx_comments_market_id ON comments(market_id);
+          CREATE INDEX idx_comments_created_at ON comments(created_at DESC);
+        </signature>
+        <path>supabase/migrations/010_comments_tables.sql</path>
+      </table>
+      <table>
+        <name>comment_upvotes</name>
+        <kind>PostgreSQL table</kind>
+        <signature>
+          CREATE TABLE comment_upvotes (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+            voter_wallet TEXT NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            UNIQUE(comment_id, voter_wallet)
+          );
+        </signature>
+        <path>supabase/migrations/010_comments_tables.sql</path>
+      </table>
+      <table>
+        <name>comment_flags</name>
+        <kind>PostgreSQL table</kind>
+        <signature>
+          CREATE TABLE comment_flags (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+            flagger_wallet TEXT NOT NULL,
+            reason TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            UNIQUE(comment_id, flagger_wallet)
+          );
+        </signature>
+        <path>supabase/migrations/010_comments_tables.sql</path>
+      </table>
+    </database>
+    <frontend>
+      <hook>
+        <name>useComments</name>
+        <kind>React hook</kind>
+        <signature>useComments(marketId: string) → { comments: Comment[], loading: boolean, error: Error | null, refetch: () ⇒ void }</signature>
+        <path>frontend/lib/hooks/useComments.ts</path>
+      </hook>
+      <hook>
+        <name>useCommentSubmit</name>
+        <kind>React hook</kind>
+        <signature>useCommentSubmit() → { submitComment: (marketId: string, text: string) ⇒ Promise&lt;void&gt;, loading: boolean, error: Error | null }</signature>
+        <path>frontend/lib/hooks/useCommentSubmit.ts</path>
+      </hook>
+      <hook>
+        <name>useCommentUpvote</name>
+        <kind>React hook</kind>
+        <signature>useCommentUpvote() → { toggleUpvote: (commentId: string) ⇒ Promise&lt;void&gt;, loading: boolean }</signature>
+        <path>frontend/lib/hooks/useCommentUpvote.ts</path>
+      </hook>
+    </frontend>
+  </interfaces>
+  <tests>
+    <standards>
+      E2E Testing: Playwright framework used for all end-to-end tests. Tests located in frontend/e2e/ directory with *.spec.ts naming convention. Tests should cover complete user workflows from wallet connection through feature interaction. API Testing: Unit tests for API routes using Vitest. Located adjacent to route files with *.test.ts naming. Component Testing: React component tests using Vitest + Testing Library. Co-located with components. Target: 80%+ test coverage for critical paths. All tests must pass before story completion.
+    </standards>
+    <locations>
+      <location>frontend/e2e/comments.spec.ts</location>
+      <location>frontend/app/api/submit-comment/route.test.ts</location>
+      <location>frontend/app/api/upvote-comment/route.test.ts</location>
+      <location>frontend/app/api/flag-comment/route.test.ts</location>
+      <location>frontend/lib/hooks/useComments.test.ts</location>
+      <location>frontend/lib/hooks/useCommentSubmit.test.ts</location>
+      <location>frontend/lib/hooks/useCommentUpvote.test.ts</location>
+    </locations>
+    <ideas>
+      <test id="AC1-comments-section" criteria="1">E2E test: Navigate to market detail page and verify comments section is displayed below betting interface. Check for empty state when no comments exist.</test>
+      <test id="AC2-database-table" criteria="2">Database test: Verify comments table exists with correct schema (market_id, commenter_wallet, comment_text, created_at, upvotes, flagged). Verify indexes on market_id and created_at.</test>
+      <test id="AC3-submit-api" criteria="3">API test: POST /api/submit-comment with valid signature, marketId, and commentText. Verify comment is inserted in database. Test validation errors (missing fields, invalid signature, too long text).</test>
+      <test id="AC4-display-comments" criteria="4">E2E test: Post multiple comments and verify they display in chronological order (newest first). Verify wallet address is truncated (first 4 + last 4). Verify timestamp shows relative time (e.g., "2 hours ago"). Verify upvote count is displayed.</test>
+      <test id="AC5-upvote-functionality" criteria="5">E2E test: User upvotes a comment (button highlights, count increments by 1). User clicks upvote again (button unhighlights, count decrements by 1). Verify one upvote per wallet restriction enforced.</test>
+      <test id="AC6-comment-flagging" criteria="6">E2E test: User clicks flag button, confirmation dialog appears. User confirms flag with optional reason. Verify flag is recorded in database. Verify user cannot flag same comment twice.</test>
+      <test id="AC7-functional-validation" criteria="7">E2E test: Full workflow - connect wallet, post comment, see comment appear immediately (real-time), upvote comment, flag inappropriate comment. Verify all features work end-to-end.</test>
+      <test id="EXTRA-real-time-updates" criteria="4">E2E test: Open market in two browser windows. Post comment in window 1, verify it appears in window 2 without refresh (Supabase real-time subscription working).</test>
+      <test id="EXTRA-rate-limiting" criteria="3">API test: Post 11 comments within 1 hour from same wallet. Verify 11th request is rejected with rate limit error.</test>
+      <test id="EXTRA-xss-prevention" criteria="3">API test: Submit comment with XSS payload (e.g., &lt;script&gt;alert('xss')&lt;/script&gt;). Verify payload is sanitized and does not execute when displayed.</test>
+      <test id="EXTRA-accessibility" criteria="all">Accessibility test: Verify keyboard navigation (Tab to comment form, Enter to submit, Tab to upvote/flag buttons). Verify screen reader announcements for actions (comment posted, upvote added). Run axe accessibility audit.</test>
+    </ideas>
+  </tests>
+</story-context>

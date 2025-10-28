@@ -80,7 +80,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
       // Get user bet PDA
       // Note: We need the bet index, which we should get from the database
       const { data: betData, error: betError } = await supabase
-        .from('user_bets')
+        .from('bets')
         .select('bet_index')
         .eq('user_wallet', publicKey.toBase58())
         .eq('market_id', marketId)
@@ -126,7 +126,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
 
       // Update database to mark bet as claimed
       const { error: updateError } = await supabase
-        .from('user_bets')
+        .from('bets')
         .update({ claimed: true })
         .eq('user_wallet', publicKey.toBase58())
         .eq('market_id', marketId)

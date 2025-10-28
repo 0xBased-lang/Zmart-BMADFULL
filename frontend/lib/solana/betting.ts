@@ -10,10 +10,16 @@ import * as anchor from '@project-serum/anchor'
 import { Program, AnchorProvider, BN } from '@project-serum/anchor'
 import idl from '@/lib/solana/idl/core_markets.json'
 
-// Program IDs (from deployment)
-const CORE_MARKETS_PROGRAM_ID = new PublicKey('6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV')
-const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey('2SaE3YvdsoNJZQxYPqLR9r59k2FDAGv7J1qCvzzQWLvW')
-const BOND_MANAGER_PROGRAM_ID = new PublicKey('DM1jJCkZZEwY5tmWbgvKRxsDFzXCdbfrYCCH1CiwWks1')
+// Program IDs (from environment variables - devnet/testnet/mainnet)
+const CORE_MARKETS_PROGRAM_ID = new PublicKey(
+  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+)
+const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
+  process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+)
+const BOND_MANAGER_PROGRAM_ID = new PublicKey(
+  process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
+)
 
 export interface PlaceBetParams {
   marketId: number
