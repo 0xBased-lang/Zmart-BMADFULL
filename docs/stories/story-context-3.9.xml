@@ -1,0 +1,1871 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story_context>
+  <metadata>
+    <story_id>3.9</story_id>
+    <story_key>3-9-build-leaderboards-and-user-profiles</story_key>
+    <epic>3 - Frontend &amp; UX</epic>
+    <title>Build Leaderboards and User Profiles</title>
+    <story_points>5</story_points>
+    <priority>P1</priority>
+    <status>draft</status>
+    <generated_date>2025-10-28</generated_date>
+    <context_version>1.0</context_version>
+  </metadata>
+
+  <story_summary>
+    <user_story>
+      As a **competitive user**,
+      I want to **see top performers and my ranking**,
+      So that **I can build reputation and compete with others**.
+    </user_story>
+
+    <business_value>
+      Leaderboards and user profiles add a competitive element to the platform, encouraging engagement through reputation building and social competition. This feature creates a meritocratic system where users can showcase their prediction accuracy and participation, driving long-term retention and community building.
+    </business_value>
+
+    <scope>
+      - Leaderboard system with 4 ranking categories (Points, Win Rate, Volume, Top Creators)
+      - User profile pages displaying comprehensive statistics
+      - Top 100 rankings per category with current user highlighting
+      - Recent activity tracking (bets placed, markets created)
+      - Database views for efficient leaderboard calculations
+      - Responsive design for mobile and desktop
+    </scope>
+  </story_summary>
+
+  <acceptance_criteria>
+    <criterion id="AC1" priority="critical">
+      <description>Leaderboard route `/leaderboard` with tabs: Top by Points, Top by Win Rate, Top by Volume, Top Creators</description>
+      <validation>
+        - Route accessible at /leaderboard
+        - Four distinct tabs rendered
+        - Tab switching updates displayed rankings
+        - Active tab highlighted visually
+        - URL synchronization with active tab (e.g., ?tab=win-rate)
+      </validation>
+    </criterion>
+
+    <criterion id="AC2" priority="critical">
+      <description>Each tab displays top 100 users with ranking, username (wallet address truncated), stat value, and profile link</description>
+      <validation>
+        - Maximum 100 users per leaderboard
+        - Ranking numbers 1-100 displayed
+        - Wallet addresses truncated to ${first4}...${last4} format
+        - Stat value matches tab category (points, win rate %, volume, market count)
+        - Clickable profile links for each user
+        - Desktop: Table view with all columns
+        - Mobile: Card/list view with key stats
+      </validation>
+    </criterion>
+
+    <criterion id="AC3" priority="high">
+      <description>Current user's ranking highlighted if in top 100</description>
+      <validation>
+        - Connected wallet address compared with leaderboard entries
+        - User's row has distinct background color/border
+        - Highlighting works across all tabs
+        - No highlighting if user not in top 100
+        - No highlighting if wallet not connected
+      </validation>
+    </criterion>
+
+    <criterion id="AC4" priority="critical">
+      <description>User profile route `/user/[wallet]` displays public stats: win rate, total bets, total profit, markets created, activity points</description>
+      <validation>
+        - Dynamic route works with any wallet address
+        - Five key stats displayed prominently:
+          * Win rate (percentage)
+          * Total bets (count)
+          * Total profit/loss (ZMart)
+          * Markets created (count)
+          * Activity points (total)
+        - Stats fetched from database for specified wallet
+        - Graceful handling of users with no activity
+        - ENS name displayed if available (future enhancement noted)
+      </validation>
+    </criterion>
+
+    <criterion id="AC5" priority="high">
+      <description>Profile shows recent bets and created markets</description>
+      <validation>
+        - Recent Bets section displays last 10 bets:
+          * Market title (linked)
+          * Bet amount
+          * Outcome (YES/NO)
+          * Status (pending/won/lost)
+          * Timestamp (relative format)
+        - Created Markets section displays user's markets:
+          * Market title (linked)
+          * Status (active/resolved/cancelled)
+          * Total volume
+          * Creation date
+        - Empty state handling if no recent activity
+        - Tabs or sections to switch between bets and created markets
+      </validation>
+    </criterion>
+
+    <criterion id="AC6" priority="critical">
+      <description>Successfully fetches leaderboard data from database</description>
+      <validation>
+        - Supabase queries execute successfully
+        - Data sorted correctly per category:
+          * Points: Descending by activity_points
+          * Win Rate: Descending by (wins/total_bets)
+          * Volume: Descending by total bet amount
+          * Creators: Descending by markets created count
+        - Limit 100 users enforced in query
+        - Real-time updates via Supabase subscriptions
+        - Caching with 5-minute TTL
+        - Error handling with retry logic
+      </validation>
+    </criterion>
+
+    <criterion id="AC7" priority="high">
+      <description>Responsive table/list view</description>
+      <validation>
+        - Desktop (≥768px): Full table with all columns visible
+        - Mobile (&lt;768px): Card/list view with essential stats
+        - Breakpoints use Tailwind 'md:' prefix (768px)
+        - Touch-friendly tap targets on mobile
+        - Horizontal scroll prevented
+        - Readable typography on all screen sizes
+      </validation>
+    </criterion>
+  </acceptance_criteria>
+
+  <technical_context>
+    <architecture_overview>
+      <description>
+        Story 3.9 builds on the established Next.js 15 App Router architecture with Supabase backend.
+        The leaderboard system requires:
+        1. Two new routes: /leaderboard and /user/[wallet]
+        2. Database views for efficient stat calculations
+        3. Custom hooks for data fetching with real-time subscriptions
+        4. Reusable tab navigation pattern from Stories 3.6-3.8
+        5. Responsive component patterns from Story 3.5 (Dashboard)
+      </description>
+
+      <key_technologies>
+        - Next.js 15 App Router (pages in app/ directory)
+        - React 19 with Server/Client Components
+        - TypeScript for type safety
+        - Tailwind CSS for styling
+        - Supabase for database queries
+        - Real-time subscriptions for live updates
+      </key_technologies>
+
+      <integration_points>
+        - Supabase database (users, bets, markets tables)
+        - Wallet adapter for current user highlighting
+        - Existing component patterns (tab navigation, loading states)
+        - Activity points system from Epic 1 Story 1.11
+      </integration_points>
+    </architecture_overview>
+
+    <database_schema>
+      <expected_tables>
+        <table name="users">
+          <purpose>User accounts and activity points</purpose>
+          <key_columns>
+            - wallet_address (PRIMARY KEY, text)
+            - activity_points (integer, default 0)
+            - created_at (timestamptz)
+            - updated_at (timestamptz)
+          </key_columns>
+          <indexes>
+            - idx_users_activity_points ON users(activity_points DESC)
+          </indexes>
+        </table>
+
+        <table name="bets">
+          <purpose>All user bets across markets</purpose>
+          <key_columns>
+            - id (uuid, PRIMARY KEY)
+            - market_id (integer, FOREIGN KEY)
+            - user_wallet (text, FOREIGN KEY)
+            - outcome ('YES' | 'NO')
+            - amount (numeric)
+            - shares (numeric)
+            - claimed (boolean, default false)
+            - profit_loss (numeric, nullable - calculated after resolution)
+            - created_at (timestamptz)
+          </key_columns>
+          <indexes>
+            - idx_bets_user_wallet ON bets(user_wallet)
+            - idx_bets_market ON bets(market_id)
+          </indexes>
+        </table>
+
+        <table name="markets">
+          <purpose>All prediction markets</purpose>
+          <key_columns>
+            - id (uuid, PRIMARY KEY)
+            - market_id (integer, unique)
+            - question (text)
+            - creator_wallet (text, FOREIGN KEY)
+            - status ('active' | 'locked' | 'resolved' | 'cancelled')
+            - winning_outcome ('yes' | 'no', nullable)
+            - total_volume (numeric, default 0)
+            - created_at (timestamptz)
+          </key_columns>
+          <indexes>
+            - idx_markets_creator ON markets(creator_wallet)
+            - idx_markets_status ON markets(status)
+          </indexes>
+        </table>
+
+        <table name="proposal_votes">
+          <purpose>Voting participation tracking</purpose>
+          <key_columns>
+            - id (uuid, PRIMARY KEY)
+            - proposal_id (integer)
+            - voter_wallet (text)
+            - vote_power (integer)
+            - created_at (timestamptz)
+          </key_columns>
+          <notes>Used for activity point calculation (voting participation)</notes>
+        </table>
+      </expected_tables>
+
+      <database_views>
+        <view name="user_stats">
+          <purpose>Aggregate user statistics for leaderboards</purpose>
+          <sql_definition><![CDATA[
+CREATE VIEW user_stats AS
+SELECT
+  u.wallet_address,
+  u.activity_points,
+  COUNT(DISTINCT b.id) as total_bets,
+  COALESCE(
+    SUM(CASE WHEN b.profit_loss > 0 THEN 1 ELSE 0 END)::float /
+    NULLIF(COUNT(b.id), 0),
+    0
+  ) as win_rate,
+  COALESCE(SUM(b.profit_loss), 0) as total_profit,
+  COALESCE(SUM(b.amount), 0) as total_volume
+FROM users u
+LEFT JOIN bets b ON u.wallet_address = b.user_wallet
+GROUP BY u.wallet_address, u.activity_points;
+          ]]></sql_definition>
+          <columns>
+            - wallet_address: User's Solana wallet
+            - activity_points: Total points from Epic 1 Story 1.11
+            - total_bets: Count of all bets placed
+            - win_rate: Ratio of winning bets (0.0-1.0)
+            - total_profit: Sum of profit_loss across resolved bets
+            - total_volume: Total amount bet (all markets)
+          </columns>
+        </view>
+
+        <view name="creator_stats">
+          <purpose>Track market creation statistics</purpose>
+          <sql_definition><![CDATA[
+CREATE VIEW creator_stats AS
+SELECT
+  creator_wallet,
+  COUNT(*) as markets_created,
+  SUM(total_volume) as creator_total_volume,
+  SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_markets,
+  SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved_markets
+FROM markets
+GROUP BY creator_wallet;
+          ]]></sql_definition>
+          <columns>
+            - creator_wallet: Market creator's wallet address
+            - markets_created: Total markets created
+            - creator_total_volume: Sum of volume across created markets
+            - active_markets: Count of currently active markets
+            - resolved_markets: Count of resolved markets
+          </columns>
+        </view>
+      </database_views>
+
+      <query_patterns>
+        <pattern name="Top by Activity Points">
+          <description>Fetch top 100 users by activity points</description>
+          <supabase_code><![CDATA[
+const { data, error } = await supabase
+  .from('user_stats')
+  .select('wallet_address, activity_points, total_bets, win_rate, total_profit')
+  .order('activity_points', { ascending: false })
+  .limit(100)
+          ]]></supabase_code>
+        </pattern>
+
+        <pattern name="Top by Win Rate">
+          <description>Fetch top 100 users by win rate (minimum 10 bets)</description>
+          <supabase_code><![CDATA[
+const { data, error } = await supabase
+  .from('user_stats')
+  .select('wallet_address, win_rate, total_bets, activity_points')
+  .gte('total_bets', 10)  // Minimum threshold
+  .order('win_rate', { ascending: false })
+  .limit(100)
+          ]]></supabase_code>
+        </pattern>
+
+        <pattern name="Top by Volume">
+          <description>Fetch top 100 users by total betting volume</description>
+          <supabase_code><![CDATA[
+const { data, error } = await supabase
+  .from('user_stats')
+  .select('wallet_address, total_volume, total_bets, activity_points')
+  .order('total_volume', { ascending: false })
+  .limit(100)
+          ]]></supabase_code>
+        </pattern>
+
+        <pattern name="Top Creators">
+          <description>Fetch top 100 market creators</description>
+          <supabase_code><![CDATA[
+const { data, error } = await supabase
+  .from('creator_stats')
+  .select('creator_wallet, markets_created, creator_total_volume, active_markets')
+  .order('markets_created', { ascending: false })
+  .limit(100)
+          ]]></supabase_code>
+        </pattern>
+
+        <pattern name="User Profile Stats">
+          <description>Fetch complete stats for a specific user</description>
+          <supabase_code><![CDATA[
+// Get user stats
+const { data: stats, error: statsError } = await supabase
+  .from('user_stats')
+  .select('*')
+  .eq('wallet_address', walletAddress)
+  .single()
+
+// Get recent bets (last 10)
+const { data: recentBets, error: betsError } = await supabase
+  .from('bets')
+  .select(`
+    *,
+    markets (
+      id,
+      question,
+      status,
+      winning_outcome
+    )
+  `)
+  .eq('user_wallet', walletAddress)
+  .order('created_at', { ascending: false })
+  .limit(10)
+
+// Get created markets
+const { data: createdMarkets, error: marketsError } = await supabase
+  .from('markets')
+  .select('*')
+  .eq('creator_wallet', walletAddress)
+  .order('created_at', { ascending: false })
+  .limit(20)
+          ]]></supabase_code>
+        </pattern>
+      </query_patterns>
+
+      <performance_considerations>
+        <caching>
+          - Implement 5-minute cache for leaderboard data
+          - Cache invalidation on user activity events
+          - Client-side caching with stale-while-revalidate strategy
+        </caching>
+
+        <indexing>
+          - Critical: Index on activity_points (DESC) for Points leaderboard
+          - Critical: Index on user_wallet in bets table for profile queries
+          - Important: Index on creator_wallet in markets table
+          - Consider: Composite index on (user_wallet, created_at) for recent bets
+        </indexing>
+
+        <optimization>
+          - Use database views to pre-calculate complex stats
+          - Limit queries to top 100 (pagination not needed for leaderboards)
+          - Batch profile queries when possible
+          - Consider read replicas for high traffic
+        </optimization>
+      </performance_considerations>
+    </database_schema>
+
+    <component_architecture>
+      <component name="LeaderboardPage" type="server_component">
+        <file_path>frontend/app/leaderboard/page.tsx</file_path>
+        <responsibility>Server component for SEO and metadata</responsibility>
+        <code_pattern><![CDATA[
+import { LeaderboardInterface } from './components/LeaderboardInterface'
+
+export default function LeaderboardPage() {
+  return <LeaderboardInterface />
+}
+
+export const metadata = {
+  title: 'Leaderboard | BMAD-Zmart',
+  description: 'Top performers and rankings on BMAD-Zmart prediction markets',
+}
+        ]]></code_pattern>
+      </component>
+
+      <component name="LeaderboardInterface" type="client_component">
+        <file_path>frontend/app/leaderboard/components/LeaderboardInterface.tsx</file_path>
+        <responsibility>Main orchestrator with tab navigation and data fetching</responsibility>
+        <patterns>
+          - Tab state management (4 tabs: points, win-rate, volume, creators)
+          - URL synchronization using useSearchParams and useRouter
+          - Data fetching via useLeaderboardData hook
+          - Real-time updates via Supabase subscriptions
+          - Current user highlighting using wallet context
+        </patterns>
+        <code_example><![CDATA[
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useLeaderboardData } from '@/lib/hooks/useLeaderboardData'
+import { LeaderboardTable } from './LeaderboardTable'
+
+type TabType = 'points' | 'win-rate' | 'volume' | 'creators'
+
+export function LeaderboardInterface() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { publicKey } = useWallet()
+
+  // Get initial tab from URL
+  const initialTab = (searchParams.get('tab') as TabType) || 'points'
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab)
+
+  // Fetch leaderboard data
+  const { data: rankings, loading, error } = useLeaderboardData(activeTab)
+
+  // Sync tab state with URL
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as TabType
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam)
+    }
+  }, [searchParams, activeTab])
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    router.push(`/leaderboard?tab=${tab}`, { scroll: false })
+  }
+
+  const currentUserWallet = publicKey?.toString() || null
+
+  return (
+    <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-gray-700">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={`px-6 py-3 font-semibold transition-colors ${
+              activeTab === tab.id
+                ? 'text-blue-400 border-b-2 border-blue-400'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Leaderboard Table */}
+      {loading && <LoadingSkeleton />}
+      {error && <ErrorDisplay error={error} />}
+      {!loading && !error && (
+        <LeaderboardTable
+          rankings={rankings}
+          activeTab={activeTab}
+          currentUserWallet={currentUserWallet}
+        />
+      )}
+    </div>
+  )
+}
+
+const tabs = [
+  { id: 'points', label: 'Top by Points' },
+  { id: 'win-rate', label: 'Top by Win Rate' },
+  { id: 'volume', label: 'Top by Volume' },
+  { id: 'creators', label: 'Top Creators' },
+]
+        ]]></code_example>
+      </component>
+
+      <component name="LeaderboardTable" type="client_component">
+        <file_path>frontend/app/leaderboard/components/LeaderboardTable.tsx</file_path>
+        <responsibility>Display rankings in table (desktop) or list (mobile) format</responsibility>
+        <patterns>
+          - Responsive design: table on desktop, cards on mobile
+          - Current user row highlighting
+          - Wallet address truncation
+          - Profile link generation
+          - Stat value formatting based on tab type
+        </patterns>
+        <code_example><![CDATA[
+interface LeaderboardTableProps {
+  rankings: LeaderboardEntry[]
+  activeTab: TabType
+  currentUserWallet: string | null
+}
+
+export function LeaderboardTable({
+  rankings,
+  activeTab,
+  currentUserWallet,
+}: LeaderboardTableProps) {
+  const formatStatValue = (entry: LeaderboardEntry, tab: TabType): string => {
+    switch (tab) {
+      case 'points':
+        return entry.activity_points.toLocaleString()
+      case 'win-rate':
+        return `${(entry.win_rate * 100).toFixed(1)}%`
+      case 'volume':
+        return `${entry.total_volume.toFixed(2)} ZMart`
+      case 'creators':
+        return `${entry.markets_created} markets`
+    }
+  }
+
+  const truncateWallet = (wallet: string): string => {
+    return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`
+  }
+
+  const isCurrentUser = (wallet: string): boolean => {
+    return currentUserWallet === wallet
+  }
+
+  return (
+    <>
+      {/* Desktop: Table View */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-700">
+              <th className="text-left py-3 px-4">Rank</th>
+              <th className="text-left py-3 px-4">User</th>
+              <th className="text-right py-3 px-4">
+                {getStatLabel(activeTab)}
+              </th>
+              <th className="text-right py-3 px-4">Total Bets</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankings.map((entry, index) => (
+              <tr
+                key={entry.wallet_address}
+                className={`border-b border-gray-800 ${
+                  isCurrentUser(entry.wallet_address)
+                    ? 'bg-blue-900/20 border-blue-500'
+                    : 'hover:bg-gray-800/50'
+                }`}
+              >
+                <td className="py-4 px-4 font-bold text-lg">
+                  #{index + 1}
+                </td>
+                <td className="py-4 px-4">
+                  <a
+                    href={`/user/${entry.wallet_address}`}
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    {truncateWallet(entry.wallet_address)}
+                  </a>
+                  {isCurrentUser(entry.wallet_address) && (
+                    <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">
+                      You
+                    </span>
+                  )}
+                </td>
+                <td className="py-4 px-4 text-right font-semibold text-green-400">
+                  {formatStatValue(entry, activeTab)}
+                </td>
+                <td className="py-4 px-4 text-right text-gray-400">
+                  {entry.total_bets}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile: Card View */}
+      <div className="md:hidden space-y-3">
+        {rankings.map((entry, index) => (
+          <div
+            key={entry.wallet_address}
+            className={`p-4 rounded-lg border ${
+              isCurrentUser(entry.wallet_address)
+                ? 'bg-blue-900/20 border-blue-500'
+                : 'bg-gray-800 border-gray-700'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-2xl font-bold text-blue-400">
+                #{index + 1}
+              </div>
+              <div className="text-right">
+                <a
+                  href={`/user/${entry.wallet_address}`}
+                  className="text-blue-400 hover:text-blue-300 underline text-sm"
+                >
+                  {truncateWallet(entry.wallet_address)}
+                </a>
+                {isCurrentUser(entry.wallet_address) && (
+                  <div className="text-xs bg-blue-500 text-white px-2 py-1 rounded mt-1 inline-block">
+                    You
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">{getStatLabel(activeTab)}:</span>
+              <span className="font-semibold text-green-400">
+                {formatStatValue(entry, activeTab)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm mt-1">
+              <span className="text-gray-400">Total Bets:</span>
+              <span className="text-gray-300">{entry.total_bets}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function getStatLabel(tab: TabType): string {
+  switch (tab) {
+    case 'points': return 'Activity Points'
+    case 'win-rate': return 'Win Rate'
+    case 'volume': return 'Total Volume'
+    case 'creators': return 'Markets Created'
+  }
+}
+        ]]></code_example>
+      </component>
+
+      <component name="UserProfilePage" type="server_component">
+        <file_path>frontend/app/user/[wallet]/page.tsx</file_path>
+        <responsibility>Dynamic route for user profiles</responsibility>
+        <code_pattern><![CDATA[
+import { UserProfile } from './components/UserProfile'
+
+interface ProfilePageProps {
+  params: { wallet: string }
+}
+
+export default function UserProfilePage({ params }: ProfilePageProps) {
+  return <UserProfile walletAddress={params.wallet} />
+}
+
+export async function generateMetadata({ params }: ProfilePageProps) {
+  return {
+    title: `User ${params.wallet.slice(0, 6)}... | BMAD-Zmart`,
+    description: `View betting statistics and activity for user ${params.wallet}`,
+  }
+}
+        ]]></code_pattern>
+      </component>
+
+      <component name="UserProfile" type="client_component">
+        <file_path>frontend/app/user/[wallet]/components/UserProfile.tsx</file_path>
+        <responsibility>Display user statistics, recent bets, and created markets</responsibility>
+        <patterns>
+          - Stat card grid layout (5 key metrics)
+          - Recent activity with tabbed interface
+          - Copy wallet address functionality
+          - Empty state handling
+          - Responsive design
+        </patterns>
+        <code_example><![CDATA[
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useUserProfile } from '@/lib/hooks/useUserProfile'
+import { StatCard } from './StatCard'
+import { RecentBets } from './RecentBets'
+import { CreatedMarkets } from './CreatedMarkets'
+
+interface UserProfileProps {
+  walletAddress: string
+}
+
+export function UserProfile({ walletAddress }: UserProfileProps) {
+  const { stats, recentBets, createdMarkets, loading, error } = useUserProfile(walletAddress)
+  const [activeTab, setActiveTab] = useState<'bets' | 'markets'>('bets')
+
+  const copyAddress = () => {
+    navigator.clipboard.writeText(walletAddress)
+    // Show toast notification
+  }
+
+  if (loading) return <LoadingSkeleton />
+  if (error) return <ErrorDisplay error={error} />
+  if (!stats) return <NotFoundDisplay walletAddress={walletAddress} />
+
+  return (
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">User Profile</h1>
+        <div className="flex items-center gap-3">
+          <code className="text-lg text-gray-400">{walletAddress}</code>
+          <button
+            onClick={copyAddress}
+            className="text-sm text-blue-400 hover:text-blue-300"
+            title="Copy wallet address"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <StatCard
+          label="Win Rate"
+          value={`${(stats.win_rate * 100).toFixed(1)}%`}
+          icon="📊"
+        />
+        <StatCard
+          label="Total Bets"
+          value={stats.total_bets.toString()}
+          icon="🎲"
+        />
+        <StatCard
+          label="Total Profit"
+          value={`${stats.total_profit.toFixed(2)} ZMart`}
+          icon="💰"
+          valueColor={stats.total_profit >= 0 ? 'text-green-400' : 'text-red-400'}
+        />
+        <StatCard
+          label="Markets Created"
+          value={stats.markets_created?.toString() || '0'}
+          icon="🏗️"
+        />
+        <StatCard
+          label="Activity Points"
+          value={stats.activity_points.toLocaleString()}
+          icon="⭐"
+        />
+      </div>
+
+      {/* Recent Activity */}
+      <div className="space-y-4">
+        <div className="flex gap-2 border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab('bets')}
+            className={`px-6 py-3 font-semibold ${
+              activeTab === 'bets'
+                ? 'text-blue-400 border-b-2 border-blue-400'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            Recent Bets ({recentBets.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('markets')}
+            className={`px-6 py-3 font-semibold ${
+              activeTab === 'markets'
+                ? 'text-blue-400 border-b-2 border-blue-400'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            Created Markets ({createdMarkets.length})
+          </button>
+        </div>
+
+        {activeTab === 'bets' ? (
+          <RecentBets bets={recentBets} />
+        ) : (
+          <CreatedMarkets markets={createdMarkets} />
+        )}
+      </div>
+    </div>
+  )
+}
+        ]]></code_example>
+      </component>
+
+      <component name="useLeaderboardData" type="custom_hook">
+        <file_path>frontend/lib/hooks/useLeaderboardData.ts</file_path>
+        <responsibility>Fetch and cache leaderboard data with real-time updates</responsibility>
+        <code_example><![CDATA[
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
+
+export interface LeaderboardEntry {
+  wallet_address: string
+  activity_points: number
+  total_bets: number
+  win_rate: number
+  total_profit: number
+  total_volume: number
+  markets_created?: number
+}
+
+interface UseLeaderboardDataReturn {
+  data: LeaderboardEntry[]
+  loading: boolean
+  error: Error | null
+  refetch: () => Promise<void>
+}
+
+export function useLeaderboardData(
+  category: 'points' | 'win-rate' | 'volume' | 'creators'
+): UseLeaderboardDataReturn {
+  const [data, setData] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      let query = supabase.from('user_stats').select('*')
+
+      // Apply category-specific sorting and filters
+      switch (category) {
+        case 'points':
+          query = query.order('activity_points', { ascending: false })
+          break
+        case 'win-rate':
+          query = query.gte('total_bets', 10) // Minimum threshold
+                       .order('win_rate', { ascending: false })
+          break
+        case 'volume':
+          query = query.order('total_volume', { ascending: false })
+          break
+        case 'creators':
+          // For creators, we need to join with creator_stats
+          const { data: creatorData, error: creatorError } = await supabase
+            .from('creator_stats')
+            .select('*')
+            .order('markets_created', { ascending: false })
+            .limit(100)
+
+          if (creatorError) throw creatorError
+
+          setData(creatorData as LeaderboardEntry[])
+          setLoading(false)
+          return
+      }
+
+      // Limit to top 100
+      query = query.limit(100)
+
+      const { data: leaderboardData, error: fetchError } = await query
+
+      if (fetchError) throw fetchError
+
+      setData(leaderboardData as LeaderboardEntry[])
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err)
+      setError(err instanceof Error ? err : new Error('Failed to fetch leaderboard'))
+    } finally {
+      setLoading(false)
+    }
+  }, [category])
+
+  // Initial fetch
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [fetchLeaderboard])
+
+  // Real-time subscription for updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('leaderboard-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_stats',
+        },
+        () => {
+          // Refetch on any user_stats change
+          fetchLeaderboard()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchLeaderboard])
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchLeaderboard,
+  }
+}
+        ]]></code_example>
+      </component>
+
+      <component name="useUserProfile" type="custom_hook">
+        <file_path>frontend/lib/hooks/useUserProfile.ts</file_path>
+        <responsibility>Fetch comprehensive user profile data</responsibility>
+        <code_example><![CDATA[
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
+
+interface UserStats {
+  wallet_address: string
+  activity_points: number
+  total_bets: number
+  win_rate: number
+  total_profit: number
+  total_volume: number
+  markets_created: number
+}
+
+interface RecentBet {
+  id: string
+  market_id: number
+  outcome: 'YES' | 'NO'
+  amount: number
+  profit_loss: number | null
+  created_at: string
+  market: {
+    id: string
+    question: string
+    status: string
+    winning_outcome: string | null
+  }
+}
+
+interface CreatedMarket {
+  id: string
+  market_id: number
+  question: string
+  status: string
+  total_volume: number
+  created_at: string
+}
+
+interface UseUserProfileReturn {
+  stats: UserStats | null
+  recentBets: RecentBet[]
+  createdMarkets: CreatedMarket[]
+  loading: boolean
+  error: Error | null
+}
+
+export function useUserProfile(walletAddress: string): UseUserProfileReturn {
+  const [stats, setStats] = useState<UserStats | null>(null)
+  const [recentBets, setRecentBets] = useState<RecentBet[]>([])
+  const [createdMarkets, setCreatedMarkets] = useState<CreatedMarket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Fetch user stats
+      const { data: statsData, error: statsError } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single()
+
+      if (statsError && statsError.code !== 'PGRST116') { // Ignore not found
+        throw statsError
+      }
+
+      // Fetch recent bets
+      const { data: betsData, error: betsError } = await supabase
+        .from('bets')
+        .select(`
+          *,
+          markets (
+            id,
+            question,
+            status,
+            winning_outcome
+          )
+        `)
+        .eq('user_wallet', walletAddress)
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      if (betsError) throw betsError
+
+      // Fetch created markets
+      const { data: marketsData, error: marketsError } = await supabase
+        .from('markets')
+        .select('*')
+        .eq('creator_wallet', walletAddress)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (marketsError) throw marketsError
+
+      // Get creator stats
+      const { data: creatorStats, error: creatorError } = await supabase
+        .from('creator_stats')
+        .select('markets_created')
+        .eq('creator_wallet', walletAddress)
+        .single()
+
+      // Combine stats with creator data
+      const combinedStats = {
+        ...(statsData || {
+          wallet_address: walletAddress,
+          activity_points: 0,
+          total_bets: 0,
+          win_rate: 0,
+          total_profit: 0,
+          total_volume: 0,
+        }),
+        markets_created: creatorStats?.markets_created || 0,
+      }
+
+      setStats(combinedStats)
+      setRecentBets(betsData as RecentBet[])
+      setCreatedMarkets(marketsData as CreatedMarket[])
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
+      setError(err instanceof Error ? err : new Error('Failed to fetch profile'))
+    } finally {
+      setLoading(false)
+    }
+  }, [walletAddress])
+
+  useEffect(() => {
+    fetchUserProfile()
+  }, [fetchUserProfile])
+
+  return {
+    stats,
+    recentBets,
+    createdMarkets,
+    loading,
+    error,
+  }
+}
+        ]]></code_example>
+      </component>
+
+      <reusable_components>
+        <component name="StatCard">
+          <purpose>Display a single statistic with icon, label, and value</purpose>
+          <props>
+            - label: string (e.g., "Win Rate")
+            - value: string (pre-formatted value)
+            - icon: string (emoji or icon)
+            - valueColor?: string (Tailwind class, e.g., "text-green-400")
+          </props>
+        </component>
+
+        <component name="RecentBets">
+          <purpose>Display list of user's recent bets</purpose>
+          <props>
+            - bets: RecentBet[] (array of bet objects)
+          </props>
+          <features>
+            - Market title (linked to detail page)
+            - Bet outcome (YES/NO with color coding)
+            - Bet amount
+            - Status badge (pending/won/lost)
+            - Profit/loss (if resolved)
+            - Timestamp (relative format using date-fns)
+          </features>
+        </component>
+
+        <component name="CreatedMarkets">
+          <purpose>Display list of markets created by user</purpose>
+          <props>
+            - markets: CreatedMarket[] (array of market objects)
+          </props>
+          <features>
+            - Market title (linked to detail page)
+            - Status badge (active/resolved/cancelled)
+            - Total volume
+            - Creation date (relative format)
+          </features>
+        </component>
+      </reusable_components>
+    </component_architecture>
+
+    <utilities>
+      <utility name="formatWallet">
+        <file_path>frontend/lib/utils/formatWallet.ts</file_path>
+        <purpose>Truncate wallet addresses to readable format</purpose>
+        <code><![CDATA[
+export function formatWallet(wallet: string): string {
+  if (wallet.length <= 8) return wallet
+  return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`
+}
+
+export function copyToClipboard(text: string): Promise<void> {
+  return navigator.clipboard.writeText(text)
+}
+        ]]></code>
+      </utility>
+    </utilities>
+
+    <styling_patterns>
+      <pattern name="Stat Card">
+        <description>Card component for displaying individual statistics</description>
+        <tailwind_classes>
+          - Container: "bg-gray-800 p-6 rounded-lg border border-gray-700"
+          - Label: "text-sm text-gray-400 mb-1"
+          - Value: "text-3xl font-bold text-white"
+          - Icon: "text-4xl mb-2"
+        </tailwind_classes>
+      </pattern>
+
+      <pattern name="Leaderboard Row Highlighting">
+        <description>Visual distinction for current user's row</description>
+        <tailwind_classes>
+          - Normal row: "hover:bg-gray-800/50"
+          - Current user row: "bg-blue-900/20 border-blue-500"
+          - "You" badge: "text-xs bg-blue-500 text-white px-2 py-1 rounded"
+        </tailwind_classes>
+      </pattern>
+
+      <pattern name="Tab Navigation">
+        <description>Reusable tab pattern from Stories 3.6-3.8</description>
+        <tailwind_classes>
+          - Container: "flex gap-2 border-b border-gray-700"
+          - Active tab: "text-blue-400 border-b-2 border-blue-400"
+          - Inactive tab: "text-gray-400 hover:text-gray-200"
+        </tailwind_classes>
+      </pattern>
+
+      <pattern name="Responsive Breakpoints">
+        <description>Mobile-first responsive design</description>
+        <breakpoints>
+          - sm: 640px (small mobile)
+          - md: 768px (tablet - PRIMARY BREAKPOINT for table/card switch)
+          - lg: 1024px (desktop)
+          - xl: 1280px (large desktop)
+        </breakpoints>
+        <usage>
+          - Default: Mobile layout (card/list view)
+          - md: and above: Desktop layout (table view)
+          - Grid: "grid md:grid-cols-2 lg:grid-cols-5"
+          - Visibility: "hidden md:block" (desktop only), "md:hidden" (mobile only)
+        </usage>
+      </pattern>
+    </styling_patterns>
+  </technical_context>
+
+  <implementation_guidance>
+    <prerequisites>
+      <completed_stories>
+        - Story 3.1: Wallet Integration (wallet context for current user)
+        - Story 3.2: Supabase Client (database queries)
+        - Story 3.3: Homepage (navigation patterns)
+        - Story 3.5: User Dashboard (responsive table/card patterns, stat display)
+        - Story 3.6-3.8: Tab navigation pattern
+        - Epic 1 Story 1.11: Activity Points System (data source)
+      </completed_stories>
+
+      <required_setup>
+        - Database views created (user_stats, creator_stats)
+        - Indexes on activity_points, user_wallet, creator_wallet
+        - Supabase environment variables configured
+        - Wallet adapter already integrated
+      </required_setup>
+    </prerequisites>
+
+    <task_breakdown>
+      <task id="T1" priority="critical">
+        <title>Create Leaderboard Route with Tab Navigation</title>
+        <subtasks>
+          - Create /frontend/app/leaderboard/page.tsx (server component)
+          - Create LeaderboardInterface.tsx (client component)
+          - Implement 4 tabs: points, win-rate, volume, creators
+          - Add tab state management with useState
+          - Implement URL synchronization with useSearchParams/useRouter
+          - Style tab navigation (reuse pattern from Story 3.8)
+          - Add responsive container layout
+        </subtasks>
+        <acceptance>AC1</acceptance>
+        <estimated_time>2 hours</estimated_time>
+      </task>
+
+      <task id="T2" priority="critical">
+        <title>Build Leaderboard Tab Components</title>
+        <subtasks>
+          - Create LeaderboardTable.tsx component
+          - Implement ranking column (1-100)
+          - Display truncated wallet addresses
+          - Show stat value based on active tab
+          - Add profile links (/user/[wallet])
+          - Implement current user row highlighting
+          - Add loading skeleton
+          - Create responsive views (table desktop, cards mobile)
+        </subtasks>
+        <acceptance>AC2, AC3, AC7</acceptance>
+        <estimated_time>3 hours</estimated_time>
+      </task>
+
+      <task id="T3" priority="critical">
+        <title>Create Data Fetching Hooks</title>
+        <subtasks>
+          - Create useLeaderboardData.ts hook
+          - Implement category-specific queries (points, win-rate, volume, creators)
+          - Add loading and error states
+          - Implement 5-minute caching strategy
+          - Add real-time subscriptions for updates
+          - Implement retry logic (exponential backoff)
+        </subtasks>
+        <acceptance>AC6</acceptance>
+        <estimated_time>2 hours</estimated_time>
+      </task>
+
+      <task id="T4" priority="critical">
+        <title>Build User Profile Page</title>
+        <subtasks>
+          - Create /frontend/app/user/[wallet]/page.tsx (dynamic route)
+          - Create UserProfile.tsx component
+          - Display 5 key stats: win rate, total bets, profit, markets created, activity points
+          - Create StatCard.tsx reusable component
+          - Display wallet address with copy button
+          - Add metadata generation for SEO
+          - Style stat card grid (responsive)
+        </subtasks>
+        <acceptance>AC4</acceptance>
+        <estimated_time>2.5 hours</estimated_time>
+      </task>
+
+      <task id="T5" priority="high">
+        <title>Add Recent Activity to Profile</title>
+        <subtasks>
+          - Create RecentBets.tsx component (last 10 bets)
+          - Show: market title, amount, outcome, status, timestamp
+          - Create CreatedMarkets.tsx component (user's markets)
+          - Show: title, status, volume, creation date
+          - Implement tab switching between bets and markets
+          - Add empty state handling
+          - Style activity lists (responsive)
+        </subtasks>
+        <acceptance>AC5</acceptance>
+        <estimated_time>2 hours</estimated_time>
+      </task>
+
+      <task id="T6" priority="critical">
+        <title>Add Database Queries and Indexes</title>
+        <subtasks>
+          - Create database view: user_stats (win_rate, total_bets, total_profit, total_volume)
+          - Create database view: creator_stats (markets_created, creator_total_volume)
+          - Add index: idx_users_activity_points ON users(activity_points DESC)
+          - Add index: idx_bets_user_wallet ON bets(user_wallet)
+          - Add index: idx_markets_creator ON markets(creator_wallet)
+          - Test query performance with sample data
+          - Document queries in code comments
+        </subtasks>
+        <acceptance>AC6</acceptance>
+        <estimated_time>1.5 hours</estimated_time>
+      </task>
+
+      <task id="T7" priority="high">
+        <title>Testing and Polish</title>
+        <subtasks>
+          - Write unit tests for leaderboard calculations
+          - Write E2E tests for leaderboard navigation (Playwright)
+          - Test responsive design on mobile/tablet/desktop
+          - Test with various wallet addresses (short, long)
+          - Verify highlighted row for current user
+          - Test profile page with users who have no activity
+          - Add loading states and error boundaries
+          - Performance testing (leaderboard query times)
+        </subtasks>
+        <acceptance>AC7</acceptance>
+        <estimated_time>2.5 hours</estimated_time>
+      </task>
+    </task_breakdown>
+
+    <implementation_order>
+      <phase number="1" name="Foundation">
+        <tasks>T6</tasks>
+        <description>Set up database views and indexes first</description>
+        <validation>Query performance acceptable, views return correct data</validation>
+      </phase>
+
+      <phase number="2" name="Data Layer">
+        <tasks>T3</tasks>
+        <description>Implement data fetching hooks</description>
+        <validation>Hooks return correct data, caching works, subscriptions active</validation>
+      </phase>
+
+      <phase number="3" name="Leaderboard UI">
+        <tasks>T1, T2</tasks>
+        <description>Build leaderboard interface with tab navigation</description>
+        <validation>All tabs display rankings, current user highlighted, responsive</validation>
+      </phase>
+
+      <phase number="4" name="Profile Pages">
+        <tasks>T4, T5</tasks>
+        <description>Build user profile pages with stats and activity</description>
+        <validation>Profile displays all stats, recent activity loads, empty states work</validation>
+      </phase>
+
+      <phase number="5" name="Testing & Polish">
+        <tasks>T7</tasks>
+        <description>Comprehensive testing and performance optimization</description>
+        <validation>All E2E tests pass, responsive design verified, performance targets met</validation>
+      </phase>
+    </implementation_order>
+
+    <common_pitfalls>
+      <pitfall>
+        <issue>Win rate calculated incorrectly for users with few bets</issue>
+        <solution>
+          - Use minimum threshold (10 bets) for win rate leaderboard
+          - Handle division by zero: NULLIF(COUNT(b.id), 0)
+          - Default to 0 for users with no bets
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Current user highlighting not working</issue>
+        <solution>
+          - Ensure wallet.publicKey is converted to string: publicKey?.toString()
+          - Case-sensitive comparison: exact match required
+          - Check wallet is actually connected before highlighting
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Leaderboard not updating in real-time</issue>
+        <solution>
+          - Subscribe to user_stats table changes
+          - Implement proper cleanup in useEffect
+          - Cache invalidation after 5 minutes
+          - Consider using stale-while-revalidate pattern
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Profile page errors for users with no activity</issue>
+        <solution>
+          - Handle .single() error with code PGRST116 (not found)
+          - Provide default values for missing data
+          - Display empty state UI instead of error
+          - Don't throw errors for legitimate "no data" scenarios
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Poor performance on leaderboard queries</issue>
+        <solution>
+          - CRITICAL: Create indexes on activity_points, user_wallet, creator_wallet
+          - Use database views to pre-calculate complex aggregations
+          - Limit to 100 rows (don't over-fetch)
+          - Implement client-side caching with 5-minute TTL
+          - Monitor query execution time in Supabase dashboard
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Responsive design breaks on mobile</issue>
+        <solution>
+          - Use "hidden md:block" for desktop-only table
+          - Use "md:hidden" for mobile-only card view
+          - Test at exact breakpoint (768px) to avoid glitches
+          - Ensure touch targets are at least 44x44px
+          - Prevent horizontal scroll with overflow-x-auto on mobile
+        </solution>
+      </pitfall>
+
+      <pitfall>
+        <issue>Wallet address truncation inconsistent</issue>
+        <solution>
+          - Create utility function: formatWallet(wallet)
+          - Use consistently across all components
+          - Format: ${wallet.slice(0, 4)}...${wallet.slice(-4)}
+          - Handle edge cases: very short addresses
+        </solution>
+      </pitfall>
+    </common_pitfalls>
+
+    <testing_strategy>
+      <unit_tests>
+        <test_file>frontend/lib/hooks/useLeaderboardData.test.ts</test_file>
+        <test_cases>
+          - Fetches points leaderboard correctly
+          - Fetches win rate leaderboard with minimum threshold
+          - Fetches volume leaderboard correctly
+          - Fetches creators leaderboard correctly
+          - Handles loading states
+          - Handles error states
+          - Caches results properly
+          - Implements retry logic on failure
+        </test_cases>
+      </unit_tests>
+
+      <unit_tests>
+        <test_file>frontend/lib/hooks/useUserProfile.test.ts</test_file>
+        <test_cases>
+          - Fetches user stats correctly
+          - Fetches recent bets with market data
+          - Fetches created markets
+          - Combines stats with creator data
+          - Handles users with no activity (empty states)
+          - Handles loading and error states
+        </test_cases>
+      </unit_tests>
+
+      <unit_tests>
+        <test_file>frontend/lib/utils/formatWallet.test.ts</test_file>
+        <test_cases>
+          - Truncates long wallet addresses correctly
+          - Handles short addresses (no truncation)
+          - Returns correct format: first4...last4
+        </test_cases>
+      </unit_tests>
+
+      <component_tests>
+        <test_file>frontend/app/leaderboard/components/LeaderboardTable.test.tsx</test_file>
+        <test_cases>
+          - Renders ranking numbers correctly (1-100)
+          - Displays truncated wallet addresses
+          - Shows correct stat value based on tab
+          - Highlights current user row
+          - Shows "You" badge for current user
+          - Profile links are correct (/user/[wallet])
+          - Responsive views render correctly (desktop table, mobile cards)
+        </test_cases>
+      </component_tests>
+
+      <e2e_tests>
+        <test_file>frontend/e2e/leaderboard.spec.ts</test_file>
+        <test_cases>
+          <test name="Navigate to leaderboard from homepage">
+            <steps>
+              1. Visit homepage
+              2. Click "Leaderboard" in navigation
+              3. Assert URL is /leaderboard
+              4. Assert page title contains "Leaderboard"
+            </steps>
+          </test>
+
+          <test name="Switch between leaderboard tabs">
+            <steps>
+              1. Visit /leaderboard
+              2. Assert "Top by Points" tab is active
+              3. Click "Top by Win Rate" tab
+              4. Assert URL updated to ?tab=win-rate
+              5. Assert rankings display win rate percentages
+              6. Click "Top by Volume" tab
+              7. Assert URL updated to ?tab=volume
+              8. Assert rankings display volume in ZMart
+              9. Click "Top Creators" tab
+              10. Assert URL updated to ?tab=creators
+              11. Assert rankings display market counts
+            </steps>
+          </test>
+
+          <test name="Click user to view profile">
+            <steps>
+              1. Visit /leaderboard
+              2. Click first user's wallet link
+              3. Assert navigated to /user/[wallet]
+              4. Assert profile displays 5 stat cards
+              5. Assert wallet address displayed correctly
+            </steps>
+          </test>
+
+          <test name="Verify current user highlighting">
+            <steps>
+              1. Connect wallet (mock wallet with known address)
+              2. Visit /leaderboard
+              3. Find row with connected wallet address
+              4. Assert row has blue border/background
+              5. Assert "You" badge is visible
+            </steps>
+          </test>
+
+          <test name="Test responsive design">
+            <steps>
+              1. Set viewport to mobile (375x667)
+              2. Visit /leaderboard
+              3. Assert card view is displayed (not table)
+              4. Assert all key stats visible on cards
+              5. Set viewport to desktop (1280x800)
+              6. Assert table view is displayed (not cards)
+              7. Assert all columns visible
+            </steps>
+          </test>
+
+          <test name="Profile page displays user stats">
+            <steps>
+              1. Visit /user/[known-wallet-with-activity]
+              2. Assert 5 stat cards displayed
+              3. Assert recent bets section exists
+              4. Assert created markets section exists
+              5. Click "Recent Bets" tab
+              6. Assert at least 1 bet displayed
+              7. Click "Created Markets" tab
+              8. Assert at least 1 market displayed (if user is creator)
+            </steps>
+          </test>
+
+          <test name="Profile page handles no activity">
+            <steps>
+              1. Visit /user/[wallet-with-no-activity]
+              2. Assert stats show zeros
+              3. Assert empty state message for recent bets
+              4. Assert empty state message for created markets
+            </steps>
+          </test>
+        </test_cases>
+      </e2e_tests>
+
+      <performance_tests>
+        <test name="Leaderboard query performance">
+          <steps>
+            1. Seed database with 1000+ users
+            2. Time execution of leaderboard queries
+            3. Assert query time &lt; 100ms (95th percentile)
+            4. Check if indexes are being used (EXPLAIN ANALYZE)
+          </steps>
+        </test>
+
+        <test name="Profile page load time">
+          <steps>
+            1. Seed database with user having 100+ bets
+            2. Time profile page load
+            3. Assert total load time &lt; 500ms
+            4. Check network waterfall for sequential vs parallel queries
+          </steps>
+        </test>
+      </performance_tests>
+    </testing_strategy>
+  </implementation_guidance>
+
+  <related_stories>
+    <story id="3.1" relation="dependency">
+      <title>Implement Wallet Integration</title>
+      <relevance>Provides wallet context for current user highlighting</relevance>
+      <reusable_patterns>
+        - useWallet() hook for accessing connected wallet
+        - publicKey?.toString() for wallet address comparison
+      </reusable_patterns>
+    </story>
+
+    <story id="3.2" relation="dependency">
+      <title>Implement Supabase Client and Real-Time Subscriptions</title>
+      <relevance>Core database integration and real-time updates</relevance>
+      <reusable_patterns>
+        - supabase client initialization
+        - Real-time subscription pattern
+        - Error handling and retry logic
+      </reusable_patterns>
+    </story>
+
+    <story id="3.3" relation="reference">
+      <title>Build Homepage with Market Discovery</title>
+      <relevance>Navigation pattern and page structure reference</relevance>
+      <reusable_patterns>
+        - Page layout structure
+        - Links to leaderboard from homepage
+        - Loading states and error handling UI
+      </reusable_patterns>
+    </story>
+
+    <story id="3.5" relation="reference">
+      <title>Build User Dashboard ("My Bets")</title>
+      <relevance>Similar stats display and responsive table/card patterns</relevance>
+      <reusable_patterns>
+        - Portfolio metrics calculation
+        - Responsive table vs card layout switching
+        - Tab navigation for different views
+        - Stat card components
+        - useUserBets hook pattern
+      </reusable_patterns>
+    </story>
+
+    <story id="3.8" relation="reference">
+      <title>Build Voting Interface for Proposals</title>
+      <relevance>Tab navigation pattern with URL synchronization</relevance>
+      <reusable_patterns>
+        - Tab state management with useState
+        - URL sync with useSearchParams/useRouter
+        - Tab styling (active/inactive states)
+        - Tab-specific content rendering
+      </reusable_patterns>
+    </story>
+
+    <story id="1.11" relation="dependency">
+      <title>Implement Activity Points System (Epic 1)</title>
+      <relevance>Source of activity points data for leaderboards</relevance>
+      <integration_points>
+        - activity_points table and columns
+        - Point accumulation logic
+        - Triggers for automatic point awards
+      </integration_points>
+    </story>
+
+    <story id="3.10" relation="next_story">
+      <title>Build Admin Dashboard</title>
+      <relevance>Next story in Epic 3 sequence</relevance>
+      <transition_notes>
+        - Admin dashboard may reuse leaderboard data for monitoring
+        - Consider admin-only leaderboard views (flagged users, dispute rates)
+      </transition_notes>
+    </story>
+  </related_stories>
+
+  <code_examples>
+    <example name="Tab Navigation Pattern">
+      <description>Reusable tab navigation with URL synchronization from Story 3.8</description>
+      <code><![CDATA[
+const [activeTab, setActiveTab] = useState<TabType>('pending')
+
+// Sync with URL
+useEffect(() => {
+  const tabParam = searchParams.get('tab') as TabType
+  if (tabParam && tabParam !== activeTab) {
+    setActiveTab(tabParam)
+  }
+}, [searchParams, activeTab])
+
+const handleTabChange = (tab: TabType) => {
+  setActiveTab(tab)
+  router.push(`/proposals?tab=${tab}`, { scroll: false })
+}
+      ]]></code>
+    </example>
+
+    <example name="Wallet Address Truncation">
+      <description>Consistent wallet address formatting</description>
+      <code><![CDATA[
+export function formatWallet(wallet: string): string {
+  if (wallet.length <= 8) return wallet
+  return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`
+}
+
+// Usage
+<a href={`/user/${wallet}`}>
+  {formatWallet(wallet)}
+</a>
+      ]]></code>
+    </example>
+
+    <example name="Current User Highlighting">
+      <description>Conditional styling for current user row</description>
+      <code><![CDATA[
+const { publicKey } = useWallet()
+const currentUserWallet = publicKey?.toString() || null
+
+const isCurrentUser = (wallet: string): boolean => {
+  return currentUserWallet === wallet
+}
+
+<tr
+  className={`border-b border-gray-800 ${
+    isCurrentUser(entry.wallet_address)
+      ? 'bg-blue-900/20 border-blue-500'
+      : 'hover:bg-gray-800/50'
+  }`}
+>
+  {/* ... */}
+  {isCurrentUser(entry.wallet_address) && (
+    <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">
+      You
+    </span>
+  )}
+</tr>
+      ]]></code>
+    </example>
+
+    <example name="Responsive Table/Card Switch">
+      <description>Pattern from Story 3.5 for desktop table, mobile cards</description>
+      <code><![CDATA[
+<>
+  {/* Desktop: Table View */}
+  <div className="hidden md:block overflow-x-auto">
+    <table className="w-full">
+      {/* Table content */}
+    </table>
+  </div>
+
+  {/* Mobile: Card View */}
+  <div className="md:hidden space-y-3">
+    {rankings.map((entry) => (
+      <div key={entry.wallet_address} className="p-4 rounded-lg bg-gray-800">
+        {/* Card content */}
+      </div>
+    ))}
+  </div>
+</>
+      ]]></code>
+    </example>
+
+    <example name="Database View for User Stats">
+      <description>Efficient aggregation of user statistics</description>
+      <code><![CDATA[
+CREATE VIEW user_stats AS
+SELECT
+  u.wallet_address,
+  u.activity_points,
+  COUNT(DISTINCT b.id) as total_bets,
+  COALESCE(
+    SUM(CASE WHEN b.profit_loss > 0 THEN 1 ELSE 0 END)::float /
+    NULLIF(COUNT(b.id), 0),
+    0
+  ) as win_rate,
+  COALESCE(SUM(b.profit_loss), 0) as total_profit,
+  COALESCE(SUM(b.amount), 0) as total_volume
+FROM users u
+LEFT JOIN bets b ON u.wallet_address = b.user_wallet
+GROUP BY u.wallet_address, u.activity_points;
+      ]]></code>
+    </example>
+
+    <example name="Real-Time Subscription Pattern">
+      <description>Subscribe to database changes for live updates</description>
+      <code><![CDATA[
+useEffect(() => {
+  const channel = supabase
+    .channel('leaderboard-updates')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_stats',
+      },
+      () => {
+        // Refetch on any user_stats change
+        fetchLeaderboard()
+      }
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(channel)
+  }
+}, [fetchLeaderboard])
+      ]]></code>
+    </example>
+  </code_examples>
+
+  <file_structure>
+    <new_files>
+      <file path="frontend/app/leaderboard/page.tsx">
+        Server component for leaderboard page with metadata
+      </file>
+      <file path="frontend/app/leaderboard/components/LeaderboardInterface.tsx">
+        Main client component with tab navigation and data fetching
+      </file>
+      <file path="frontend/app/leaderboard/components/LeaderboardTable.tsx">
+        Responsive table/card view for rankings display
+      </file>
+      <file path="frontend/app/user/[wallet]/page.tsx">
+        Dynamic route for user profile pages with metadata
+      </file>
+      <file path="frontend/app/user/[wallet]/components/UserProfile.tsx">
+        Main profile component with stats and activity
+      </file>
+      <file path="frontend/app/user/[wallet]/components/StatCard.tsx">
+        Reusable stat display card component
+      </file>
+      <file path="frontend/app/user/[wallet]/components/RecentBets.tsx">
+        Component displaying user's recent betting activity
+      </file>
+      <file path="frontend/app/user/[wallet]/components/CreatedMarkets.tsx">
+        Component displaying markets created by user
+      </file>
+      <file path="frontend/lib/hooks/useLeaderboardData.ts">
+        Custom hook for fetching leaderboard data with caching
+      </file>
+      <file path="frontend/lib/hooks/useUserProfile.ts">
+        Custom hook for fetching complete user profile data
+      </file>
+      <file path="frontend/lib/utils/formatWallet.ts">
+        Utility functions for wallet address formatting
+      </file>
+      <file path="frontend/lib/types/leaderboard.ts">
+        TypeScript types for leaderboard data structures
+      </file>
+    </new_files>
+
+    <modified_files>
+      <file path="frontend/lib/types/database.ts">
+        Add/update types for user_stats and creator_stats views if needed
+      </file>
+      <file path="frontend/app/components/Header.tsx">
+        Add "Leaderboard" link to navigation menu
+      </file>
+      <file path="frontend/app/page.tsx">
+        Add link/button to leaderboard from homepage
+      </file>
+    </modified_files>
+
+    <database_files>
+      <file path="supabase/migrations/00X_leaderboard_views.sql">
+        Migration to create user_stats and creator_stats views with indexes
+      </file>
+    </database_files>
+  </file_structure>
+
+  <success_criteria>
+    <criterion priority="critical">
+      All 7 acceptance criteria met and validated
+    </criterion>
+    <criterion priority="critical">
+      Leaderboard displays correct data for all 4 categories
+    </criterion>
+    <criterion priority="critical">
+      Current user highlighting works reliably
+    </criterion>
+    <criterion priority="critical">
+      User profile pages display all required stats and activity
+    </criterion>
+    <criterion priority="high">
+      Responsive design works smoothly on mobile, tablet, desktop
+    </criterion>
+    <criterion priority="high">
+      Database queries execute in &lt; 100ms (95th percentile)
+    </criterion>
+    <criterion priority="high">
+      All E2E tests pass successfully
+    </criterion>
+    <criterion priority="medium">
+      Real-time updates work without manual refresh
+    </criterion>
+    <criterion priority="medium">
+      Empty states display correctly for users with no activity
+    </criterion>
+  </success_criteria>
+
+  <notes>
+    <note type="performance">
+      Database views (user_stats, creator_stats) are critical for performance. Without them, leaderboard queries would require complex joins and aggregations on every request. Views pre-calculate these stats.
+    </note>
+
+    <note type="future_enhancement">
+      Consider adding ENS name resolution for more readable usernames. This would require integrating an ENS resolver library and displaying ENS names when available, with wallet address as fallback.
+    </note>
+
+    <note type="ux">
+      The "Top by Win Rate" leaderboard requires a minimum threshold (10 bets) to ensure meaningful rankings. Users with fewer bets would have volatile win rates that don't reflect skill.
+    </note>
+
+    <note type="architecture">
+      Leaderboards use database views instead of on-chain data to avoid gas costs for queries. Stats are synced from on-chain events via the event listener (Epic 1 Story 1.9).
+    </note>
+
+    <note type="testing">
+      E2E tests should include "current user highlighting" scenarios with both connected and disconnected wallet states to ensure highlighting logic works correctly.
+    </note>
+
+    <note type="accessibility">
+      Ensure leaderboard tables have proper ARIA labels and keyboard navigation works for all interactive elements (tabs, profile links).
+    </note>
+  </notes>
+</story_context>

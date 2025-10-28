@@ -41,6 +41,16 @@ export function Header() {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  href="/leaderboard"
+                  className={`text-sm font-medium transition-colors ${
+                    pathname === '/leaderboard'
+                      ? 'text-purple-600 dark:text-purple-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  }`}
+                >
+                  Leaderboard
+                </Link>
               </nav>
             )}
           </div>

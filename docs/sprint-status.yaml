@@ -76,9 +76,9 @@ development_status:
   3-4-build-market-detail-page-with-betting-interface: done
   3-5-build-user-dashboard-my-bets: done
   3-6-build-proposal-creation-flow: done
-  3-7-build-voting-interface-for-market-resolutions: review
-  3-8-build-voting-interface-for-proposals: backlog
-  3-9-build-leaderboards-and-user-profiles: backlog
+  3-7-build-voting-interface-for-market-resolutions: done
+  3-8-build-voting-interface-for-proposals: done
+  3-9-build-leaderboards-and-user-profiles: done
   3-10-build-admin-dashboard: backlog
   3-11-implement-comments-and-discussion-system: backlog
   3-12-implement-responsive-mobile-design-pwa: backlog
