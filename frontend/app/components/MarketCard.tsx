@@ -38,7 +38,7 @@ export function MarketCard({ market }: MarketCardProps) {
 
       {/* Question */}
       <h3 className="text-lg font-semibold mb-4 line-clamp-2 min-h-[3.5rem]">
-        {market.question}
+        {market.title || market.question}
       </h3>
 
       {/* Odds Display */}

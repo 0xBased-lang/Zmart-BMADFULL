@@ -59,7 +59,7 @@ export function BettingHistory({ bets, isLoading }: BettingHistoryProps) {
     // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(bet =>
-        bet.markets?.question.toLowerCase().includes(searchQuery.toLowerCase())
+        (bet.markets?.title || bet.markets?.question || '').toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
@@ -95,7 +95,7 @@ export function BettingHistory({ bets, isLoading }: BettingHistoryProps) {
     const headers = ['Date', 'Market', 'Outcome', 'Amount (SOL)', 'Status', 'Profit (SOL)']
     const rows = filteredAndSortedBets.map(bet => [
       new Date(bet.created_at).toLocaleDateString(),
-      bet.markets?.question || 'Unknown',
+      (bet.markets?.title || bet.markets?.question || 'Unknown'),
       bet.outcome,
       (bet.amount / 1_000_000_000).toFixed(4),
       getbetStatus(bet, bet.markets),
@@ -241,7 +241,7 @@ export function BettingHistory({ bets, isLoading }: BettingHistoryProps) {
                   {/* Left: Market Info */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-white font-semibold mb-1 line-clamp-1">
-                      {market.question}
+                      {market.title || market.question}
                     </h3>
                     <div className="flex flex-wrap gap-2 text-xs text-gray-400">
                       <span>{new Date(bet.created_at).toLocaleDateString()}</span>

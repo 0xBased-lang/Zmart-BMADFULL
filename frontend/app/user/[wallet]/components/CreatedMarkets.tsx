@@ -72,7 +72,7 @@ export function CreatedMarkets({ markets }: CreatedMarketsProps) {
               href={`/markets/${market.id}`}
               className="text-blue-400 hover:text-blue-300 font-semibold flex-1"
             >
-              {market.question}
+              {market.title || market.question}
             </Link>
             {getStatusBadge(market.status)}
           </div>

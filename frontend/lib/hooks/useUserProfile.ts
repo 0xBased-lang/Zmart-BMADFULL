@@ -20,7 +20,8 @@ export interface RecentBet {
   created_at: string
   market: {
     id: string
-    question: string
+    title: string // Database uses 'title' not 'question'
+    question?: string // Backwards compatibility alias
     status: string
     winning_outcome: string | null
   }
@@ -29,7 +30,8 @@ export interface RecentBet {
 export interface CreatedMarket {
   id: string
   market_id: number
-  question: string
+  title: string // Database uses 'title' not 'question'
+  question?: string // Backwards compatibility alias
   status: string
   total_volume: number
   created_at: string

@@ -32,7 +32,8 @@ export interface UserBet {
 
 export interface Market {
   market_id: number
-  question: string
+  title: string // Database uses 'title' not 'question'
+  question?: string // Backwards compatibility alias
   description: string
   category: string
   creator_wallet: string
@@ -387,7 +388,7 @@ function generateActivityTimeline(
       id: bet.id,
       type: 'bet_placed',
       market_id: bet.markets.market_id,
-      market_title: bet.markets.question,
+      market_title: bet.markets.title,
       amount: bet.amount / 1_000_000_000,
       outcome: bet.outcome.toLowerCase() as 'yes' | 'no',
       timestamp: bet.created_at
@@ -407,7 +408,7 @@ function generateActivityTimeline(
             id: `${bet.id}-claimed`,
             type: 'payout_claimed',
             market_id: bet.markets.market_id,
-            market_title: bet.markets.question,
+            market_title: bet.markets.title,
             amount: payout / 1_000_000_000,
             timestamp: bet.updated_at
           })
@@ -416,7 +417,7 @@ function generateActivityTimeline(
             id: `${bet.id}-won`,
             type: 'bet_won',
             market_id: bet.markets.market_id,
-            market_title: bet.markets.question,
+            market_title: bet.markets.title,
             amount: bet.amount / 1_000_000_000,
             outcome: bet.outcome.toLowerCase() as 'yes' | 'no',
             timestamp: bet.markets.resolution_time || bet.markets.end_date
@@ -427,7 +428,7 @@ function generateActivityTimeline(
           id: `${bet.id}-lost`,
           type: 'bet_lost',
           market_id: bet.markets.market_id,
-          market_title: bet.markets.question,
+          market_title: bet.markets.title,
           amount: bet.amount / 1_000_000_000,
           outcome: bet.outcome.toLowerCase() as 'yes' | 'no',
           timestamp: bet.markets.resolution_time || bet.markets.end_date

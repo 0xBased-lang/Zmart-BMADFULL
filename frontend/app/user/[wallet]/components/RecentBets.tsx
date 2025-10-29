@@ -75,7 +75,7 @@ export function RecentBets({ bets }: RecentBetsProps) {
               href={`/markets/${bet.market.id}`}
               className="text-blue-400 hover:text-blue-300 font-semibold flex-1"
             >
-              {bet.market.question}
+              {bet.market.title || bet.market.question}
             </Link>
             {getStatusBadge(bet)}
           </div>

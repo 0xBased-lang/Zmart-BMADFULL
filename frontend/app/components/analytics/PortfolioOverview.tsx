@@ -118,7 +118,7 @@ export function PortfolioOverview({ positions, isLoading }: PortfolioOverviewPro
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 pr-4">
                     <h3 className="text-white font-semibold mb-1 line-clamp-1">
-                      {position.market.question}
+                      {position.market.title || position.market.question}
                     </h3>
                     <p className="text-sm text-gray-400">
                       {position.bets.length} bet{position.bets.length !== 1 ? 's' : ''}

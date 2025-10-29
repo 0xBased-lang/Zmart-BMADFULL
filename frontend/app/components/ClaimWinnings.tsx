@@ -102,7 +102,7 @@ export function ClaimWinnings() {
       ).map((bet: any) => ({
         id: bet.id,
         market_id: bet.markets.market_id,
-        market_title: bet.markets.question,
+        market_title: bet.markets.title,
         bet_side: bet.outcome.toLowerCase(),
         amount: bet.amount,
         amount_to_pool: bet.shares, // Using shares as amount_to_pool
