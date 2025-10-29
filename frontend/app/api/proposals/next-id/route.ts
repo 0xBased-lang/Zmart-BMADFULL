@@ -4,17 +4,18 @@ import { createClient } from '@supabase/supabase-js';
 // Force dynamic rendering to avoid build-time env var validation
 export const dynamic = 'force-dynamic'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 /**
  * GET /api/proposals/next-id
  * Returns the next available proposal ID
  */
 export async function GET() {
   try {
+    // Create Supabase client at runtime (not build time)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
     const { data, error } = await supabase
       .from('proposals')
       .select('proposal_id')

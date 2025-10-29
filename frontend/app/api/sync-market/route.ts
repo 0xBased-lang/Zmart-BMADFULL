@@ -24,15 +24,6 @@ import { createClient } from '@supabase/supabase-js'
 export const dynamic = 'force-dynamic'
 import type { Market, Proposal } from '@/lib/types/database'
 
-// Supabase client with service role key for admin operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-// Admin wallet addresses (should match platform authority)
-const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || '').split(',').map(w => w.trim())
-
 export interface SyncMarketRequest {
   // Proposal data
   proposalId: number
@@ -74,6 +65,15 @@ export async function POST(request: Request): Promise<NextResponse<SyncMarketRes
   console.log('📥 Received sync-market request')
 
   try {
+    // Create Supabase client at runtime (not build time)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    // Admin wallet addresses (should match platform authority)
+    const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || '').split(',').map(w => w.trim())
+
     // Parse request body
     const body: SyncMarketRequest = await request.json()
     const {
