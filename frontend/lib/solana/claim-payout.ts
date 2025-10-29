@@ -20,10 +20,12 @@ import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import { getWallet } from '@/lib/solana/wallet'
 import coreMarketsIdl from '@/lib/solana/idl/core_markets.json'
 
-// Program IDs
-const CORE_MARKETS_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
-)
+// Lazy getter for Program ID - only create PublicKey at runtime
+function getCoreMarketsProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+  )
+}
 
 const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.devnet.solana.com'
 const COMMITMENT = 'confirmed'
@@ -106,7 +108,7 @@ export async function claimPayout(
         Buffer.from('market'),
         marketIdBN.toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     // Parse betId to get bet counter for user-bet PDA derivation
@@ -120,7 +122,7 @@ export async function claimPayout(
         userPubkey.toBuffer(),
         Buffer.from(betCounter.toString().padStart(8, '0')) // Ensure consistent formatting
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     console.log('📊 Claiming from:', {

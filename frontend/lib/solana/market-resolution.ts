@@ -23,12 +23,16 @@ import { getWallet } from '@/lib/solana/wallet'
 import coreMarketsIdl from '@/lib/solana/idl/core_markets.json'
 
 // Program IDs
-const CORE_MARKETS_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
-)
-const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
-)
+function getCoreMarketsProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+  )
+}
+function getParameterStorageProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+  )
+}
 
 const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.devnet.solana.com'
 const COMMITMENT = 'confirmed'
@@ -103,12 +107,12 @@ export async function resolveMarket(
         Buffer.from('market'),
         marketIdBN.toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     const [globalParametersPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('global-parameters')],
-      PARAMETER_STORAGE_PROGRAM_ID
+      getParameterStorageProgramId()
     )
 
     // Step 5: Convert outcome to BetSide enum
@@ -132,7 +136,7 @@ export async function resolveMarket(
         platformWallet: platformWalletPubkey,
         creatorWallet: creatorPubkey,
         authority: wallet.publicKey,
-        parameterStorageProgram: PARAMETER_STORAGE_PROGRAM_ID,
+        parameterStorageProgram: getParameterStorageProgramId(),
         systemProgram: SystemProgram.programId
       })
       .transaction()

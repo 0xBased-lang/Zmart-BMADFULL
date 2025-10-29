@@ -8,16 +8,24 @@ import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import { getWallet } from '@/lib/solana/wallet'
 import idl from '@/lib/solana/idl/core_markets.json'
 
-// Program IDs from environment
-const CORE_MARKETS_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
-)
-const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
-)
-const BOND_MANAGER_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
-)
+// Lazy getters for Program IDs - only create PublicKey at runtime
+function getCoreMarketsProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+  )
+}
+
+function getParameterStorageProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+  )
+}
+
+function getBondManagerProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
+  )
+}
 
 export interface CreateMarketParams {
   question: string
@@ -77,12 +85,12 @@ export async function createMarket(
         Buffer.from('market'),
         marketIdBN.toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     const [globalParametersPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('global-parameters')],
-      PARAMETER_STORAGE_PROGRAM_ID
+      getParameterStorageProgramId()
     )
 
     const [bondEscrowPda] = PublicKey.findProgramAddressSync(
@@ -90,12 +98,12 @@ export async function createMarket(
         Buffer.from('bond-escrow'),
         marketIdBN.toArrayLike(Buffer, 'le', 8)
       ],
-      BOND_MANAGER_PROGRAM_ID
+      getBondManagerProgramId()
     )
 
     const [marketVaultPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('market_vault'), marketPda.toBuffer()],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     // Convert parameters
@@ -117,8 +125,8 @@ export async function createMarket(
         globalParameters: globalParametersPda,
         creator: creator,
         systemProgram: SystemProgram.programId,
-        parameterStorageProgram: PARAMETER_STORAGE_PROGRAM_ID,
-        bondManagerProgram: BOND_MANAGER_PROGRAM_ID
+        parameterStorageProgram: getParameterStorageProgramId(),
+        bondManagerProgram: getBondManagerProgramId()
       })
       .transaction()
 

@@ -20,18 +20,24 @@ import coreMarketsIdl from '@/lib/solana/idl/core_markets.json'
 import proposalSystemIdl from '@/lib/solana/idl/proposal_system.json'
 
 // Program IDs from environment (devnet)
-const CORE_MARKETS_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
-)
+function getCoreMarketsProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+  )
+}
 const PROPOSAL_SYSTEM_PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_PROPOSAL_SYSTEM_ID || '5XH5i8dypiB4Wwa7TkmU6dnk9SyUGqE92GiQMHypPekL'
 )
-const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
-)
-const BOND_MANAGER_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
-)
+function getParameterStorageProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+  )
+}
+function getBondManagerProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
+  )
+}
 
 // RPC endpoint configuration
 const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.devnet.solana.com'
@@ -226,7 +232,7 @@ async function createMarketOnChain(
       Buffer.from('market'),
       marketIdBN.toArrayLike(Buffer, 'le', 8)
     ],
-    CORE_MARKETS_PROGRAM_ID
+    getCoreMarketsProgramId()
   )
 
   // Convert end_date to Unix timestamp

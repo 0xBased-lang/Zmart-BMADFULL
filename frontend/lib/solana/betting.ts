@@ -10,16 +10,24 @@ import * as anchor from '@coral-xyz/anchor'
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import idl from '@/lib/solana/idl/core_markets.json'
 
-// Program IDs (from environment variables - devnet/testnet/mainnet)
-const CORE_MARKETS_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
-)
-const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
-)
-const BOND_MANAGER_PROGRAM_ID = new PublicKey(
-  process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
-)
+// Lazy getters for Program IDs - only create PublicKey at runtime
+function getCoreMarketsProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_CORE_MARKETS_ID || '6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV'
+  )
+}
+
+function getParameterStorageProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_PARAMETER_STORAGE_ID || 'J63ypBPAjWEMrwyFxWTP6vG8tGF58gH8w9G6yjDFqumD'
+  )
+}
+
+function getBondManagerProgramId(): PublicKey {
+  return new PublicKey(
+    process.env.NEXT_PUBLIC_BOND_MANAGER_ID || '8XvCToLC42ZV4hw6PW5SEhqDpX3NfqvbAS2tNseG52Fx'
+  )
+}
 
 export interface PlaceBetParams {
   marketId: number
@@ -81,7 +89,7 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
         Buffer.from('market'),
         new BN(marketId).toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     // Get market account to read total_bets for user bet PDA
@@ -95,12 +103,12 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
         publicKey.toBuffer(),
         new BN(totalBets).toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     const [globalParametersPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('global-parameters')],
-      PARAMETER_STORAGE_PROGRAM_ID
+      getParameterStorageProgramId()
     )
 
     const [bondEscrowPda] = PublicKey.findProgramAddressSync(
@@ -108,7 +116,7 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
         Buffer.from('bond-escrow'),
         new BN(marketId).toArrayLike(Buffer, 'le', 8)
       ],
-      BOND_MANAGER_PROGRAM_ID
+      getBondManagerProgramId()
     )
 
     // Convert SOL to lamports
@@ -127,8 +135,8 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
         bondEscrow: bondEscrowPda,
         bettor: publicKey,
         systemProgram: SystemProgram.programId,
-        parameterStorageProgram: PARAMETER_STORAGE_PROGRAM_ID,
-        bondManagerProgram: BOND_MANAGER_PROGRAM_ID
+        parameterStorageProgram: getParameterStorageProgramId(),
+        bondManagerProgram: getBondManagerProgramId()
       })
       .transaction()
 
@@ -232,7 +240,7 @@ export async function claimWinnings(
         Buffer.from('market'),
         new BN(marketId).toArrayLike(Buffer, 'le', 8)
       ],
-      CORE_MARKETS_PROGRAM_ID
+      getCoreMarketsProgramId()
     )
 
     // Note: For claiming, we need to find ALL user bets for this market
@@ -278,7 +286,7 @@ export async function getUserBets(
     // Get all user bet accounts for this market and user
     // This requires a getProgramAccounts call with filters
     const accounts = await connection.getProgramAccounts(
-      CORE_MARKETS_PROGRAM_ID,
+      getCoreMarketsProgramId(),
       {
         filters: [
           // Filter for UserBet account type (would need discriminator)
