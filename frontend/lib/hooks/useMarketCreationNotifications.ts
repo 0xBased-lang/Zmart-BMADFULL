@@ -86,12 +86,6 @@ export function useMarketCreationNotifications(userWallet?: string) {
                   background: '#1f2937',
                   color: '#fff',
                   border: '1px solid #10b981'
-                },
-                action: {
-                  label: 'View Market',
-                  onClick: () => {
-                    window.location.href = `/market/${notification.market_id}`
-                  }
                 }
               }
             )

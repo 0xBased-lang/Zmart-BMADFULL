@@ -83,3 +83,18 @@ __pycache__/
 *.backup
 *.bak
 .vercel
+
+# Test artifacts (explicit, prevent re-commit)
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright/
+*.test-results/
+
+# Temporary files
+*.tmp
+*.backup
+*.bak
+
+# OS files (additional)
+.DS_Store
+Thumbs.db

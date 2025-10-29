@@ -223,7 +223,7 @@ export async function POST(request: Request): Promise<NextResponse<SyncMarketRes
 
     // Step 7: Trigger real-time notification (Supabase Realtime)
     // This will notify subscribed clients that a new market was created
-    await supabase
+    const notificationResult = await supabase
       .from('notifications')
       .insert({
         type: 'MARKET_CREATED',
@@ -233,10 +233,10 @@ export async function POST(request: Request): Promise<NextResponse<SyncMarketRes
         read: false,
         created_at: new Date().toISOString()
       })
-      .catch(err => {
-        // Non-critical: notification failure shouldn't block response
-        console.warn('⚠️ Failed to create notification:', err)
-      })
+    // Non-critical: notification failure shouldn't block response
+    if (notificationResult.error) {
+      console.warn('⚠️ Failed to create notification:', notificationResult.error)
+    }
 
     // Step 8: Return success with market data
     console.log('✅ Market sync complete:', marketId)
