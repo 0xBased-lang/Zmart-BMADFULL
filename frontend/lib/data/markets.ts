@@ -25,10 +25,16 @@ export async function getActiveMarkets(): Promise<Market[]> {
       return []
     }
 
-    // Map data to ensure market_id is set
+    // Map data to ensure market_id is set and add backward compatibility
     const markets = (data || []).map((item: any) => ({
       ...item,
-      market_id: item.market_id || parseInt(item.program_market_id || item.id || '0')
+      market_id: item.market_id || parseInt(item.program_market_id || item.id || '0'),
+      // Backward compatibility: map title to question for components expecting 'question'
+      question: item.title || item.question,
+      // Backward compatibility: map end_date to end_time for components expecting 'end_time'
+      end_time: item.end_date || item.end_time,
+      // Normalize status to lowercase for component compatibility
+      status: item.status?.toLowerCase() || 'active'
     })) as Market[]
 
     return markets
@@ -60,10 +66,14 @@ export async function getMarketById(marketId: string): Promise<Market | null> {
 
     if (!data) return null
 
-    // Map data to ensure market_id is set
+    // Map data to ensure market_id is set and add backward compatibility
     const market = {
       ...data,
-      market_id: data.market_id || parseInt(data.program_market_id || data.id || '0')
+      market_id: data.market_id || parseInt(data.program_market_id || data.id || '0'),
+      // Backward compatibility
+      question: data.title || data.question,
+      end_time: data.end_date || data.end_time,
+      status: data.status?.toLowerCase() || 'active'
     } as Market
 
     return market

@@ -4,14 +4,16 @@ export interface Market {
   id: string
   market_id: number // Program market ID (numeric)
   program_market_id?: string // Alternative field name
-  question: string
+  title: string // Database uses 'title' not 'question'
+  question?: string // Legacy alias for backwards compatibility
   description?: string | null
   category?: string | null
   creator_wallet: string | null
-  end_date: string // Changed from end_time to match database column
+  end_date: string // Database column name
   end_time?: string // Legacy alias for backwards compatibility
   resolution_time?: string | null
-  status: 'active' | 'locked' | 'resolved' | 'cancelled'
+  resolved_at?: string | null
+  status: 'ACTIVE' | 'LOCKED' | 'RESOLVED' | 'CANCELLED' | 'active' | 'locked' | 'resolved' | 'cancelled' // Database uses uppercase
   winning_outcome?: 'yes' | 'no' | null
   resolved_outcome?: 'yes' | 'no' | null
   yes_pool?: number | null
@@ -21,8 +23,9 @@ export interface Market {
   unique_bettors?: number | null
   bond_amount?: number | null
   resolution_criteria?: string | null
+  on_chain_address?: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 export interface UserBet {
