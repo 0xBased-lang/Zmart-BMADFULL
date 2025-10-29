@@ -1,23 +1,41 @@
 import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Supabase configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
+// Lazy Supabase client - only created when first accessed (not at import time)
+let _supabaseClient: SupabaseClient | null = null
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  console.warn('Supabase credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+function getSupabaseClient(): SupabaseClient {
+  if (!_supabaseClient) {
+    // Read env vars at runtime (not build time)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
+
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.warn('Supabase credentials not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
+
+    _supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false, // Don't persist auth (wallet-based auth)
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10, // Throttle real-time events
+        },
+      },
+    })
+  }
+  return _supabaseClient
 }
 
-// Create Supabase client singleton
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false, // Don't persist auth (wallet-based auth)
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10, // Throttle real-time events
-    },
-  },
+// Export Proxy for backward compatibility - all property access goes through getter
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = getSupabaseClient()
+    const value = (client as any)[prop]
+    // Bind methods to the client instance
+    return typeof value === 'function' ? value.bind(client) : value
+  }
 })
 
 // Type helper for database queries

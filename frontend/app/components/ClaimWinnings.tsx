@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase'
 /**
  * Claim Winnings Component
  *
@@ -21,14 +22,9 @@
 
 import { useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { createClient } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import { claimPayout, calculateExpectedPayout, canClaimPayout, type UserBetData } from '@/lib/solana/claim-payout'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 interface ClaimableBet {
   id: string

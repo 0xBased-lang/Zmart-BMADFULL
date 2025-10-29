@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase'
 'use client';
 
 /**
@@ -16,14 +17,9 @@ import { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
-import { createClient } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import ProposalSystemIDL from '@/lib/solana/idl/proposal_system.json';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface Proposal {
   id: number;
