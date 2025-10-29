@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering to avoid build-time env var parsing
+export const dynamic = 'force-dynamic';
+
 /**
  * Direct Market Creation (Admin Only)
  * Bypass proposal/voting - create markets instantly

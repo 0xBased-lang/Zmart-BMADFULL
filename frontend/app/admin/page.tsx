@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to avoid build-time env var parsing
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
