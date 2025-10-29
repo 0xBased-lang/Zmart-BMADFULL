@@ -19,6 +19,9 @@
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+
+// Force dynamic rendering to avoid build-time env var validation
+export const dynamic = 'force-dynamic'
 import type { Market, Proposal } from '@/lib/types/database'
 
 // Supabase client with service role key for admin operations
