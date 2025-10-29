@@ -26,6 +26,7 @@ export function MarketCard({ market }: MarketCardProps) {
   return (
     <Link
       href={`/markets/${market.id}`}
+      data-testid="market-card"
       className="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer"
     >
       {/* Category Badge */}

@@ -506,6 +506,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
             <label className="block text-gray-400 text-sm mb-2">Select Outcome</label>
             <div className="grid grid-cols-2 gap-3">
               <button
+                data-testid="bet-yes-button"
                 onClick={() => selectOutcome('YES')}
                 disabled={!marketStatus?.isActive}
                 className={`p-4 rounded-lg border-2 transition-all ${
@@ -518,6 +519,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
                 <div className="text-sm opacity-80">{currentOdds.yes.toFixed(1)}%</div>
               </button>
               <button
+                data-testid="bet-no-button"
                 onClick={() => selectOutcome('NO')}
                 disabled={!marketStatus?.isActive}
                 className={`p-4 rounded-lg border-2 transition-all ${
@@ -536,7 +538,8 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
           <div>
             <label className="block text-gray-400 text-sm mb-2">Bet Amount (SOL)</label>
             <input
-              type="text"
+              data-testid="bet-amount-input"
+              type="number"
               value={betAmount}
               onChange={handleAmountChange}
               onBlur={handleAmountBlur}

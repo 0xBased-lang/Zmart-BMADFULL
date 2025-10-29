@@ -6,6 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MobileNav } from './layout/MobileNav'
+import { useHydrated } from '@/lib/hooks/useHydrated'
 
 // Dynamically import WalletMultiButton with SSR disabled to prevent hydration errors
 const WalletMultiButton = dynamic(
@@ -17,10 +18,11 @@ export function Header() {
   const { connected } = useWallet()
   const pathname = usePathname()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const hydrated = useHydrated()
 
   return (
     <>
-      <header className="border-b border-gray-200 dark:border-gray-800">
+      <header className="border-b border-gray-200 dark:border-gray-800" data-hydrated={hydrated}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-8">
@@ -29,50 +31,56 @@ export function Header() {
               </Link>
 
               {/* Desktop Navigation - hidden on mobile */}
-              {connected && (
-                <nav className="hidden md:flex items-center gap-4">
-                  <Link
-                    href="/"
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === '/'
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    Markets
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === '/dashboard'
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/my-bets"
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === '/my-bets'
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    My Bets
-                  </Link>
-                  <Link
-                    href="/leaderboard"
-                    className={`text-sm font-medium transition-colors ${
-                      pathname === '/leaderboard'
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                    }`}
-                  >
-                    Leaderboard
-                  </Link>
-                </nav>
-              )}
+              <nav className="hidden md:flex items-center gap-4">
+                <Link
+                  href="/markets"
+                  data-testid="nav-markets"
+                  className={`text-sm font-medium transition-colors ${
+                    pathname === '/markets' || pathname === '/'
+                      ? 'text-purple-600 dark:text-purple-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  }`}
+                >
+                  Markets
+                </Link>
+                {connected && (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      data-testid="nav-dashboard"
+                      className={`text-sm font-medium transition-colors ${
+                        pathname === '/dashboard'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                      }`}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/my-bets"
+                      data-testid="nav-my-bets"
+                      className={`text-sm font-medium transition-colors ${
+                        pathname === '/my-bets'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                      }`}
+                    >
+                      My Bets
+                    </Link>
+                  </>
+                )}
+                <Link
+                  href="/leaderboard"
+                  data-testid="nav-leaderboard"
+                  className={`text-sm font-medium transition-colors ${
+                    pathname === '/leaderboard'
+                      ? 'text-purple-600 dark:text-purple-400'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  }`}
+                >
+                  Leaderboard
+                </Link>
+              </nav>
             </div>
 
             <div className="flex items-center gap-2">

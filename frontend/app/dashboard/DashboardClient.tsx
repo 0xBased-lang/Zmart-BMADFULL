@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useRouter } from 'next/navigation'
+import { useHydrated } from '@/lib/hooks/useHydrated'
 import { PortfolioHeader } from './components/PortfolioHeader'
 import { ActiveBets } from './components/ActiveBets'
 import { PendingResolutions } from './components/PendingResolutions'
@@ -18,6 +19,7 @@ type TabView = 'overview' | 'active' | 'pending' | 'claimable' | 'history'
 export function DashboardClient() {
   const { publicKey, connected, connecting } = useWallet()
   const router = useRouter()
+  const hydrated = useHydrated()
 
   // UI state
   const [currentTab, setCurrentTab] = useState<TabView>('overview')
@@ -213,7 +215,7 @@ export function DashboardClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" data-hydrated={hydrated}>
       {/* Offline Banner */}
       {isOffline && (
         <div className="bg-yellow-600 text-white text-center py-2 px-4">
@@ -226,7 +228,7 @@ export function DashboardClient() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">My Dashboard</h1>
+          <h1 data-testid="dashboard-heading" className="text-3xl font-bold text-white mb-2">My Dashboard</h1>
           <p className="text-gray-400">
             Wallet: {publicKey?.toBase58().slice(0, 4)}...{publicKey?.toBase58().slice(-4)}
           </p>
@@ -273,9 +275,9 @@ export function DashboardClient() {
             <>
               {/* Active Bets Preview */}
               {activeBets.length > 0 && (
-                <div>
+                <div data-testid="active-bets-section">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-white">Active Bets</h2>
+                    <h2 data-testid="active-bets-heading" className="text-xl font-semibold text-white">Active Bets</h2>
                     <button
                       onClick={() => setCurrentTab('active')}
                       className="text-sm text-purple-400 hover:text-purple-300"

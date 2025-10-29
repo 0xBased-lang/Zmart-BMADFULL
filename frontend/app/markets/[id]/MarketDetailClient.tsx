@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMarket } from '@/lib/hooks/useMarkets'
 import { useLiveOdds } from '@/lib/hooks/useMarketUpdates'
+import { useHydrated } from '@/lib/hooks/useHydrated'
 import { MarketHeader } from './components/MarketHeader'
 import { OddsDisplay } from './components/OddsDisplay'
 import { BettingPanel } from './components/BettingPanel'
@@ -13,13 +14,21 @@ import Link from 'next/link'
 
 interface MarketDetailClientProps {
   marketId: number
+  initialMarket?: any // Initial server-side market data
 }
 
-export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
+export function MarketDetailClient({ marketId, initialMarket }: MarketDetailClientProps) {
+  // Hydration detection
+  const hydrated = useHydrated()
+
   // Core state
   // Convert number marketId to string for database queries
   const marketIdString = marketId.toString()
-  const { market, loading: marketLoading, error: marketError } = useMarket(marketIdString)
+  const { market: clientMarket, loading: marketLoading, error: marketError } = useMarket(marketIdString)
+
+  // Use initial server-rendered market if available, otherwise use client-fetched data
+  const market = initialMarket || clientMarket
+
   const { market: liveMarket } = useLiveOdds(marketIdString)
 
   // UI state
@@ -190,7 +199,7 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" data-hydrated={hydrated}>
       {/* Offline Banner */}
       {isOffline && (
         <div className="bg-yellow-600 text-white text-center py-2">

@@ -1,3 +1,4 @@
+import { getMarketById } from '@/lib/data/markets'
 import { MarketDetailClient } from './MarketDetailClient'
 import { notFound } from 'next/navigation'
 
@@ -18,8 +19,15 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
     notFound()
   }
 
-  // Pass validated ID to client component
-  return <MarketDetailClient marketId={marketId} />
+  // Fetch market data server-side
+  const market = await getMarketById(id)
+
+  if (!market) {
+    notFound()
+  }
+
+  // Pass market data to client component
+  return <MarketDetailClient marketId={marketId} initialMarket={market} />
 }
 
 // Generate metadata for SEO
@@ -35,9 +43,18 @@ export async function generateMetadata({ params }: MarketDetailPageProps) {
     }
   }
 
-  // In production, fetch market data here for metadata
+  // Fetch market data for metadata
+  const market = await getMarketById(id)
+
+  if (!market) {
+    return {
+      title: 'Market Not Found',
+      description: 'This market does not exist'
+    }
+  }
+
   return {
-    title: `Market #${marketId} | BMAD-Zmart`,
-    description: 'View market details and place your predictions',
+    title: `${market.question} | BMAD-Zmart`,
+    description: market.description || 'View market details and place your predictions',
   }
 }
