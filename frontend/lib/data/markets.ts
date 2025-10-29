@@ -17,7 +17,7 @@ export async function getActiveMarkets(): Promise<Market[]> {
     const { data, error } = await supabase
       .from('markets')
       .select('*')
-      .eq('status', 'active')
+      .eq('status', 'ACTIVE') // Database uses uppercase
       .order('created_at', { ascending: false })
 
     if (error) {

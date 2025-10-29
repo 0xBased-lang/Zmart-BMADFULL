@@ -50,7 +50,7 @@ export function useMarkets(): UseMarketsReturn {
       const { data, error: fetchError } = await supabase
         .from('markets')
         .select('*')
-        .eq('status', 'active')
+        .eq('status', 'ACTIVE') // Database uses uppercase
         .order('created_at', { ascending: false })
 
       if (fetchError) throw fetchError
