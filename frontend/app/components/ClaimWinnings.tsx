@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase'
+'use client'
+
 /**
  * Claim Winnings Component
  *
@@ -18,9 +19,8 @@ import { supabase } from '@/lib/supabase'
  * - Optimistic UI updates
  */
 
-'use client'
-
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import { useWallet } from '@solana/wallet-adapter-react'
 import toast from 'react-hot-toast'
 import { claimPayout, calculateExpectedPayout, canClaimPayout, type UserBetData } from '@/lib/solana/claim-payout'

@@ -1,5 +1,6 @@
-import { supabase } from '@/lib/supabase'
 'use client';
+
+import { supabase } from '@/lib/supabase'
 
 /**
  * ProposalManagement Component
