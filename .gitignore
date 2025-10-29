@@ -98,3 +98,4 @@ frontend/.playwright/
 # OS files (additional)
 .DS_Store
 Thumbs.db
+yarn.lock
