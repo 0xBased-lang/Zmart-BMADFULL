@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
-import { Program, AnchorProvider } from '@project-serum/anchor'
+import { Program, AnchorProvider } from '@coral-xyz/anchor'
 import { supabase } from '@/lib/supabase'
 import idl from '@/lib/solana/idl/core_markets.json'
 
@@ -65,7 +65,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
         { commitment: 'confirmed' }
       )
 
-      const program = new Program(idl as any, programId, provider)
+      const program = new Program(idl as any, provider)
 
       // Get market PDA
       const [marketPda] = PublicKey.findProgramAddressSync(
@@ -108,7 +108,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
       )
 
       // Call claim instruction
-      const tx = await program.methods
+      const tx = await (program as any).methods
         .claimPayout()
         .accounts({
           user: publicKey,

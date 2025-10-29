@@ -55,9 +55,9 @@ export function VotingMarketCard({ market }: VotingMarketCardProps) {
       </div>
 
       {/* Voting Countdown */}
-      {market.end_time && (
+      {(market.end_date || market.end_time) && (
         <div className="mb-4">
-          <VotingCountdown endTime={market.end_time} />
+          <VotingCountdown endTime={market.end_date || market.end_time || ''} />
         </div>
       )}
 

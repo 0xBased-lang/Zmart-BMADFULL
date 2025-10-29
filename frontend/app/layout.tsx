@@ -6,6 +6,7 @@ import { WalletProviderWrapper } from "./components/WalletProvider";
 import { Header } from "./components/Header";
 import { Toaster } from "react-hot-toast";
 import { PWARegistration } from "./components/PWARegistration";
+import { NotificationListener } from "./components/NotificationListener";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <WalletProviderWrapper>
+          <NotificationListener />
           <Header />
           <main className="container mx-auto px-4 py-8">
             {children}

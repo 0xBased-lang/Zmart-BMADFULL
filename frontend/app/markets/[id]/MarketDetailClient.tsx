@@ -76,7 +76,22 @@ export function MarketDetailClient({ marketId }: MarketDetailClientProps) {
     if (!market) return null
 
     const now = Date.now()
-    const endTime = new Date(market.end_time).getTime()
+    // Use end_date (database column) or fall back to end_time (legacy)
+    const endDate = market.end_date || market.end_time
+    if (!endDate) {
+      // If no end date, treat as active for now
+      return {
+        isActive: market.status === 'active',
+        isResolved: market.status === 'resolved',
+        isCancelled: market.status === 'cancelled',
+        isExpired: false,
+        timeLeft: Infinity,
+        endingSoon: false,
+        justCreated: now - new Date(market.created_at).getTime() < 60 * 60 * 1000
+      }
+    }
+
+    const endTime = new Date(endDate).getTime()
     const timeLeft = endTime - now
 
     return {

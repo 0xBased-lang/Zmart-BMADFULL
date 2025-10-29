@@ -1,11 +1,17 @@
 'use client'
 
 import { Fragment } from 'react'
+import dynamic from 'next/dynamic'
 import { Dialog, Transition } from '@headlessui/react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useWallet } from '@solana/wallet-adapter-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+
+// Dynamically import WalletMultiButton with SSR disabled to prevent hydration errors
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
+  { ssr: false }
+)
 
 interface MobileNavProps {
   isOpen: boolean
@@ -19,6 +25,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const navLinks = [
     { href: '/', label: 'Markets', requiresAuth: false },
     { href: '/dashboard', label: 'Dashboard', requiresAuth: true },
+    { href: '/my-bets', label: 'My Bets', requiresAuth: true },
     { href: '/propose', label: 'Propose', requiresAuth: true },
     { href: '/vote', label: 'Vote', requiresAuth: true },
     { href: '/proposals', label: 'Proposals', requiresAuth: true },

@@ -185,7 +185,7 @@ export function MarketHeader({ market, marketStatus }: MarketHeaderProps) {
         <div>
           <p className="text-gray-500 text-sm mb-1">End Date</p>
           <p className="text-gray-300">
-            {formatDate(market.end_time)}
+            {formatDate(market.end_date || market.end_time || '')}
           </p>
           {marketStatus && marketStatus.isActive && (
             <p className={`text-sm ${marketStatus.endingSoon ? 'text-orange-400' : 'text-gray-400'}`}>

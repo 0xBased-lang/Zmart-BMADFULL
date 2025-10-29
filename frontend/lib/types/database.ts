@@ -8,7 +8,8 @@ export interface Market {
   description?: string | null
   category?: string | null
   creator_wallet: string | null
-  end_time: string
+  end_date: string // Changed from end_time to match database column
+  end_time?: string // Legacy alias for backwards compatibility
   resolution_time?: string | null
   status: 'active' | 'locked' | 'resolved' | 'cancelled'
   winning_outcome?: 'yes' | 'no' | null
@@ -77,23 +78,33 @@ export interface Vote {
   created_at: string
 }
 
+// Proposal interface matching ACTUAL database schema (001_initial_schema.sql)
 export interface Proposal {
-  id: string
+  id: number
   proposal_id: number
-  proposer_wallet: string
-  proposal_type: 'create_market' | 'resolve_market' | 'parameter_change'
+  creator_wallet: string
+
+  // Proposal details
   title: string
   description: string
-  market_question?: string | null
-  market_description?: string | null
-  market_category?: string | null
-  market_end_time?: string | null
-  target_market_id?: number | null
-  proposed_outcome?: 'yes' | 'no' | null
-  parameter_name?: string | null
-  new_value?: string | null
-  status: 'pending' | 'active' | 'passed' | 'failed' | 'executed' | 'cancelled'
-  voting_ends_at: string
+  bond_amount: number         // in lamports
+  bond_tier: 'TIER1' | 'TIER2' | 'TIER3'
+  proposal_tax: number        // 1% non-refundable
+
+  // Voting
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  yes_votes: number
+  no_votes: number
+  total_voters: number
+
+  // Timestamps
   created_at: string
-  updated_at: string
+  end_date: string
+  processed_at?: string | null
+
+  // Market creation
+  market_id?: number | null
+
+  // On-chain reference
+  on_chain_address?: string | null
 }

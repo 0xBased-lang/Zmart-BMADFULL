@@ -1,0 +1,336 @@
+{
+  "address": "2ysaGgXXKK7fTjKp59nVyivP7yoUpf9QHJqQHAuavchP",
+  "metadata": {
+    "name": "program_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "BMAD-Zmart Program Registry - Central registry for dynamic program address lookup"
+  },
+  "docs": [
+    "BMAD-Zmart Program Registry",
+    "",
+    "Central registry for dynamic program address lookup.",
+    "Enables independent program upgrades without breaking integrations.",
+    "",
+    "Architecture Pattern: Registry Pattern",
+    "- Programs discover each other via dynamic lookup",
+    "- No hardcoded addresses in cross-program calls",
+    "- Version tracking enables compatibility management"
+  ],
+  "instructions": [
+    {
+      "name": "get_program_address",
+      "docs": [
+        "Get program address by name",
+        "",
+        "View function to lookup a registered program.",
+        "Returns the program's public key if found.",
+        "",
+        "Note: This is primarily for off-chain queries.",
+        "On-chain programs should use get_program_entry for full info."
+      ],
+      "discriminator": [
+        67,
+        21,
+        180,
+        154,
+        234,
+        96,
+        194,
+        174
+      ],
+      "accounts": [
+        {
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  97,
+                  109,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "pubkey"
+    },
+    {
+      "name": "initialize_registry",
+      "docs": [
+        "Initialize the program registry",
+        "",
+        "Creates a PDA-based registry account with admin authority.",
+        "Must be called once before any programs can be registered."
+      ],
+      "discriminator": [
+        189,
+        181,
+        20,
+        17,
+        174,
+        57,
+        249,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  97,
+                  109,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "register_program",
+      "docs": [
+        "Register a program in the registry",
+        "",
+        "Admin-only instruction to add or update a program entry.",
+        "Stores program name, address, and version for lookup.",
+        "",
+        "# Arguments",
+        "* `name` - Unique identifier for the program (e.g., \"core-markets\")",
+        "* `program_id` - The deployed program's public key",
+        "* `version` - Semantic version string (e.g., \"1.0.0\")"
+      ],
+      "discriminator": [
+        104,
+        9,
+        166,
+        5,
+        200,
+        228,
+        112,
+        131
+      ],
+      "accounts": [
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  97,
+                  109,
+                  45,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "registry"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "program_id",
+          "type": "pubkey"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ProgramRegistry",
+      "discriminator": [
+        104,
+        149,
+        117,
+        95,
+        105,
+        140,
+        29,
+        64
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: Only the registry authority can register programs"
+    },
+    {
+      "code": 6001,
+      "name": "ProgramNotFound",
+      "msg": "Program not found in registry"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidProgramName",
+      "msg": "Invalid program name: must be 1-32 characters"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidVersion",
+      "msg": "Invalid version: must be 1-16 characters"
+    }
+  ],
+  "types": [
+    {
+      "name": "ProgramEntry",
+      "docs": [
+        "Individual program entry in the registry"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "docs": [
+              "Program identifier (e.g., \"core-markets\")"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "program_id",
+            "docs": [
+              "Deployed program address"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "version",
+            "docs": [
+              "Semantic version (e.g., \"1.0.0\")"
+            ],
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramRegistry",
+      "docs": [
+        "Program Registry Account",
+        "",
+        "PDA-based account storing all registered programs.",
+        "",
+        "Space calculation:",
+        "- Discriminator: 8 bytes",
+        "- authority: 32 bytes",
+        "- programs Vec length: 4 bytes",
+        "- bump: 1 byte",
+        "- programs data: 100 * (4 + 32 + 32 + 4 + 16) = 8,800 bytes (100 programs max)",
+        "Total: 8,845 bytes (~8.6 KB)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can register programs"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "programs",
+            "docs": [
+              "Vector of registered programs"
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProgramEntry"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump seed"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

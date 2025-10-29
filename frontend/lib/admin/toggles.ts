@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@project-serum/anchor';
+import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import idl from '@/lib/solana/idl/parameter_storage.json';
 
 const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
@@ -34,13 +34,13 @@ export async function updateToggle(params: UpdateToggleParams): Promise<UpdateTo
       { commitment: 'confirmed' }
     );
 
-    const program = new Program(idl as any, PARAMETER_STORAGE_PROGRAM_ID, provider);
+    const program = new Program(idl as any, provider);
     const [togglesPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('global-toggles')],
       PARAMETER_STORAGE_PROGRAM_ID
     );
 
-    const tx = await program.methods
+    const tx = await (program as any).methods
       .updateToggle(toggleName, enabled)
       .accounts({
         toggles: togglesPda,

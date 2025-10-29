@@ -6,8 +6,8 @@ import {
   LAMPORTS_PER_SOL,
   TransactionInstruction
 } from '@solana/web3.js'
-import * as anchor from '@project-serum/anchor'
-import { Program, AnchorProvider, BN } from '@project-serum/anchor'
+import * as anchor from '@coral-xyz/anchor'
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor'
 import idl from '@/lib/solana/idl/core_markets.json'
 
 // Program IDs (from environment variables - devnet/testnet/mainnet)
@@ -73,7 +73,7 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
     )
 
     // Initialize program
-    const program = new Program(idl as any, CORE_MARKETS_PROGRAM_ID, provider)
+    const program = new Program(idl as any, provider)
 
     // Derive PDAs
     const [marketPda] = PublicKey.findProgramAddressSync(
@@ -85,7 +85,7 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
     )
 
     // Get market account to read total_bets for user bet PDA
-    const marketAccount: any = await program.account.market.fetch(marketPda)
+    const marketAccount: any = await (program.account as any).market.fetch(marketPda)
     const totalBets = marketAccount.totalBets as number
 
     const [userBetPda] = PublicKey.findProgramAddressSync(
@@ -118,7 +118,7 @@ export async function placeBet(params: PlaceBetParams): Promise<PlaceBetResult> 
     const betSide = outcome === 'YES' ? { yes: {} } : { no: {} }
 
     // Build transaction
-    const tx = await program.methods
+    const tx = await (program as any).methods
       .placeBet(betSide, amountLamports)
       .accounts({
         market: marketPda,
@@ -224,7 +224,7 @@ export async function claimWinnings(
     )
 
     // Initialize program
-    const program = new Program(idl as any, CORE_MARKETS_PROGRAM_ID, provider)
+    const program = new Program(idl as any, provider)
 
     // Derive PDAs
     const [marketPda] = PublicKey.findProgramAddressSync(
@@ -273,7 +273,7 @@ export async function getUserBets(
       { commitment: 'confirmed' }
     )
 
-    const program = new Program(idl as any, CORE_MARKETS_PROGRAM_ID, provider)
+    const program = new Program(idl as any, provider)
 
     // Get all user bet accounts for this market and user
     // This requires a getProgramAccounts call with filters
@@ -291,7 +291,7 @@ export async function getUserBets(
           {
             memcmp: {
               offset: 16, // After market_id
-              bytes: userPublicKey.toBase58()
+              bytes: userPublicKey.toBuffer().toString('base64')
             }
           }
         ]

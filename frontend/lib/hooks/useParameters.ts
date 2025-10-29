@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@project-serum/anchor';
+import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/lib/solana/idl/parameter_storage.json';
 
@@ -71,10 +71,10 @@ export function useParameters(): UseParametersResult {
         { commitment: 'confirmed' }
       );
 
-      const program = new Program(idl as any, PARAMETER_STORAGE_PROGRAM_ID, provider);
+      const program = new Program(idl as any, provider);
 
       // Fetch and decode parameters
-      const params = await program.account.globalParameters.fetch(parametersPda) as any;
+      const params = await (program.account as any).globalParameters.fetch(parametersPda) as any;
 
       setParameters({
         authority: params.authority,

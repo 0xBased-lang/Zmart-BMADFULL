@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAdminAuth } from '@/lib/hooks/useAdminAuth';
 import { ParameterManagement } from './components/ParameterManagement';
 import { FeatureToggles } from './components/FeatureToggles';
 import { DisputedMarkets } from './components/DisputedMarkets';
 import { PlatformMetrics } from './components/PlatformMetrics';
 import { OverrideModal } from './components/OverrideModal';
+import { ProposalManagement } from './components/ProposalManagement';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -85,6 +87,16 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="mb-6 flex gap-4">
+          <Link
+            href="/admin/create-market"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold transition-all shadow-lg"
+          >
+            + Create Market (Direct)
+          </Link>
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Parameter Management Panel */}
@@ -100,6 +112,11 @@ export default function AdminDashboard() {
             {/* Platform Metrics */}
             <PlatformMetrics />
           </div>
+        </div>
+
+        {/* Proposal Management */}
+        <div className="mt-6">
+          <ProposalManagement />
         </div>
 
         {/* Disputed Markets Queue */}

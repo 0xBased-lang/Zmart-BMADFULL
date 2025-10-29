@@ -1,11 +1,33 @@
 {
+  "accounts": [
+    {
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ],
+      "name": "Market"
+    },
+    {
+      "discriminator": [
+        180,
+        131,
+        8,
+        241,
+        60,
+        243,
+        46,
+        63
+      ],
+      "name": "UserBet"
+    }
+  ],
   "address": "6BBZWsJZq23k2NX3YnENgXTEPhbVEHXYmPxmamN83eEV",
-  "metadata": {
-    "name": "core_markets",
-    "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "BMAD-Zmart Core Markets - Market creation, betting, and payout functionality"
-  },
   "docs": [
     "BMAD-Zmart Core Markets",
     "",
@@ -17,26 +39,167 @@
     "- Fees distributed: platform, creator, treasury",
     "- Real-time odds: yes% = yes_pool / (yes_pool + no_pool)"
   ],
+  "errors": [
+    {
+      "code": 6000,
+      "msg": "Invalid market title: must be 1-128 characters",
+      "name": "InvalidTitle"
+    },
+    {
+      "code": 6001,
+      "msg": "Invalid market description: must be 1-512 characters",
+      "name": "InvalidDescription"
+    },
+    {
+      "code": 6002,
+      "msg": "Invalid end date: must be in the future",
+      "name": "InvalidEndDate"
+    },
+    {
+      "code": 6003,
+      "msg": "Market is not active",
+      "name": "MarketNotActive"
+    },
+    {
+      "code": 6004,
+      "msg": "Market has ended",
+      "name": "MarketEnded"
+    },
+    {
+      "code": 6005,
+      "msg": "Bet amount is below minimum",
+      "name": "BetTooSmall"
+    },
+    {
+      "code": 6006,
+      "msg": "Bet amount exceeds maximum",
+      "name": "BetTooLarge"
+    },
+    {
+      "code": 6007,
+      "msg": "Market is not resolved yet",
+      "name": "MarketNotResolved"
+    },
+    {
+      "code": 6008,
+      "msg": "Market is already resolved",
+      "name": "MarketAlreadyResolved"
+    },
+    {
+      "code": 6009,
+      "msg": "Payout already claimed",
+      "name": "AlreadyClaimed"
+    },
+    {
+      "code": 6010,
+      "msg": "Bet lost - no payout available",
+      "name": "BetLost"
+    },
+    {
+      "code": 6011,
+      "msg": "Unauthorized",
+      "name": "Unauthorized"
+    },
+    {
+      "code": 6012,
+      "msg": "Pool overflow: bet would exceed maximum pool size",
+      "name": "PoolOverflow"
+    },
+    {
+      "code": 6013,
+      "msg": "Total volume overflow",
+      "name": "TotalVolumeOverflow"
+    },
+    {
+      "code": 6014,
+      "msg": "Total bets counter overflow",
+      "name": "TotalBetsOverflow"
+    },
+    {
+      "code": 6015,
+      "msg": "Fee accumulation overflow",
+      "name": "FeeOverflow"
+    },
+    {
+      "code": 6016,
+      "msg": "Cannot resolve market before end date",
+      "name": "MarketNotEnded"
+    },
+    {
+      "code": 6017,
+      "msg": "No winners - cannot claim payout (winning pool is zero)",
+      "name": "NoWinnersCannotClaim"
+    },
+    {
+      "code": 6018,
+      "msg": "Payout calculation overflow",
+      "name": "PayoutCalculationOverflow"
+    },
+    {
+      "code": 6019,
+      "msg": "Total claimed amount overflow",
+      "name": "TotalClaimedOverflow"
+    }
+  ],
+  "events": [
+    {
+      "discriminator": [
+        218,
+        76,
+        236,
+        147,
+        222,
+        135,
+        81,
+        43
+      ],
+      "name": "BetPlacedEvent"
+    },
+    {
+      "discriminator": [
+        130,
+        142,
+        5,
+        16,
+        107,
+        160,
+        73,
+        124
+      ],
+      "name": "MarketCreatedEvent"
+    },
+    {
+      "discriminator": [
+        87,
+        249,
+        34,
+        139,
+        194,
+        159,
+        14,
+        156
+      ],
+      "name": "MarketResolvedEvent"
+    },
+    {
+      "discriminator": [
+        69,
+        111,
+        213,
+        94,
+        91,
+        203,
+        244,
+        39
+      ],
+      "name": "PayoutClaimedEvent"
+    }
+  ],
   "instructions": [
     {
-      "name": "claim_payout",
-      "docs": [
-        "Claim winnings after market resolution"
-      ],
-      "discriminator": [
-        127,
-        240,
-        132,
-        62,
-        227,
-        198,
-        146,
-        133
-      ],
       "accounts": [
         {
           "name": "market",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -51,16 +214,16 @@
                 ]
               },
               {
+                "account": "Market",
                 "kind": "account",
-                "path": "market.market_id",
-                "account": "Market"
+                "path": "market.market_id"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "user_bet",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -85,42 +248,40 @@
                 "path": "bettor"
               },
               {
+                "account": "UserBet",
                 "kind": "account",
-                "path": "user_bet.market_id",
-                "account": "UserBet"
+                "path": "user_bet.market_id"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "bettor",
-          "writable": true,
-          "signer": true
+          "signer": true,
+          "writable": true
         }
       ],
-      "args": []
+      "args": [],
+      "discriminator": [
+        127,
+        240,
+        132,
+        62,
+        227,
+        198,
+        146,
+        133
+      ],
+      "docs": [
+        "Claim winnings after market resolution"
+      ],
+      "name": "claim_payout"
     },
     {
-      "name": "create_market",
-      "docs": [
-        "Create a new prediction market",
-        "",
-        "Admin-only for Epic 1. Epic 2 adds proposal governance."
-      ],
-      "discriminator": [
-        103,
-        226,
-        97,
-        235,
-        200,
-        188,
-        251,
-        254
-      ],
       "accounts": [
         {
           "name": "market",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -139,16 +300,17 @@
                 "path": "market_id"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "creator",
-          "writable": true,
-          "signer": true
+          "signer": true,
+          "writable": true
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
         }
       ],
       "args": [
@@ -168,29 +330,28 @@
           "name": "end_date",
           "type": "i64"
         }
-      ]
-    },
-    {
-      "name": "place_bet",
-      "docs": [
-        "Place a bet on a market",
-        "",
-        "Transfers SOL, updates pools, calculates fees, creates UserBet account."
       ],
       "discriminator": [
-        222,
-        62,
-        67,
-        220,
-        63,
-        166,
-        126,
-        33
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
       ],
+      "docs": [
+        "Create a new prediction market",
+        "",
+        "Admin-only for Epic 1. Epic 2 adds proposal governance."
+      ],
+      "name": "create_market"
+    },
+    {
       "accounts": [
         {
           "name": "market",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -205,16 +366,16 @@
                 ]
               },
               {
+                "account": "Market",
                 "kind": "account",
-                "path": "market.market_id",
-                "account": "Market"
+                "path": "market.market_id"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "user_bet",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -239,16 +400,21 @@
                 "path": "bettor"
               },
               {
+                "account": "Market",
                 "kind": "account",
-                "path": "market.total_bets",
-                "account": "Market"
+                "path": "market.total_bets"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "global_parameters",
           "pda": {
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            },
             "seeds": [
               {
                 "kind": "const",
@@ -272,21 +438,17 @@
                   115
                 ]
               }
-            ],
-            "program": {
-              "kind": "account",
-              "path": "parameter_storage_program"
-            }
+            ]
           }
         },
         {
           "name": "bettor",
-          "writable": true,
-          "signer": true
+          "signer": true,
+          "writable": true
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
         },
         {
           "name": "parameter_storage_program"
@@ -305,29 +467,28 @@
           "name": "amount",
           "type": "u64"
         }
-      ]
-    },
-    {
-      "name": "resolve_market",
-      "docs": [
-        "Resolve a market (placeholder for Epic 2 integration)",
-        "",
-        "Will be called by MarketResolution program after voting."
       ],
       "discriminator": [
-        155,
-        23,
-        80,
-        173,
-        46,
-        74,
-        23,
-        239
+        222,
+        62,
+        67,
+        220,
+        63,
+        166,
+        126,
+        33
       ],
+      "docs": [
+        "Place a bet on a market",
+        "",
+        "Transfers SOL, updates pools, calculates fees, creates UserBet account."
+      ],
+      "name": "place_bet"
+    },
+    {
       "accounts": [
         {
           "name": "market",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -342,16 +503,21 @@
                 ]
               },
               {
+                "account": "Market",
                 "kind": "account",
-                "path": "market.market_id",
-                "account": "Market"
+                "path": "market.market_id"
               }
             ]
-          }
+          },
+          "writable": true
         },
         {
           "name": "global_parameters",
           "pda": {
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            },
             "seeds": [
               {
                 "kind": "const",
@@ -375,11 +541,7 @@
                   115
                 ]
               }
-            ],
-            "program": {
-              "kind": "account",
-              "path": "parameter_storage_program"
-            }
+            ]
           }
         },
         {
@@ -398,8 +560,8 @@
           "name": "parameter_storage_program"
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "address": "11111111111111111111111111111111",
+          "name": "system_program"
         }
       ],
       "args": [
@@ -411,198 +573,35 @@
             }
           }
         }
-      ]
-    }
-  ],
-  "accounts": [
-    {
-      "name": "Market",
+      ],
       "discriminator": [
-        219,
-        190,
-        213,
-        55,
-        0,
-        227,
-        198,
-        154
-      ]
-    },
-    {
-      "name": "UserBet",
-      "discriminator": [
-        180,
-        131,
-        8,
-        241,
-        60,
-        243,
+        155,
+        23,
+        80,
+        173,
         46,
-        63
-      ]
+        74,
+        23,
+        239
+      ],
+      "docs": [
+        "Resolve a market (placeholder for Epic 2 integration)",
+        "",
+        "Will be called by MarketResolution program after voting."
+      ],
+      "name": "resolve_market"
     }
   ],
-  "events": [
-    {
-      "name": "BetPlacedEvent",
-      "discriminator": [
-        218,
-        76,
-        236,
-        147,
-        222,
-        135,
-        81,
-        43
-      ]
-    },
-    {
-      "name": "MarketCreatedEvent",
-      "discriminator": [
-        130,
-        142,
-        5,
-        16,
-        107,
-        160,
-        73,
-        124
-      ]
-    },
-    {
-      "name": "MarketResolvedEvent",
-      "discriminator": [
-        87,
-        249,
-        34,
-        139,
-        194,
-        159,
-        14,
-        156
-      ]
-    },
-    {
-      "name": "PayoutClaimedEvent",
-      "discriminator": [
-        69,
-        111,
-        213,
-        94,
-        91,
-        203,
-        244,
-        39
-      ]
-    }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "InvalidTitle",
-      "msg": "Invalid market title: must be 1-128 characters"
-    },
-    {
-      "code": 6001,
-      "name": "InvalidDescription",
-      "msg": "Invalid market description: must be 1-512 characters"
-    },
-    {
-      "code": 6002,
-      "name": "InvalidEndDate",
-      "msg": "Invalid end date: must be in the future"
-    },
-    {
-      "code": 6003,
-      "name": "MarketNotActive",
-      "msg": "Market is not active"
-    },
-    {
-      "code": 6004,
-      "name": "MarketEnded",
-      "msg": "Market has ended"
-    },
-    {
-      "code": 6005,
-      "name": "BetTooSmall",
-      "msg": "Bet amount is below minimum"
-    },
-    {
-      "code": 6006,
-      "name": "BetTooLarge",
-      "msg": "Bet amount exceeds maximum"
-    },
-    {
-      "code": 6007,
-      "name": "MarketNotResolved",
-      "msg": "Market is not resolved yet"
-    },
-    {
-      "code": 6008,
-      "name": "MarketAlreadyResolved",
-      "msg": "Market is already resolved"
-    },
-    {
-      "code": 6009,
-      "name": "AlreadyClaimed",
-      "msg": "Payout already claimed"
-    },
-    {
-      "code": 6010,
-      "name": "BetLost",
-      "msg": "Bet lost - no payout available"
-    },
-    {
-      "code": 6011,
-      "name": "Unauthorized",
-      "msg": "Unauthorized"
-    },
-    {
-      "code": 6012,
-      "name": "PoolOverflow",
-      "msg": "Pool overflow: bet would exceed maximum pool size"
-    },
-    {
-      "code": 6013,
-      "name": "TotalVolumeOverflow",
-      "msg": "Total volume overflow"
-    },
-    {
-      "code": 6014,
-      "name": "TotalBetsOverflow",
-      "msg": "Total bets counter overflow"
-    },
-    {
-      "code": 6015,
-      "name": "FeeOverflow",
-      "msg": "Fee accumulation overflow"
-    },
-    {
-      "code": 6016,
-      "name": "MarketNotEnded",
-      "msg": "Cannot resolve market before end date"
-    },
-    {
-      "code": 6017,
-      "name": "NoWinnersCannotClaim",
-      "msg": "No winners - cannot claim payout (winning pool is zero)"
-    },
-    {
-      "code": 6018,
-      "name": "PayoutCalculationOverflow",
-      "msg": "Payout calculation overflow"
-    },
-    {
-      "code": 6019,
-      "name": "TotalClaimedOverflow",
-      "msg": "Total claimed amount overflow"
-    }
-  ],
+  "metadata": {
+    "description": "BMAD-Zmart Core Markets - Market creation, betting, and payout functionality",
+    "name": "core_markets",
+    "spec": "0.1.0",
+    "version": "0.1.0"
+  },
   "types": [
     {
       "name": "BetPlacedEvent",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -652,7 +651,8 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     },
     {
@@ -670,12 +670,11 @@
       }
     },
     {
-      "name": "Market",
       "docs": [
         "Prediction market account"
       ],
+      "name": "Market",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -755,13 +754,13 @@
             "name": "bump",
             "type": "u8"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     },
     {
       "name": "MarketCreatedEvent",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -783,13 +782,13 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     },
     {
       "name": "MarketResolvedEvent",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -815,7 +814,8 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     },
     {
@@ -838,7 +838,6 @@
     {
       "name": "PayoutClaimedEvent",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -856,16 +855,16 @@
             "name": "timestamp",
             "type": "i64"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     },
     {
-      "name": "UserBet",
       "docs": [
         "Individual bet position"
       ],
+      "name": "UserBet",
       "type": {
-        "kind": "struct",
         "fields": [
           {
             "name": "market_id",
@@ -915,7 +914,8 @@
             "name": "bump",
             "type": "u8"
           }
-        ]
+        ],
+        "kind": "struct"
       }
     }
   ]

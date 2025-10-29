@@ -1,11 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import dynamic from 'next/dynamic'
 import { useWallet } from '@solana/wallet-adapter-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MobileNav } from './layout/MobileNav'
+
+// Dynamically import WalletMultiButton with SSR disabled to prevent hydration errors
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
+  { ssr: false }
+)
 
 export function Header() {
   const { connected } = useWallet()
@@ -44,6 +50,16 @@ export function Header() {
                     }`}
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    href="/my-bets"
+                    className={`text-sm font-medium transition-colors ${
+                      pathname === '/my-bets'
+                        ? 'text-purple-600 dark:text-purple-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                    }`}
+                  >
+                    My Bets
                   </Link>
                   <Link
                     href="/leaderboard"

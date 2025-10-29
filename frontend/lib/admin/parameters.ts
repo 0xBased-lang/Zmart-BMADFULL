@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { Program, AnchorProvider, BN } from '@project-serum/anchor';
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import idl from '@/lib/solana/idl/parameter_storage.json';
 
 const PARAMETER_STORAGE_PROGRAM_ID = new PublicKey(
@@ -55,7 +55,7 @@ export async function updateParameter(
     );
 
     // Initialize program
-    const program = new Program(idl as any, PARAMETER_STORAGE_PROGRAM_ID, provider);
+    const program = new Program(idl as any, provider);
 
     // Derive parameters PDA
     const [parametersPda] = PublicKey.findProgramAddressSync(
@@ -64,7 +64,7 @@ export async function updateParameter(
     );
 
     // Fetch current parameters to validate changes
-    const currentParams = await program.account.globalParameters.fetch(parametersPda) as any;
+    const currentParams = await (program.account as any).globalParameters.fetch(parametersPda) as any;
     const maxChangeBps = currentParams.maxChangeBps;
     const cooldownPeriod = currentParams.cooldownPeriod.toNumber();
     const lastUpdate = currentParams.lastUpdate.toNumber();
@@ -129,8 +129,8 @@ export async function updateParameter(
     }
 
     // Call update_parameter instruction
-    const tx = await program.methods
-      .updateParameter(parameterName, valueToSend as any)
+    const tx = await (program as any).methods
+      .updateParameter(parameterName, valueToSend)
       .accounts({
         parameters: parametersPda,
         authority: publicKey,

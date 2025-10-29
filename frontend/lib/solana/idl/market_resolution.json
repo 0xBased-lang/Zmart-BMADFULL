@@ -1,0 +1,1148 @@
+{
+  "address": "Hcxxt6W1HmKQmnUvqpgzNEqVG611Yzt2i4DUvwvkLRf2",
+  "metadata": {
+    "name": "market_resolution",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "BMAD-Zmart Market Resolution - Community voting and dispute handling"
+  },
+  "docs": [
+    "BMAD-Zmart Market Resolution",
+    "",
+    "Community voting system for determining market outcomes.",
+    "",
+    "Architecture:",
+    "- VoteRecord per voter per market: [\"vote-record\", market_id, voter]",
+    "- ResolutionState per market: [\"resolution-state\", market_id]",
+    "- 48-hour dispute window enforcement",
+    "- Vote aggregation and outcome determination",
+    "- Admin override for progressive decentralization (Epic 1)",
+    "",
+    "Security:",
+    "- One vote per wallet per market",
+    "- Dispute window validation",
+    "- Admin-only override during MVP phase",
+    "- Cross-program resolution of CoreMarkets"
+  ],
+  "instructions": [
+    {
+      "name": "admin_override_resolution",
+      "docs": [
+        "Admin override resolution",
+        "",
+        "Progressive decentralization: admin can override during Epic 1 MVP.",
+        "Epic 2 removes this and fully decentralizes to community voting."
+      ],
+      "discriminator": [
+        47,
+        117,
+        40,
+        129,
+        108,
+        28,
+        219,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "resolution_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "resolution_state.market_id",
+                "account": "ResolutionState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_parameters",
+          "docs": [
+            "Global parameters from ParameterStorage"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            }
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "parameter_storage_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome",
+          "type": {
+            "defined": {
+              "name": "VoteChoice"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "finalize_resolution",
+      "docs": [
+        "Finalize market resolution",
+        "",
+        "Aggregates votes and determines outcome after dispute window."
+      ],
+      "discriminator": [
+        191,
+        74,
+        94,
+        214,
+        45,
+        150,
+        152,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "resolution_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "resolution_state.market_id",
+                "account": "ResolutionState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_resolution",
+      "docs": [
+        "Initialize resolution state for a market",
+        "",
+        "Called when market ends and voting period begins."
+      ],
+      "discriminator": [
+        114,
+        234,
+        73,
+        65,
+        38,
+        194,
+        180,
+        145
+      ],
+      "accounts": [
+        {
+          "name": "resolution_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "market_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_parameters",
+          "docs": [
+            "Global parameters from ParameterStorage"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            }
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "parameter_storage_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "market_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "post_vote_result",
+      "docs": [
+        "Post aggregated vote result (Snapshot-style voting - Story 2.3)",
+        "",
+        "Epic 2 Snapshot-style voting:",
+        "- Users vote off-chain (gas-free) with signed messages",
+        "- Platform aggregates votes in PostgreSQL",
+        "- This instruction posts final aggregated result on-chain",
+        "- Includes Merkle root for cryptographic verification"
+      ],
+      "discriminator": [
+        72,
+        45,
+        98,
+        98,
+        159,
+        161,
+        247,
+        2
+      ],
+      "accounts": [
+        {
+          "name": "vote_result",
+          "docs": [
+            "VoteResult account (PDA)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  45,
+                  114,
+                  101,
+                  115,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "data.market_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_parameters",
+          "docs": [
+            "Global parameters from ParameterStorage"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  112,
+                  97,
+                  114,
+                  97,
+                  109,
+                  101,
+                  116,
+                  101,
+                  114,
+                  115
+                ]
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "parameter_storage_program"
+            }
+          }
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Platform admin authority (posts aggregated results)"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "parameter_storage_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "data",
+          "type": {
+            "defined": {
+              "name": "PostVoteResultData"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "submit_vote",
+      "docs": [
+        "Submit a vote on market outcome",
+        "",
+        "Each wallet can vote once per market. Epic 2 adds weighted voting."
+      ],
+      "discriminator": [
+        115,
+        242,
+        100,
+        0,
+        49,
+        178,
+        242,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "vote_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  116,
+                  101,
+                  45,
+                  114,
+                  101,
+                  99,
+                  111,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "resolution_state.market_id",
+                "account": "ResolutionState"
+              },
+              {
+                "kind": "account",
+                "path": "voter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "resolution_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  111,
+                  108,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "resolution_state.market_id",
+                "account": "ResolutionState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "voter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vote_choice",
+          "type": {
+            "defined": {
+              "name": "VoteChoice"
+            }
+          }
+        },
+        {
+          "name": "vote_weight",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalParameters",
+      "discriminator": [
+        98,
+        215,
+        159,
+        28,
+        204,
+        22,
+        241,
+        154
+      ]
+    },
+    {
+      "name": "ResolutionState",
+      "discriminator": [
+        79,
+        128,
+        50,
+        21,
+        72,
+        199,
+        254,
+        128
+      ]
+    },
+    {
+      "name": "VoteRecord",
+      "discriminator": [
+        112,
+        9,
+        123,
+        165,
+        234,
+        9,
+        157,
+        167
+      ]
+    },
+    {
+      "name": "VoteResult",
+      "discriminator": [
+        115,
+        94,
+        118,
+        234,
+        128,
+        210,
+        201,
+        178
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AdminOverrideEvent",
+      "discriminator": [
+        81,
+        206,
+        204,
+        147,
+        112,
+        99,
+        73,
+        135
+      ]
+    },
+    {
+      "name": "ResolutionFinalizedEvent",
+      "discriminator": [
+        24,
+        143,
+        6,
+        167,
+        166,
+        178,
+        213,
+        227
+      ]
+    },
+    {
+      "name": "ResolutionInitializedEvent",
+      "discriminator": [
+        90,
+        60,
+        33,
+        50,
+        174,
+        232,
+        4,
+        225
+      ]
+    },
+    {
+      "name": "VoteResultPostedEvent",
+      "discriminator": [
+        11,
+        55,
+        240,
+        128,
+        107,
+        210,
+        20,
+        127
+      ]
+    },
+    {
+      "name": "VoteSubmittedEvent",
+      "discriminator": [
+        82,
+        229,
+        85,
+        50,
+        230,
+        203,
+        219,
+        145
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MarketAlreadyFinalized",
+      "msg": "Market resolution already finalized"
+    },
+    {
+      "code": 6001,
+      "name": "DisputeWindowNotEnded",
+      "msg": "Dispute window has not ended yet"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: only admin can perform this action"
+    }
+  ],
+  "types": [
+    {
+      "name": "AdminOverrideEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "creation_bond_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "creator_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_bet_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_market_size_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "min_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_duration_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "dispute_window_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "bond_tier_1_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_2_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "bond_tier_3_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "update_cooldown_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "max_change_bps",
+            "type": "u16"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "cooldown_until",
+            "type": "i64"
+          },
+          {
+            "name": "version",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PostVoteResultData",
+      "docs": [
+        "Data for post_vote_result instruction (Story 2.3)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "yes_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "no_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "total_votes_count",
+            "type": "u32"
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ResolutionFinalizedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "yes_votes",
+            "type": "u64"
+          },
+          {
+            "name": "no_votes",
+            "type": "u64"
+          },
+          {
+            "name": "cancel_votes",
+            "type": "u64"
+          },
+          {
+            "name": "total_voters",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ResolutionInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "voting_started_at",
+            "type": "i64"
+          },
+          {
+            "name": "dispute_window_ends_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ResolutionState",
+      "docs": [
+        "Resolution state per market"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "yes_votes",
+            "type": "u64"
+          },
+          {
+            "name": "no_votes",
+            "type": "u64"
+          },
+          {
+            "name": "cancel_votes",
+            "type": "u64"
+          },
+          {
+            "name": "total_voters",
+            "type": "u32"
+          },
+          {
+            "name": "is_finalized",
+            "type": "bool"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "VoteChoice"
+                }
+              }
+            }
+          },
+          {
+            "name": "voting_started_at",
+            "type": "i64"
+          },
+          {
+            "name": "dispute_window_ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "finalized_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteChoice",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Yes"
+          },
+          {
+            "name": "No"
+          },
+          {
+            "name": "Cancel"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteRecord",
+      "docs": [
+        "Individual vote record per voter per market"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "vote_choice",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteResult",
+      "docs": [
+        "Vote result from Snapshot-style off-chain voting (Story 2.3)",
+        "",
+        "Stores aggregated vote result posted on-chain after off-chain voting.",
+        "Includes Merkle root for cryptographic verification."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "yes_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "no_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "total_votes_count",
+            "type": "u32"
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "posted_at",
+            "type": "i64"
+          },
+          {
+            "name": "posted_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "dispute_window_end",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteResultPostedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "yes_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "no_vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "total_votes_count",
+            "type": "u32"
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "dispute_window_end",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VoteSubmittedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_id",
+            "type": "u64"
+          },
+          {
+            "name": "voter",
+            "type": "pubkey"
+          },
+          {
+            "name": "vote_choice",
+            "type": {
+              "defined": {
+                "name": "VoteChoice"
+              }
+            }
+          },
+          {
+            "name": "vote_weight",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

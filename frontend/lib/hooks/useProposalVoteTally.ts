@@ -30,24 +30,23 @@ export function useProposalVoteTally(proposalId: string): ProposalVoteTally {
         // Query all votes for this proposal
         const { data, error: fetchError } = await supabase
           .from('proposal_votes')
-          .select('vote_choice, vote_weight')
+          .select('vote_choice')
           .eq('proposal_id', proposalId)
 
         if (fetchError) {
           throw fetchError
         }
 
-        // Calculate tallies
+        // Calculate tallies (democratic voting: 1 wallet = 1 vote)
         let yes = 0
         let no = 0
 
         if (data) {
           data.forEach((vote) => {
-            const weight = vote.vote_weight || 1
             if (vote.vote_choice === 'YES' || vote.vote_choice === 'yes') {
-              yes += weight
+              yes += 1
             } else if (vote.vote_choice === 'NO' || vote.vote_choice === 'no') {
-              no += weight
+              no += 1
             }
           })
           // Each vote record represents a unique voter

@@ -4,29 +4,12 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import * as anchor from '@project-serum/anchor'
+import * as anchor from '@coral-xyz/anchor'
 import type { Market } from '@/lib/types/database'
-// import { placeBet } from '@/lib/solana/betting' // TODO: Enable when Solana integration is ready
+import { placeBet } from '@/lib/solana/betting'
+import { useClaimPayouts } from '@/lib/hooks/useClaimPayouts'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'react-hot-toast'
-
-// Temporary mock function for development
-const placeBet = async (params: any) => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500))
-
-  // Simulate 80% success rate
-  if (Math.random() > 0.2) {
-    return {
-      success: true,
-      txHash: 'mock' + Math.random().toString(36).substring(7)
-    }
-  } else {
-    return {
-      success: false,
-      error: 'Simulated error for testing'
-    }
-  }
-}
 
 interface MarketStatus {
   isActive: boolean
@@ -57,6 +40,7 @@ interface FeeBreakdown {
 export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: BettingPanelProps) {
   const { publicKey, connected, connect, signTransaction } = useWallet()
   const { connection } = useConnection()
+  const { claimPayout, isClaiming } = useClaimPayouts()
 
   // Betting state
   const [betAmount, setBetAmount] = useState<string>('')
@@ -64,6 +48,10 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
   const [isPlacingBet, setIsPlacingBet] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [transactionHash, setTransactionHash] = useState<string | null>(null)
+
+  // Claim state
+  const [hasClaimableBets, setHasClaimableBets] = useState(false)
+  const [checkingClaims, setCheckingClaims] = useState(false)
 
   // Wallet state
   const [walletBalance, setWalletBalance] = useState<number>(0)
@@ -98,6 +86,50 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
     const interval = setInterval(fetchBalance, 10000)
     return () => clearInterval(interval)
   }, [publicKey, connection])
+
+  // Check for claimable bets when market is resolved
+  useEffect(() => {
+    const checkClaimableBets = async () => {
+      if (!publicKey || !marketStatus?.isResolved) {
+        setHasClaimableBets(false)
+        return
+      }
+
+      setCheckingClaims(true)
+      try {
+        // Check if user has winning bets that haven't been claimed
+        const { data: bets, error } = await supabase
+          .from('bets')
+          .select('*')
+          .eq('user_wallet', publicKey.toBase58())
+          .eq('market_id', market.market_id)
+          .eq('claimed', false)
+
+        if (error) {
+          console.error('Failed to check claimable bets:', error)
+          setHasClaimableBets(false)
+          return
+        }
+
+        // Check if any bets are winning based on market outcome
+        const hasWinningBets = bets?.some(bet => {
+          const marketOutcome = market.winning_outcome || market.resolved_outcome
+          if (marketOutcome === 'yes') return bet.outcome === 'YES'
+          if (marketOutcome === 'no') return bet.outcome === 'NO'
+          return false
+        })
+
+        setHasClaimableBets(!!hasWinningBets)
+      } catch (error) {
+        console.error('Error checking claims:', error)
+        setHasClaimableBets(false)
+      } finally {
+        setCheckingClaims(false)
+      }
+    }
+
+    checkClaimableBets()
+  }, [publicKey, marketStatus?.isResolved, market.market_id, market.winning_outcome, market.resolved_outcome])
 
   // Calculate fees (matching Solana program logic)
   const calculateFees = useCallback((amount: number): FeeBreakdown => {
@@ -289,6 +321,31 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
 
       if (result.success && result.txHash) {
         setTransactionHash(result.txHash)
+
+        // Save bet to database
+        try {
+          const amount = parseFloat(betAmount)
+          const { error: dbError } = await supabase
+            .from('bets')
+            .insert({
+              user_wallet: publicKey.toBase58(),
+              market_id: market.id,
+              outcome: selectedOutcome,
+              amount: amount,
+              shares: amount, // 1:1 for now
+              created_at: new Date().toISOString(),
+              claimed: false
+            })
+
+          if (dbError) {
+            console.error('Failed to save bet to database:', dbError)
+            // Don't fail the whole operation if database save fails
+            // The bet is already on-chain which is what matters
+          }
+        } catch (dbErr) {
+          console.error('Database save error:', dbErr)
+        }
+
         toast.success('Bet placed successfully!')
 
         // Reset form
@@ -329,6 +386,24 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
     }
   }, [publicKey, signTransaction, selectedOutcome, betAmount, market, connection])
 
+  // Handle claim payout
+  const handleClaimPayout = useCallback(async () => {
+    try {
+      await claimPayout(market.market_id)
+      toast.success('Payout claimed successfully!')
+
+      // Refresh balance and check claims again
+      if (publicKey) {
+        const balance = await connection.getBalance(publicKey)
+        setWalletBalance(balance / LAMPORTS_PER_SOL)
+      }
+      setHasClaimableBets(false)
+    } catch (error: any) {
+      console.error('Claim failed:', error)
+      toast.error(error.message || 'Failed to claim payout')
+    }
+  }, [claimPayout, market.market_id, publicKey, connection])
+
   // Can place bet check
   const canPlaceBet = useMemo(() => {
     return (
@@ -368,6 +443,36 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
           <p className="text-yellow-400 text-sm">
             ⚠️ {getInactiveMessage()}
           </p>
+        </div>
+      )}
+
+      {/* Claim Payouts Section */}
+      {connected && marketStatus?.isResolved && hasClaimableBets && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-2xl">🎉</div>
+            <div>
+              <h4 className="text-green-400 font-bold">You have winnings to claim!</h4>
+              <p className="text-gray-300 text-sm">Click below to claim your payout from this market</p>
+            </div>
+          </div>
+          <button
+            onClick={handleClaimPayout}
+            disabled={isClaiming}
+            className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+          >
+            {isClaiming ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Claiming Payout...
+              </span>
+            ) : (
+              'Claim Payout'
+            )}
+          </button>
         </div>
       )}
 

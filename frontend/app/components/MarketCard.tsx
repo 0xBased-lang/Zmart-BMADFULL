@@ -15,12 +15,13 @@ export function MarketCard({ market }: MarketCardProps) {
   const yesOdds = totalPool > 0 ? ((yesPool / totalPool) * 100).toFixed(1) : '50.0'
   const noOdds = totalPool > 0 ? ((noPool / totalPool) * 100).toFixed(1) : '50.0'
 
-  // Format date
-  const endDate = new Date(market.end_time).toLocaleDateString('en-US', {
+  // Format date (handle both end_date and legacy end_time)
+  const endDateValue = market.end_date || market.end_time
+  const endDate = endDateValue ? new Date(endDateValue).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  }) : 'TBD'
 
   return (
     <Link

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@project-serum/anchor';
+import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '@/lib/solana/idl/parameter_storage.json';
 
@@ -54,8 +54,8 @@ export function useToggles(): UseTogglesResult {
         { commitment: 'confirmed' }
       );
 
-      const program = new Program(idl as any, PARAMETER_STORAGE_PROGRAM_ID, provider);
-      const data = await program.account.globalFeatureToggles.fetch(togglesPda) as any;
+      const program = new Program(idl as any, provider);
+      const data = await (program.account as any).globalFeatureToggles.fetch(togglesPda) as any;
 
       setToggles({
         authority: data.authority,
