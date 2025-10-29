@@ -71,9 +71,6 @@ export async function POST(request: Request): Promise<NextResponse<SyncMarketRes
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Admin wallet addresses (should match platform authority)
-    const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || '').split(',').map(w => w.trim())
-
     // Parse request body
     const body: SyncMarketRequest = await request.json()
     const {
@@ -280,6 +277,9 @@ export async function POST(request: Request): Promise<NextResponse<SyncMarketRes
  */
 function isAdminWallet(wallet: string): boolean {
   if (!wallet) return false
+
+  // Read admin wallets at runtime (not build time)
+  const ADMIN_WALLETS = (process.env.ADMIN_WALLETS || '').split(',').map(w => w.trim())
 
   // Check against admin list
   const isAdmin = ADMIN_WALLETS.some(
