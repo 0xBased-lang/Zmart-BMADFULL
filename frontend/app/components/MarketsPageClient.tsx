@@ -27,7 +27,7 @@ export function MarketsPageClient({ initialMarkets }: MarketsPageClientProps) {
     // Search filter
     if (searchQuery) {
       filtered = filtered.filter((market) =>
-        market.question.toLowerCase().includes(searchQuery.toLowerCase())
+        (market.question || market.title || '').toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
