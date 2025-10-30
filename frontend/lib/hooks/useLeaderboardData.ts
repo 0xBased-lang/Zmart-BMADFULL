@@ -105,8 +105,8 @@ export function useLeaderboardData(
         return
       }
 
-      // For other categories, use user_stats view
-      let query = supabase.from('user_stats').select('*')
+      // For other categories, use user_leaderboard table
+      let query = supabase.from('user_leaderboard').select('*')
 
       // Apply category-specific sorting and filters
       switch (category) {
@@ -155,7 +155,7 @@ export function useLeaderboardData(
   }, [fetchLeaderboard])
 
   // Real-time subscription for updates
-  // Note: user_stats is a VIEW, so we subscribe to base tables instead
+  // Note: user_leaderboard may be a VIEW, so we subscribe to base tables instead
   useEffect(() => {
     // Subscribe to users table for activity_points updates
     const usersChannel = supabase

@@ -64,9 +64,9 @@ export function useUserProfile(walletAddress: string): UseUserProfileReturn {
       setLoading(true)
       setError(null)
 
-      // Fetch user stats from user_stats view
+      // Fetch user stats from user_leaderboard table
       const { data: statsData, error: statsError } = await supabase
-        .from('user_stats')
+        .from('user_leaderboard')
         .select('*')
         .eq('wallet_address', walletAddress)
         .single()
