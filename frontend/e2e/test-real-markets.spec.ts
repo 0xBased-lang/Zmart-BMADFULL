@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Test Real Markets', () => {
-  test('Market 10 - BTC prediction loads correctly', async ({ page }) => {
+  test('Market 10 - BTC prediction loads correctly', async ({ page, baseURL }) => {
     console.log('🔍 Testing Market 10 (BTC)...')
+    console.log('📍 Using baseURL:', baseURL)
 
-    await page.goto('https://frontend-kektech1.vercel.app/markets/10', {
+    await page.goto('/markets/10', {
       waitUntil: 'networkidle',
       timeout: 30000
     })
@@ -61,10 +62,11 @@ test.describe('Test Real Markets', () => {
     expect(hasNoButton).toBeGreaterThan(0)
   })
 
-  test('Test commenting functionality on Market 10', async ({ page }) => {
+  test('Test commenting functionality on Market 10', async ({ page, baseURL }) => {
     console.log('🔍 Testing comments on Market 10...')
+    console.log('📍 Using baseURL:', baseURL)
 
-    await page.goto('https://frontend-kektech1.vercel.app/markets/10', {
+    await page.goto('/markets/10', {
       waitUntil: 'networkidle',
       timeout: 30000
     })
