@@ -324,23 +324,45 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
 
         // Save bet to database
         try {
-          const amount = parseFloat(betAmount)
+          const solAmount = parseFloat(betAmount)
+          const lamportsAmount = Math.floor(solAmount * LAMPORTS_PER_SOL)
+
+          // Calculate fees
+          const fees = calculateFees(solAmount)
+          const amountToPool = Math.floor(fees.netAmount * LAMPORTS_PER_SOL)
+          const platformFee = Math.floor(fees.platform * LAMPORTS_PER_SOL)
+          const creatorFee = Math.floor(fees.creator * LAMPORTS_PER_SOL)
+
+          // Insert bet
           const { error: dbError } = await supabase
             .from('bets')
             .insert({
-              user_wallet: publicKey.toBase58(),
+              bettor_wallet: publicKey.toBase58(),
               market_id: market.market_id,
-              outcome: selectedOutcome,
-              amount: amount,
-              shares: amount, // 1:1 for now
-              created_at: new Date().toISOString(),
-              claimed: false
+              bet_side: selectedOutcome,
+              amount: lamportsAmount,
+              amount_to_pool: amountToPool,
+              platform_fee: platformFee,
+              creator_fee: creatorFee,
+              odds_at_bet: selectedOutcome === 'YES' ? Math.floor(currentOdds.yes * 100) : Math.floor(currentOdds.no * 100),
+              claimed: false,
+              transaction_signature: result.txHash
             })
 
           if (dbError) {
             console.error('Failed to save bet to database:', dbError)
-            // Don't fail the whole operation if database save fails
-            // The bet is already on-chain which is what matters
+          } else {
+            // Update market pools
+            const poolField = selectedOutcome === 'YES' ? 'yes_pool' : 'no_pool'
+            const { error: poolError } = await supabase.rpc('increment_market_pool', {
+              p_market_id: market.market_id.toString(),
+              p_pool_field: poolField,
+              p_amount: amountToPool
+            })
+
+            if (poolError) {
+              console.error('Failed to update market pool:', poolError)
+            }
           }
         } catch (dbErr) {
           console.error('Database save error:', dbErr)
