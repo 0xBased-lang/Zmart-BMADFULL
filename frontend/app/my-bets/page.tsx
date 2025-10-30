@@ -62,11 +62,9 @@ export default function MyBetsPage() {
           market:markets!inner(
             title,
             status,
-            resolution,
-            resolved_at,
-            yes_amount,
-            no_amount,
-            total_amount
+            yes_pool,
+            no_pool,
+            total_volume
           )
         `)
         .eq('user_wallet', publicKey.toBase58())

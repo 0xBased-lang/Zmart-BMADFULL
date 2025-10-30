@@ -83,7 +83,7 @@ export function useUserProfile(walletAddress: string): UseUserProfileReturn {
           *,
           markets (
             id,
-            question,
+            title,
             status,
             winning_outcome
           )

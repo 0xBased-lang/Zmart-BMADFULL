@@ -43,14 +43,12 @@ export function useUserBets(walletAddress: string | null): UseUserBetsReturn {
           markets (
             id,
             market_id,
-            question,
+            title,
             status,
-            outcome,
             yes_pool,
             no_pool,
             total_volume,
-            end_date,
-            resolved_at
+            end_date
           )
         `)
         .eq('user_wallet', walletAddress)
