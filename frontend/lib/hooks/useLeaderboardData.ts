@@ -5,9 +5,9 @@ export interface LeaderboardEntry {
   wallet_address: string
   activity_points: number
   total_bets: number
-  win_rate: number
-  total_profit: number
-  total_volume: number
+  roi_percentage: number  // Was: win_rate
+  total_winnings: number   // Was: total_profit
+  total_volume_wagered: number  // Was: total_volume
   markets_created?: number
 }
 
@@ -87,9 +87,9 @@ export function useLeaderboardData(
           wallet_address: entry.creator_wallet,
           activity_points: 0, // Not available in creator_stats
           total_bets: 0, // Not available in creator_stats
-          win_rate: 0, // Not available in creator_stats
-          total_profit: 0, // Not available in creator_stats
-          total_volume: entry.creator_total_volume || 0,
+          roi_percentage: 0, // Not available in creator_stats
+          total_winnings: 0, // Not available in creator_stats
+          total_volume_wagered: entry.creator_total_volume || 0,
           markets_created: entry.markets_created || 0,
         }))
 
@@ -117,10 +117,10 @@ export function useLeaderboardData(
           // Minimum threshold of 10 bets for win rate leaderboard
           query = query
             .gte('total_bets', 10)
-            .order('win_rate', { ascending: false })
+            .order('roi_percentage', { ascending: false })
           break
         case 'volume':
-          query = query.order('total_volume', { ascending: false })
+          query = query.order('total_volume_wagered', { ascending: false })
           break
       }
 

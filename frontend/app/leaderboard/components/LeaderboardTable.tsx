@@ -21,9 +21,9 @@ export function LeaderboardTable({
       case 'points':
         return entry.activity_points?.toLocaleString() ?? '0'
       case 'win-rate':
-        return `${((entry.win_rate ?? 0) * 100).toFixed(1)}%`
+        return `${(entry.roi_percentage ?? 0).toFixed(1)}%`
       case 'volume':
-        return `${(entry.total_volume ?? 0).toFixed(2)} ZMart`
+        return `${((entry.total_volume_wagered ?? 0) / 1e9).toFixed(2)} SOL`
       case 'creators':
         return `${entry.markets_created ?? 0} markets`
     }
