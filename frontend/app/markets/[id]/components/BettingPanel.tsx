@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -48,6 +48,9 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
   const [isPlacingBet, setIsPlacingBet] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [transactionHash, setTransactionHash] = useState<string | null>(null)
+
+  // Prevent concurrent bet submissions
+  const isSubmittingRef = useRef(false)
 
   // Claim state
   const [hasClaimableBets, setHasClaimableBets] = useState(false)
@@ -304,6 +307,13 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
   const confirmBet = useCallback(async () => {
     if (!publicKey || !signTransaction || !selectedOutcome) return
 
+    // Prevent concurrent submissions
+    if (isSubmittingRef.current) {
+      console.log('Bet already in progress, ignoring duplicate call')
+      return
+    }
+
+    isSubmittingRef.current = true
     setIsPlacingBet(true)
     setBetError(null)
     setTransactionHash(null)
