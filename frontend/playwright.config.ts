@@ -40,8 +40,8 @@ export default defineConfig({
 
   // Global test configuration
   use: {
-    // Base URL for navigation
-    baseURL: 'http://localhost:3000',
+    // Base URL for navigation (configurable via environment variable)
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || process.env.E2E_BASE_URL || 'http://localhost:3000',
 
     // Trace on first retry for debugging
     trace: 'on-first-retry',

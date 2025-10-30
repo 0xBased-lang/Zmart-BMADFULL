@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test/diagnostic scripts with hardcoded keys (security)
+test-api.sh
+test-live-site.sh
+get-schema.sh
+insert-markets-complete.sh
+check-market-ids.sh
+check-bets-schema.sh
+list-tables.sh
+verify-comments.sh
+
+# playwright artifacts
+test-results/
+playwright-report/
+*.png
+*.webm
+
+# backup files
+*.bak
+*.backup
