@@ -379,7 +379,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
           console.error('Database save error:', dbErr)
         }
 
-        toast.success('Bet placed successfully!')
+          toast.success('Bet placed successfully!')
 
         // Reset form
         setBetAmount('')
