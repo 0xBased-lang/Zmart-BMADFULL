@@ -101,7 +101,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
         const { data: bets, error } = await supabase
           .from('bets')
           .select('*')
-          .eq('bettor_wallet', publicKey.toBase58())
+          .eq('user_wallet', publicKey.toBase58())
           .eq('market_id', market.market_id)
           .eq('claimed', false)
 
@@ -329,7 +329,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
             .from('bets')
             .insert({
               user_wallet: publicKey.toBase58(),
-              market_id: market.id,
+              market_id: market.market_id,
               outcome: selectedOutcome,
               amount: amount,
               shares: amount, // 1:1 for now

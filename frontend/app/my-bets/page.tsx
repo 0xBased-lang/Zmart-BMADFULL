@@ -25,9 +25,9 @@ interface Bet {
     status: string
     resolution: string | null
     resolved_at: string | null
-    yes_amount: number
-    no_amount: number
-    total_amount: number
+    yes_pool: number
+    no_pool: number
+    total_volume: number
   }
 }
 
@@ -67,7 +67,7 @@ export default function MyBetsPage() {
             total_volume
           )
         `)
-        .eq('bettor_wallet', publicKey.toBase58())
+        .eq('user_wallet', publicKey.toBase58())
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -108,8 +108,8 @@ export default function MyBetsPage() {
     if (!won) return 0
 
     // Calculate payout
-    const winningPool = market.resolution === 'yes' ? market.yes_amount : market.no_amount
-    const losingPool = market.resolution === 'yes' ? market.no_amount : market.yes_amount
+    const winningPool = market.resolution === 'yes' ? market.yes_pool : market.no_pool
+    const losingPool = market.resolution === 'yes' ? market.no_pool : market.yes_pool
 
     if (winningPool === 0) return 0
 

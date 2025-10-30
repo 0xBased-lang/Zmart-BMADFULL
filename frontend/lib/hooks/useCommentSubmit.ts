@@ -49,7 +49,7 @@ export function useCommentSubmit(): UseCommentSubmitReturn {
         body: JSON.stringify({
           marketId,
           commentText: text,
-          signature: Buffer.from(signature).toString('base64'),
+          signature: btoa(String.fromCharCode(...signature)),
           walletAddress: publicKey.toString(),
         }),
       })

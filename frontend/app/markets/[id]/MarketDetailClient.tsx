@@ -88,7 +88,7 @@ export function MarketDetailClient({ marketId, initialMarket }: MarketDetailClie
     // Use end_date (database column) or fall back to end_time (legacy)
     const endDate = market.end_date || market.end_time
     // Database uses uppercase status
-    const status = market.status.toUpperCase()
+    const status = (market.status || 'ACTIVE').toUpperCase()
 
     if (!endDate) {
       // If no end date, treat as active for now
