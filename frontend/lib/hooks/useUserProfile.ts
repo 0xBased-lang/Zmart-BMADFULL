@@ -88,7 +88,7 @@ export function useUserProfile(walletAddress: string): UseUserProfileReturn {
             winning_outcome
           )
         `)
-        .eq('user_wallet', walletAddress)
+        .eq('bettor_wallet', walletAddress)
         .order('created_at', { ascending: false })
         .limit(10)
 

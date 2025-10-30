@@ -88,7 +88,7 @@ export function ClaimWinnings() {
             status
           )
         `)
-        .eq('user_wallet', publicKey.toString())
+        .eq('bettor_wallet', publicKey.toString())
         .eq('markets.status', 'resolved')
         .eq('claimed', false)
 

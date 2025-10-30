@@ -115,7 +115,7 @@ export async function getUserAnalytics(userWallet: string): Promise<UserAnalytic
         *,
         markets (*)
       `)
-      .eq('user_wallet', userWallet)
+      .eq('bettor_wallet', userWallet)
       .order('created_at', { ascending: false })
 
     if (betsError) throw betsError

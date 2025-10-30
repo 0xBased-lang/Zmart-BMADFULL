@@ -82,7 +82,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
       const { data: betData, error: betError } = await supabase
         .from('bets')
         .select('bet_index')
-        .eq('user_wallet', publicKey.toBase58())
+        .eq('bettor_wallet', publicKey.toBase58())
         .eq('market_id', marketId)
         .single()
 
@@ -128,7 +128,7 @@ export function useClaimPayouts(): UseClaimPayoutsReturn {
       const { error: updateError } = await supabase
         .from('bets')
         .update({ claimed: true })
-        .eq('user_wallet', publicKey.toBase58())
+        .eq('bettor_wallet', publicKey.toBase58())
         .eq('market_id', marketId)
 
       if (updateError) {

@@ -140,7 +140,7 @@ export async function fetchUnreadNotifications(userWallet: string) {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_wallet', userWallet)
+      .eq('bettor_wallet', userWallet)
       .eq('read', false)
       .order('created_at', { ascending: false })
 
@@ -161,7 +161,7 @@ export async function markAllNotificationsAsRead(userWallet: string) {
     const { error } = await supabase
       .from('notifications')
       .update({ read: true })
-      .eq('user_wallet', userWallet)
+      .eq('bettor_wallet', userWallet)
       .eq('read', false)
 
     if (error) throw error

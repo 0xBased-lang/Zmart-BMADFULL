@@ -51,7 +51,7 @@ export function useUserBets(walletAddress: string | null): UseUserBetsReturn {
             end_date
           )
         `)
-        .eq('user_wallet', walletAddress)
+        .eq('bettor_wallet', walletAddress)
         .order('created_at', { ascending: false })
 
       if (betsError) throw betsError
@@ -212,7 +212,7 @@ export function useUserBets(walletAddress: string | null): UseUserBetsReturn {
           event: '*',
           schema: 'public',
           table: 'bets',
-          filter: `user_wallet=eq.${walletAddress}`
+          filter: `bettor_wallet=eq.${walletAddress}`
         },
         () => {
           // Refetch when bets change

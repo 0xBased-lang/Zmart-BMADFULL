@@ -101,7 +101,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
         const { data: bets, error } = await supabase
           .from('bets')
           .select('*')
-          .eq('user_wallet', publicKey.toBase58())
+          .eq('bettor_wallet', publicKey.toBase58())
           .eq('market_id', market.market_id)
           .eq('claimed', false)
 

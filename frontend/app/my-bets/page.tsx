@@ -67,7 +67,7 @@ export default function MyBetsPage() {
             total_volume
           )
         `)
-        .eq('user_wallet', publicKey.toBase58())
+        .eq('bettor_wallet', publicKey.toBase58())
         .order('created_at', { ascending: false })
 
       if (error) throw error
