@@ -87,12 +87,15 @@ export function MarketDetailClient({ marketId, initialMarket }: MarketDetailClie
     const now = Date.now()
     // Use end_date (database column) or fall back to end_time (legacy)
     const endDate = market.end_date || market.end_time
+    // Database uses uppercase status
+    const status = market.status.toUpperCase()
+
     if (!endDate) {
       // If no end date, treat as active for now
       return {
-        isActive: market.status === 'active',
-        isResolved: market.status === 'resolved',
-        isCancelled: market.status === 'cancelled',
+        isActive: status === 'ACTIVE',
+        isResolved: status === 'RESOLVED',
+        isCancelled: status === 'CANCELLED',
         isExpired: false,
         timeLeft: Infinity,
         endingSoon: false,
@@ -104,10 +107,10 @@ export function MarketDetailClient({ marketId, initialMarket }: MarketDetailClie
     const timeLeft = endTime - now
 
     return {
-      isActive: market.status === 'active' && timeLeft > 0,
-      isResolved: market.status === 'resolved',
-      isCancelled: market.status === 'cancelled',
-      isExpired: timeLeft <= 0 && market.status === 'active',
+      isActive: status === 'ACTIVE' && timeLeft > 0,
+      isResolved: status === 'RESOLVED',
+      isCancelled: status === 'CANCELLED',
+      isExpired: timeLeft <= 0 && status === 'ACTIVE',
       timeLeft,
       endingSoon: timeLeft > 0 && timeLeft < 24 * 60 * 60 * 1000, // <24 hours
       justCreated: now - new Date(market.created_at).getTime() < 60 * 60 * 1000 // <1 hour
