@@ -333,7 +333,7 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
           const platformFee = Math.floor(fees.platform * LAMPORTS_PER_SOL)
           const creatorFee = Math.floor(fees.creator * LAMPORTS_PER_SOL)
 
-          // Insert bet
+          // Insert bet with explicit timestamp
           const { error: dbError } = await supabase
             .from('bets')
             .insert({
@@ -346,7 +346,8 @@ export function BettingPanel({ market, marketStatus, currentOdds, isMobile }: Be
               creator_fee: creatorFee,
               odds_at_bet: selectedOutcome === 'YES' ? Math.floor(currentOdds.yes * 100) : Math.floor(currentOdds.no * 100),
               claimed: false,
-              transaction_signature: result.txHash
+              transaction_signature: result.txHash,
+              timestamp: new Date().toISOString()
             })
 
           if (dbError) {
