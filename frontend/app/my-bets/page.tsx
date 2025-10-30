@@ -13,14 +13,16 @@ import { useClaimPayouts } from '@/lib/hooks/useClaimPayouts'
 import toast from 'react-hot-toast'
 
 interface Bet {
-  bet_id: number
+  id: number
   market_id: number
-  user_wallet: string
-  prediction: 'yes' | 'no'
+  bettor_wallet: string
+  bet_side: 'YES' | 'NO'
   amount: number
   claimed: boolean
-  created_at: string
-  market: {
+  timestamp: string
+  markets: {
+    id: number
+    market_id: number
     title: string
     status: string
     resolution: string | null
@@ -28,6 +30,7 @@ interface Bet {
     yes_pool: number
     no_pool: number
     total_volume: number
+    end_date: string
   }
 }
 
@@ -59,16 +62,19 @@ export default function MyBetsPage() {
         .from('bets')
         .select(`
           *,
-          market:markets!inner(
+          markets!inner(
+            id,
+            market_id,
             title,
             status,
             yes_pool,
             no_pool,
-            total_volume
+            total_volume,
+            end_date
           )
         `)
-        .eq('user_wallet', publicKey.toBase58())
-        .order('created_at', { ascending: false })
+        .eq('bettor_wallet', publicKey.toBase58())
+        .order('timestamp', { ascending: false })
 
       if (error) throw error
 
@@ -97,19 +103,19 @@ export default function MyBetsPage() {
   }
 
   const calculatePayout = (bet: Bet): number => {
-    const market = bet.market
+    const market = bet.markets
     if (!market || market.status !== 'resolved' || !market.resolution) {
       return 0
     }
 
     // Check if user won
-    const won = market.resolution === bet.prediction
+    const won = market.resolution?.toUpperCase() === bet.bet_side
 
     if (!won) return 0
 
-    // Calculate payout
-    const winningPool = market.resolution === 'yes' ? market.yes_pool : market.no_pool
-    const losingPool = market.resolution === 'yes' ? market.no_pool : market.yes_pool
+    // Calculate payout (amounts in lamports)
+    const winningPool = market.resolution?.toUpperCase() === 'YES' ? market.yes_pool : market.no_pool
+    const losingPool = market.resolution?.toUpperCase() === 'YES' ? market.no_pool : market.yes_pool
 
     if (winningPool === 0) return 0
 
@@ -117,13 +123,14 @@ export default function MyBetsPage() {
     const shareOfWinningPool = bet.amount / winningPool
     const profitFromLosingPool = losingPool * shareOfWinningPool
 
-    return bet.amount + profitFromLosingPool
+    // Return in SOL
+    return (bet.amount + profitFromLosingPool) / 1e9
   }
 
   const isClaimable = (bet: Bet): boolean => {
     return (
-      bet.market.status === 'resolved' &&
-      bet.market.resolution === bet.prediction &&
+      bet.markets.status === 'resolved' &&
+      bet.markets.resolution?.toUpperCase() === bet.bet_side &&
       !bet.claimed
     )
   }
@@ -155,8 +162,8 @@ export default function MyBetsPage() {
     )
   }
 
-  const activeBets = bets.filter(b => b.market.status === 'active')
-  const resolvedBets = bets.filter(b => b.market.status === 'resolved')
+  const activeBets = bets.filter(b => b.markets.status === 'ACTIVE')
+  const resolvedBets = bets.filter(b => b.markets.status === 'RESOLVED')
   const claimableBets = resolvedBets.filter(isClaimable)
 
   return (
@@ -198,18 +205,18 @@ export default function MyBetsPage() {
 
                 return (
                   <div
-                    key={bet.bet_id}
+                    key={bet.id}
                     className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 backdrop-blur rounded-lg p-6 border border-green-700"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white mb-2">{bet.market.title}</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{bet.markets.title}</h3>
                         <div className="flex gap-4 text-sm text-gray-400">
-                          <span>Bet: {bet.amount.toFixed(2)} SOL on {bet.prediction.toUpperCase()}</span>
+                          <span>Bet: {(bet.amount / 1e9).toFixed(2)} SOL on {bet.bet_side}</span>
                           <span>•</span>
                           <span>Payout: {payout.toFixed(2)} SOL</span>
                           <span>•</span>
-                          <span className="text-green-400 font-bold">Profit: +{(payout - bet.amount).toFixed(2)} SOL</span>
+                          <span className="text-green-400 font-bold">Profit: +{(payout - bet.amount / 1e9).toFixed(2)} SOL</span>
                         </div>
                       </div>
                       <button
@@ -234,20 +241,20 @@ export default function MyBetsPage() {
             <div className="space-y-4">
               {activeBets.map((bet) => (
                 <div
-                  key={bet.bet_id}
+                  key={bet.id}
                   className="bg-gray-800/50 backdrop-blur rounded-lg p-6 border border-gray-700"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">{bet.market.title}</h3>
+                      <h3 className="text-xl font-bold text-white mb-2">{bet.markets.title}</h3>
                       <div className="flex gap-4 text-sm text-gray-400">
-                        <span>Amount: {bet.amount.toFixed(2)} SOL</span>
+                        <span>Amount: {(bet.amount / 1e9).toFixed(2)} SOL</span>
                         <span>•</span>
-                        <span className={bet.prediction === 'yes' ? 'text-green-400' : 'text-red-400'}>
-                          Prediction: {bet.prediction.toUpperCase()}
+                        <span className={bet.bet_side === 'YES' ? 'text-green-400' : 'text-red-400'}>
+                          Prediction: {bet.bet_side}
                         </span>
                         <span>•</span>
-                        <span>{new Date(bet.created_at).toLocaleDateString()}</span>
+                        <span>{new Date(bet.timestamp).toLocaleDateString()}</span>
                       </div>
                     </div>
                     <button
@@ -269,23 +276,23 @@ export default function MyBetsPage() {
             <h2 className="text-2xl font-bold text-white mb-4">📊 Resolved Bets</h2>
             <div className="space-y-4">
               {resolvedBets.filter(b => !isClaimable(b)).map((bet) => {
-                const won = bet.market.resolution === bet.prediction
-                const lost = bet.market.resolution && bet.market.resolution !== bet.prediction
+                const won = bet.markets.resolution?.toUpperCase() === bet.bet_side
+                const lost = bet.markets.resolution && bet.markets.resolution?.toUpperCase() !== bet.bet_side
 
                 return (
                   <div
-                    key={bet.bet_id}
+                    key={bet.id}
                     className={`bg-gray-800/50 backdrop-blur rounded-lg p-6 border ${
                       won ? 'border-green-700' : lost ? 'border-red-700' : 'border-gray-700'
                     }`}
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-xl font-bold text-white mb-2">{bet.market.title}</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{bet.markets.title}</h3>
                         <div className="flex gap-4 text-sm text-gray-400">
-                          <span>Bet: {bet.amount.toFixed(2)} SOL on {bet.prediction.toUpperCase()}</span>
+                          <span>Bet: {(bet.amount / 1e9).toFixed(2)} SOL on {bet.bet_side}</span>
                           <span>•</span>
-                          <span>Result: {bet.market.resolution?.toUpperCase()}</span>
+                          <span>Result: {bet.markets.resolution?.toUpperCase()}</span>
                           <span>•</span>
                           <span className={won ? 'text-green-400 font-bold' : lost ? 'text-red-400' : 'text-gray-400'}>
                             {won && bet.claimed ? '✓ Claimed' : won ? '✓ Won' : lost ? '✗ Lost' : 'Pending'}
